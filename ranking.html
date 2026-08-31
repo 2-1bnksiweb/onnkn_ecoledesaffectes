@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最速脱出ランキング</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body class="bg-gray-900 text-white p-6 font-sans">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold text-center text-yellow-400 mb-10 tracking-widest">TOP RANKING</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg border-t-4 border-blue-500">
+                <h2 class="text-2xl font-bold text-blue-400 mb-4 border-b border-gray-700 pb-2">【初回】挑戦者ランキング</h2>
+                <ul id="first-timer-list" class="space-y-3"><p class="text-gray-400">データ集計中...</p></ul>
+            </div>
+            <div id="repeater-section" class="bg-gray-800 p-6 rounded-lg shadow-lg border-t-4 border-pink-500 hidden">
+                <h2 class="text-2xl font-bold text-pink-400 mb-4 border-b border-gray-700 pb-2">【2回目以降】猛者ランキング</h2>
+                <ul id="repeater-list" class="space-y-3"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        db.collection('settings').doc('config').onSnapshot(doc => {
+            if(doc.exists && doc.data().showRepeaters) {
+                document.getElementById('repeater-section').style.display = 'block';
+            } else {
+                document.getElementById('repeater-section').style.display = 'none';
+            }
+        });
+
+        db.collection('times').onSnapshot(snapshot => {
+            const firstTimers = {}, repeaters = {};
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if(data.count === 1) {
+                    if(!firstTimers[data.teamName] || firstTimers[data.teamName].time > data.time) firstTimers[data.teamName] = data;
+                } else {
+                    if(!repeaters[data.teamName] || repeaters[data.teamName].time > data.time) repeaters[data.teamName] = data;
+                }
+            });
+            renderList('first-timer-list', Object.values(firstTimers));
+            renderList('repeater-list', Object.values(repeaters));
+        });
+
+        function renderList(elementId, dataArray) {
+            const list = document.getElementById(elementId);
+            list.innerHTML = '';
+            dataArray.sort((a, b) => a.time - b.time).slice(0, 10).forEach((data, index) => {
+                const li = document.createElement('li');
+                li.className = "flex justify-between items-center bg-gray-700 p-3 rounded";
+                let rankStyle = "text-xl font-bold ";
+                if(index === 0) rankStyle += "text-yellow-400";
+                else if(index === 1) rankStyle += "text-gray-300";
+                else if(index === 2) rankStyle += "text-orange-400";
+                
+                const countBadge = data.count > 1 ? `<span class="text-xs bg-pink-600 px-2 py-1 rounded ml-2">${data.count}回目</span>` : '';
+                li.innerHTML = `
+                    <div class="flex items-center"><span class="w-8 ${rankStyle}">${index + 1}</span><span class="font-bold text-lg">${data.teamName}</span>${countBadge}</div>
+                    <span class="font-mono text-xl text-green-400">${formatTime(data.time)}</span>
+                `;
+                list.appendChild(li);
+            });
+            if(dataArray.length === 0) list.innerHTML = '<p class="text-gray-400">まだ記録がありません</p>';
+        }
+
+        function formatTime(ms) {
+            const m = Math.floor(ms / 60000).toString().padStart(2, '0');
+            const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
+            const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0');
+            return `${m}:${s}.${c}`;
+        }
+    </script>
+</body>
+</html>
