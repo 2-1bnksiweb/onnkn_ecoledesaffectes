@@ -8,13 +8,20 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
-    <!-- ホラー用フォント (Google Fonts) -->
+    
+    <!-- 予備のホラーフォント (Google Fonts) -->
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap" rel="stylesheet">
     
     <style>
-        /* 全体のホラー設定 */
+        /* 怨霊フォントの読み込み */
+        @font-face {
+            font-family: 'Onryou';
+            src: url('onryou.ttf') format('truetype');
+        }
+
+        /* 全体のホラー設定 (怨霊フォントを優先) */
         body { 
-            font-family: 'Shippori Mincho', serif; 
+            font-family: 'Onryou', 'Shippori Mincho', serif; 
             background-color: #050505; 
             color: #e5e5e5; 
             overflow-x: hidden; 
@@ -28,11 +35,15 @@
             overflow: hidden; display: flex; flex-direction: column; 
         }
         
-        /* 手形のスタイル */
+        /* 手形のスタイル (画像用) */
         .handprint { 
-            position: absolute; width: 80px; height: 80px; 
-            opacity: 0; transform: scale(0.5); 
+            position: absolute; 
+            opacity: 0; 
+            transform: scale(0.5); 
             animation: stamp 0.15s forwards; 
+            /* 少し赤黒く発光させる */
+            filter: drop-shadow(0px 0px 5px rgba(136,0,0,0.8));
+            pointer-events: none;
         }
         @keyframes stamp { to { opacity: 0.9; transform: scale(1); } }
         
@@ -46,90 +57,78 @@
         /* -------------------------
            メイン画面のデザイン装飾
            ------------------------- */
-        /* 背景のうっすらとした血痕 */
         .blood-splatter { 
             position: absolute; 
             background-image: radial-gradient(circle, #5a0000 0%, transparent 60%); 
             opacity: 0.25; border-radius: 50%; pointer-events: none; z-index: -1; 
         }
-        /* テキストの赤い影 */
         .shadow-red { text-shadow: 0 0 15px #ff0000; }
         .shadow-btn { box-shadow: 0 4px 15px rgba(136, 0, 0, 0.5); }
     </style>
 </head>
 <body class="relative">
 
-    <!-- 1. オープニング演出レイヤー -->
+    <!-- オープニング演出レイヤー -->
     <div id="opening">
         <div id="blood-screen"></div>
     </div>
 
-    <!-- 2. メイン画面 (最初は透明) -->
+    <!-- メイン画面 (最初は透明) -->
     <div id="main-content" class="max-w-md mx-auto p-6 min-h-screen relative opacity-0 transition-opacity duration-1000">
         
-        <!-- 背景の血痕 -->
         <div class="blood-splatter w-64 h-64 top-10 -left-10"></div>
         <div class="blood-splatter w-80 h-80 bottom-10 -right-20"></div>
 
-        <!-- ヘッダー -->
         <header class="flex justify-between items-center border-b border-red-900 pb-3 mb-8 text-gray-400 font-sans">
             <span class="tracking-widest">2-1 教室発表</span>
-            <!-- メニューボタン (スタッフ用へのリンク開閉) -->
             <button onclick="toggleMenu()" class="text-3xl hover:text-white">☰</button>
         </header>
 
-        <!-- 隠しメニュー (スタッフ・管理者用) -->
         <div id="nav-menu" class="hidden flex-col bg-gray-900 p-4 rounded border border-red-900 mb-6 space-y-3 font-sans text-sm">
             <a href="timeattack.html" class="text-red-400 hover:text-red-300">✝ スタッフ用: タイム計測＆謎発動</a>
             <a href="admin.html" class="text-red-400 hover:text-red-300">✝ 管理者設定</a>
         </div>
 
-        <!-- タイトル -->
         <div class="text-center mb-10 mt-8">
-            <div class="flex justify-center space-x-6 text-xs text-red-600 mb-2 tracking-widest font-bold">
+            <div class="flex justify-center space-x-6 text-xs text-red-600 mb-2 tracking-widest font-bold font-sans">
                 <span>おののけ</span>
                 <span>エコールデサフェクテ</span>
             </div>
             <h1 class="text-5xl font-black text-white tracking-widest shadow-red mb-2" id="story-title">恐怖の廃校</h1>
         </div>
 
-        <!-- あらすじ -->
         <div class="mb-10 text-center">
             <p class="text-red-500 mb-4 text-lg">〜 あらすじ 〜</p>
-            <!-- ぐにゃぐにゃ波線の代わりの装飾線 -->
             <svg class="w-full h-4 text-red-900 mb-4" fill="none" stroke="currentColor" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M0,5 Q25,0 50,5 T100,5 T150,5 T200,5" stroke-width="1"></path></svg>
             
-            <p id="story-text" class="text-sm text-gray-300 leading-loose px-4">
+            <p id="story-text" class="text-xl text-gray-300 leading-loose px-4">
                 読込中...
             </p>
             
             <svg class="w-full h-4 text-red-900 mt-4" fill="none" stroke="currentColor" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M0,5 Q25,10 50,5 T100,5 T150,5 T200,5" stroke-width="1"></path></svg>
         </div>
 
-        <!-- 予約ボタン -->
         <div class="mb-10 text-center px-2">
-            <h2 class="text-xl text-red-500 mb-4 tracking-widest font-bold">予約</h2>
-            <p class="text-xs text-gray-400 mb-1">下のボタンから予約をすることができます。</p>
-            <p class="text-xs text-gray-400 mb-3">前日でも当日でも予約可能です。</p>
-            <a href="#" class="inline-block mb-4 text-xs text-blue-500 hover:text-blue-400 underline decoration-blue-500">詳しいやり方、注意点はこちらから</a>
+            <h2 class="text-2xl text-red-500 mb-4 tracking-widest font-bold">予約</h2>
+            <p class="text-sm text-gray-400 mb-1">下のボタンから予約をすることができます。</p>
+            <p class="text-sm text-gray-400 mb-3">前日でも当日でも予約可能です。</p>
+            <a href="#" class="inline-block mb-4 text-sm text-blue-500 hover:text-blue-400 underline decoration-blue-500">詳しいやり方、注意点はこちらから</a>
             
-            <a href="ticket.html" class="block w-full py-4 bg-red-900 border border-red-700 text-white text-xl font-bold hover:bg-red-800 transition tracking-widest shadow-btn">
+            <a href="ticket.html" class="block w-full py-4 bg-red-900 border border-red-700 text-white text-2xl hover:bg-red-800 transition tracking-widest shadow-btn">
                 予約 はこちらから
             </a>
         </div>
 
-        <!-- ランキングボタン -->
         <div class="mb-8 text-center px-2">
-            <h2 class="text-xl text-red-500 mb-4 tracking-widest font-bold">ランキング</h2>
-            <p class="text-xs text-gray-400 mb-4">上位TOP3まで表示されます</p>
-            <a href="ranking.html" class="block w-full py-4 bg-gray-800 border border-gray-600 text-white text-lg font-bold hover:bg-gray-700 transition tracking-widest">
+            <h2 class="text-2xl text-red-500 mb-4 tracking-widest font-bold">ランキング</h2>
+            <p class="text-sm text-gray-400 mb-4">上位TOP3まで表示されます</p>
+            <a href="ranking.html" class="block w-full py-4 bg-gray-800 border border-gray-600 text-white text-xl hover:bg-gray-700 transition tracking-widest">
                 ランキングはこちらから
             </a>
         </div>
     </div>
 
     <script>
-        // あらすじ読み込み
         db.collection('settings').doc('config').onSnapshot(doc => {
             if(doc.exists) {
                 const data = doc.data();
@@ -138,7 +137,6 @@
             }
         });
 
-        // ☰メニューの開閉
         function toggleMenu() {
             const menu = document.getElementById('nav-menu');
             menu.classList.toggle('hidden');
@@ -150,36 +148,37 @@
         // ==========================================
         window.onload = () => {
             
-            // ※毎回血が出るのが鬱陶しい場合は、以下の「/*」と「*/」を消すと「1回だけ」になります。
-            /*
+            // 【変更点】ブラウザを閉じるまで1度しか再生されないようにする設定
             if (sessionStorage.getItem('opened')) {
                 document.getElementById('opening').style.display = 'none';
                 document.getElementById('main-content').style.opacity = '1';
                 return;
             }
             sessionStorage.setItem('opened', 'true');
-            */
 
             const opening = document.getElementById('opening');
             const bloodScreen = document.getElementById('blood-screen');
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            const maxCount = 25; // 登場する手形の数
-            let delay = 700; // 最初は0.7秒ごと
-
-            // 手形のベクター画像(SVG)コード
-            const handSvg = `<svg viewBox="0 0 512 512" fill="#880000" style="filter: drop-shadow(0px 0px 4px #ff0000);"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V240c0 8.8-7.2 16-16 16s-16-7.2-16-16V64c0-17.7-14.3-32-32-32s-32 14.3-32 32V240c0 8.8-7.2 16-16 16s-16-7.2-16-16V112c0-17.7-14.3-32-32-32s-32 14.3-32 32V256c0 40 18.5 77.5 50.1 102.5l5.5 4.3c21 16.5 33.3 41.5 34.3 68.2l2 51c1.2 32.5 28 58 60.6 58h43.1c32.6 0 59.4-25.5 60.6-58l2-51c1-26.7 13.3-51.7 34.3-68.2l5.5-4.3c31.6-25 50.1-62.5 50.1-102.5V176c0-17.7-14.3-32-32-32s-32 14.3-32 32V256c0 8.8-7.2 16-16 16s-16-7.2-16-16V32z"/></svg>`;
+            // 手形が大きいのですぐ画面が埋まるよう、数を少し減らしています
+            const maxCount = 18; 
+            let delay = 700;
 
             function showHand() {
-                const hand = document.createElement('div');
+                // 画像(hand.png)を生成
+                const hand = document.createElement('img');
+                hand.src = 'hand.png'; // 用意した画像ファイル
                 hand.className = 'handprint';
-                hand.innerHTML = handSvg;
+                
+                // 大きめのサイズ（横幅150px 〜 300pxの間でランダム）
+                const size = 150 + (Math.random() * 150); 
+                hand.style.width = `${size}px`;
                 
                 // 画面内のランダムな位置と角度に配置
                 const x = Math.random() * 80; 
                 const y = Math.random() * 85; 
-                const rotate = (Math.random() * 90) - 45; // 傾き
+                const rotate = (Math.random() * 90) - 45; 
                 
                 hand.style.left = `${x}%`;
                 hand.style.top = `${y}%`;
@@ -189,36 +188,25 @@
                 count++;
                 
                 if (count < maxCount) {
-                    // スピードをだんだん速くする（0.85倍ずつ短縮）
                     delay = Math.max(40, delay * 0.85); 
                     setTimeout(showHand, delay);
                 } else {
-                    // ① 画面を真っ赤にする
                     setTimeout(() => {
                         bloodScreen.style.opacity = '1';
-                        
-                        // ② 下に垂れる（落ちる）アニメーション
                         setTimeout(() => {
-                            // 垂れる動き(イージング)と、上を丸めて液体っぽく見せる
                             opening.style.transition = "transform 1.2s cubic-bezier(0.5, 0, 1, 0.5), border-radius 1.2s";
                             opening.style.transform = "translateY(100%)";
                             opening.style.borderTopLeftRadius = "50% 15%";
                             opening.style.borderTopRightRadius = "50% 15%";
                             
-                            // 裏でメイン画面をフワッと表示
                             mainContent.style.opacity = '1';
                             
-                            // ③ アニメーション完了後に要素を削除
-                            setTimeout(() => {
-                                opening.style.display = 'none';
-                            }, 1200);
-                            
-                        }, 500); // 真っ赤になってから垂れるまでのタメ
-                    }, 300); // 最後の血から真っ赤になるまでのタメ
+                            setTimeout(() => { opening.style.display = 'none'; }, 1200);
+                        }, 500);
+                    }, 300);
                 }
             }
             
-            // ページを開いてから0.5秒後に開始
             setTimeout(showHand, 500);
         };
     </script>
