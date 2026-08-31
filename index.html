@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脱出ゲーム - HOME</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="max-w-3xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg text-center">
+        <h1 id="story-title" class="text-4xl font-bold text-blue-600 mb-4">読込中...</h1>
+        <p id="story-text" class="text-lg mb-6 text-gray-700 leading-relaxed">あらすじを読み込んでいます...</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            <a href="ticket.html" class="block p-4 bg-blue-500 text-white rounded shadow hover:bg-blue-600 text-xl font-bold">整理券を取得する</a>
+            <a href="ranking.html" class="block p-4 bg-yellow-500 text-white rounded shadow hover:bg-yellow-600 text-xl font-bold">ランキングを見る</a>
+        </div>
+        
+        <div class="mt-12 text-sm text-gray-500 border-t pt-4">
+            <p class="mb-2">※スタッフ専用</p>
+            <a href="timeattack.html" class="mr-4 hover:underline">タイム計測＆謎発動</a>
+            <a href="admin.html" class="hover:underline">管理者設定</a>
+        </div>
+    </div>
+
+    <script>
+        db.collection('settings').doc('config').onSnapshot(doc => {
+            if(doc.exists) {
+                const data = doc.data();
+                document.getElementById('story-title').innerText = data.storyTitle || "謎解き＆タイムアタック！";
+                document.getElementById('story-text').innerHTML = (data.storyText || "制限時間内に謎を解き、脱出せよ！").replace(/\n/g, '<br>');
+            }
+        });
+    </script>
+</body>
+</html>
