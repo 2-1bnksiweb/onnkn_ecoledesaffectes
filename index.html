@@ -65,7 +65,7 @@
         
         #blood-screen { 
             position: absolute; inset: 0; background: #660000; 
-            opacity: 0; transition: opacity 0.15s; z-index: 10000; 
+            opacity: 0; transition: opacity 0.2s; z-index: 10000; 
             pointer-events: none;
         }
 
@@ -84,7 +84,7 @@
         <div id="blood-screen"></div>
     </div>
 
-    <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-500 flex flex-col justify-center">
+    <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center">
         
         <div class="blood-splatter w-64 h-64 top-10 -left-10"></div>
         <div class="blood-splatter w-80 h-80 bottom-10 -right-20"></div>
@@ -156,7 +156,7 @@
         }
 
         // ========================================================
-        // 🩸 超高速＆キレ重視オープニング（約3.5秒完了）
+        // 🩸 オープニング演出（手形超高速 ＆ 血の滴り重厚版）
         // ========================================================
         window.onload = () => {
             const opening = document.getElementById('opening');
@@ -199,13 +199,12 @@
 
             function runLoop() {
                 let batchSize = 1;
-                let nextDelay = 320; // 最初のテンポをスピーディに（320ms）
+                let nextDelay = 320; // 最初の中央はテンポよく開始
 
                 if (count >= 5) {
                     // 5個目以降：一瞬で爆発的に加速
                     const progress = (count - 5) / (maxCount - 5);
                     nextDelay = Math.max(8, 160 * Math.pow(1 - progress, 3));
-                    // 1回で最大25個同時にスタンプして超速ラッシュ
                     batchSize = Math.min(maxCount - count, Math.floor(2 + (progress * progress * 24)));
                 }
 
@@ -218,22 +217,23 @@
                 if (count < maxCount) {
                     setTimeout(runLoop, nextDelay);
                 } else {
-                    // 200個完了 → 瞬時に真っ赤へ（0.12秒）
+                    // 200個完了 → 画面が真っ赤に染まる
                     bloodScreen.style.opacity = '1';
+                    
+                    // 少しタメを作ってから、ドロッと重厚に垂れ落ちる
                     setTimeout(() => {
-                        // 高速でドロっと下に流れ落ちる（0.65秒）
-                        opening.style.transition = "transform 0.65s cubic-bezier(0.4, 0, 0.8, 0.2), border-radius 0.65s";
+                        // 【変更】垂れ落ちる時間を「1.2秒」に伸ばし、液体がネットリ落ちるイージングを適用
+                        opening.style.transition = "transform 1.2s cubic-bezier(0.5, 0, 0.85, 0.3), border-radius 1.2s";
                         opening.style.transform = "translateY(100%)";
                         opening.style.borderTopLeftRadius = "50% 15%";
                         opening.style.borderTopRightRadius = "50% 15%";
                         
                         mainContent.style.opacity = '1';
-                        setTimeout(() => { opening.style.display = 'none'; }, 650);
-                    }, 120);
+                        setTimeout(() => { opening.style.display = 'none'; }, 1200);
+                    }, 200);
                 }
             }
 
-            // 0.1秒後に即スタート
             setTimeout(runLoop, 100);
         };
     </script>
