@@ -13,11 +13,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
     
-    <!-- 予備のホラー・筆文字フォント (Google Fonts) -->
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&display=swap" rel="stylesheet">
     
     <style>
-        /* 怨霊フォントの読み込み強化 (大文字・小文字両対応) */
         @font-face {
             font-family: 'OnryouFont';
             src: url('home/onryu.ttf') format('truetype'),
@@ -28,7 +26,6 @@
             font-display: swap;
         }
 
-        /* サイト全体に怨霊フォントを優先適用（読めない場合は毛筆ホラーフォントへフォールバック） */
         body, h1, h2, p, span, a, button { 
             font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
         }
@@ -55,8 +52,8 @@
             width: 100%; 
             height: auto;
             opacity: 0; 
-            transform: scale(0.5); 
-            animation: stampIn 0.12s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; 
+            transform: scale(0.6); 
+            animation: stampIn 0.1s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; 
             filter: drop-shadow(0px 0px 8px rgba(255, 0, 0, 0.8));
         }
         @keyframes stampIn { 
@@ -68,7 +65,7 @@
         
         #blood-screen { 
             position: absolute; inset: 0; background: #660000; 
-            opacity: 0; transition: opacity 0.3s; z-index: 10000; 
+            opacity: 0; transition: opacity 0.25s; z-index: 10000; 
             pointer-events: none;
         }
 
@@ -87,7 +84,7 @@
         <div id="blood-screen"></div>
     </div>
 
-    <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-1000 flex flex-col justify-center">
+    <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center">
         
         <div class="blood-splatter w-64 h-64 top-10 -left-10"></div>
         <div class="blood-splatter w-80 h-80 bottom-10 -right-20"></div>
@@ -158,29 +155,31 @@
             menu.classList.toggle('flex');
         }
 
-        // ==========================================
-        // 🩸 アニメーション（緩急つき）
-        // ==========================================
+        // ========================================================
+        // 🩸 200個・全体6秒・緩急つきオープニングアニメーション
+        // ========================================================
         window.onload = () => {
             const opening = document.getElementById('opening');
             const bloodScreen = document.getElementById('blood-screen');
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            const maxCount = 70; // 画面を覆い尽くす総数
+            const maxCount = 200; // 【ご要望】合計200個
 
-            function showHand() {
+            // 1個の手形を生成して画面に押す関数
+            function stampOne() {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'hand-wrapper';
                 
-                const size = 180 + (Math.random() * 240); 
+                const size = 160 + (Math.random() * 260); 
                 wrapper.style.width = `${size}px`;
                 
                 const rotate = Math.floor(Math.random() * 360); 
                 const flip = Math.random() > 0.5 ? -1 : 1; 
                 
-                const x = -15 + (Math.random() * 110); 
-                const y = -15 + (Math.random() * 110); 
+                // 画面外側の黒い隙間も完全に覆い尽くす座標範囲
+                const x = -20 + (Math.random() * 125); 
+                const y = -20 + (Math.random() * 125); 
                 
                 wrapper.style.left = `${x}%`;
                 wrapper.style.top = `${y}%`;
@@ -192,37 +191,47 @@
                 
                 wrapper.appendChild(img);
                 opening.appendChild(wrapper);
-                count++;
-                
+            }
+
+            // ループ処理（緩急をコントロール）
+            function runLoop() {
+                let batchSize = 1;
+                let nextDelay = 666; // 最初の5個は2秒で3個ペース（666ms）
+
+                if (count >= 5) {
+                    // 5個目以降：急速に加速しつつ同時発生数を爆発的に増やす
+                    const progress = (count - 5) / (maxCount - 5);
+                    nextDelay = Math.max(12, 500 * Math.pow(1 - progress, 3));
+                    // 同時に出す数を 1個 -> 最大16個 に増やして隙間を一掃
+                    batchSize = Math.min(maxCount - count, Math.floor(1 + (progress * progress * 16)));
+                }
+
+                for (let i = 0; i < batchSize; i++) {
+                    if (count >= maxCount) break;
+                    stampOne();
+                    count++;
+                }
+
                 if (count < maxCount) {
-                    let nextDelay;
-                    // 【ご要望】最初の5個は2秒で3個ペース（約666ms）
-                    if (count < 5) {
-                        nextDelay = 666;
-                    } else {
-                        // 5個目以降、急激にスピードアップして画面を埋め尽くす！
-                        const progress = (count - 5) / (maxCount - 5);
-                        nextDelay = Math.max(15, 666 * Math.pow(1 - progress, 2.2));
-                    }
-                    setTimeout(showHand, nextDelay);
+                    setTimeout(runLoop, nextDelay);
                 } else {
+                    // 200個完了 → 全画面赤フェード（約0.25秒）
+                    bloodScreen.style.opacity = '1';
                     setTimeout(() => {
-                        bloodScreen.style.opacity = '1';
-                        setTimeout(() => {
-                            opening.style.transition = "transform 1.2s cubic-bezier(0.5, 0, 1, 0.5), border-radius 1.2s";
-                            opening.style.transform = "translateY(100%)";
-                            opening.style.borderTopLeftRadius = "50% 15%";
-                            opening.style.borderTopRightRadius = "50% 15%";
-                            
-                            mainContent.style.opacity = '1';
-                            setTimeout(() => { opening.style.display = 'none'; }, 1200);
-                        }, 500);
-                    }, 300);
+                        // 垂れ落ちるアニメーション（約1.0秒）
+                        opening.style.transition = "transform 1.0s cubic-bezier(0.5, 0, 1, 0.5), border-radius 1.0s";
+                        opening.style.transform = "translateY(100%)";
+                        opening.style.borderTopLeftRadius = "50% 15%";
+                        opening.style.borderTopRightRadius = "50% 15%";
+                        
+                        mainContent.style.opacity = '1';
+                        setTimeout(() => { opening.style.display = 'none'; }, 1000);
+                    }, 250);
                 }
             }
-            
-            // 最初の1個目を開始
-            setTimeout(showHand, 300);
+
+            // 開始（0.2秒後スタート）
+            setTimeout(runLoop, 200);
         };
     </script>
 </body>
