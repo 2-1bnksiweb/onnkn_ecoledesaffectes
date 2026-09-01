@@ -16,7 +16,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap" rel="stylesheet">
     
     <style>
-        /* 怨霊フォントの読み込み */
         @font-face {
             font-family: 'Onryou';
             src: url('onryou.ttf') format('truetype');
@@ -35,15 +34,28 @@
             overflow: hidden; display: flex; flex-direction: column; 
         }
         
-        /* 手形のスタイル */
-        .handprint { 
+        /* 手形の回転と位置を管理する親枠 */
+        .hand-wrapper { 
             position: absolute; 
-            opacity: 0; 
-            transform: scale(0.6); 
-            animation: stamp 0.12s forwards; 
             pointer-events: none;
+            z-index: 9999;
         }
-        @keyframes stamp { to { opacity: 0.95; transform: scale(1); } }
+        
+        /* 手形の画像（アニメーションで拡大・出現） */
+        .hand-img { 
+            width: 100%; 
+            height: auto;
+            opacity: 0; 
+            transform: scale(0.5); 
+            animation: stampIn 0.12s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; 
+            filter: drop-shadow(0px 0px 8px rgba(255, 0, 0, 0.8));
+        }
+        @keyframes stampIn { 
+            to { 
+                opacity: 0.95; 
+                transform: scale(1); 
+            } 
+        }
         
         #blood-screen { 
             position: absolute; inset: 0; background: #660000; 
@@ -137,117 +149,48 @@
             menu.classList.toggle('flex');
         }
 
-        // ========================================================
-        // 🩸 リアルな引きずり血痕手形を動的生成するジェネレーター
-        // ========================================================
-        function createBloodyHandSvg() {
-            const isRight = Math.random() > 0.5;
-            const filterId = 'rough_' + Math.random().toString(36).substr(2, 9);
-            
-            // 下方向へ激しく伸びる無数の擦れ線（45本）
-            let scrapeLines = '';
-            for (let i = 0; i < 45; i++) {
-                const lx = 30 + Math.random() * 85;
-                const ly = 55 + Math.random() * 80;
-                const length = 40 + Math.random() * 120;
-                const strokeW = 0.5 + Math.random() * 2.8;
-                const opacity = 0.3 + Math.random() * 0.65;
-                const color = Math.random() > 0.3 ? '#660000' : '#880000';
-                scrapeLines += `<line x1="${lx}" y1="${ly}" x2="${lx + (Math.random() - 0.5) * 5}" y2="${ly + length}" stroke="${color}" stroke-width="${strokeW}" opacity="${opacity}" stroke-linecap="round" />`;
-            }
-
-            // 各指の縦方向の擦れ筋
-            let fingerStreaks = '';
-            const fingers = [
-                {x: 35, y: 32, h: 48, rot: -18}, // 親指
-                {x: 54, y: 15, h: 65, rot: -6},  // 人差し指
-                {x: 72, y: 5,  h: 75, rot: 0},   // 中指
-                {x: 90, y: 12, h: 68, rot: 6},   // 薬指
-                {x: 108,y: 28, h: 50, rot: 18}   // 小指
-            ];
-
-            fingers.forEach(f => {
-                for (let j = 0; j < 9; j++) {
-                    const fx = f.x + (Math.random() - 0.5) * 11;
-                    const fy = f.y + Math.random() * 10;
-                    const fh = f.h + 20 + Math.random() * 55;
-                    const fw = 1.2 + Math.random() * 2.6;
-                    fingerStreaks += `<line x1="${fx}" y1="${fy}" x2="${fx + (Math.random() - 0.5) * 4}" y2="${fy + fh}" stroke="#730000" stroke-width="${fw}" opacity="${0.45 + Math.random() * 0.5}" />`;
-                }
-            });
-
-            return `
-            <svg viewBox="0 0 145 240" style="width:100%; height:100%; filter: drop-shadow(0 0 8px rgba(180,0,0,0.7)); ${isRight ? '' : 'transform: scaleX(-1);'}">
-                <defs>
-                    <!-- かすれた有機的な縁を作るノイズフィルター -->
-                    <filter id="${filterId}" x="-20%" y="-20%" width="140%" height="140%">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="3" result="noise" />
-                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5.5" xChannelSelector="R" yChannelSelector="G" />
-                    </filter>
-                </defs>
-                <g filter="url(#${filterId})">
-                    <!-- 手のひらの本体 -->
-                    <path d="M42,80 C32,100 32,125 46,140 C62,155 98,155 114,140 C124,122 122,95 108,80 Z" fill="#5a0000" opacity="0.88" />
-                    <!-- 各指の肉付け -->
-                    <ellipse cx="35" cy="46" rx="6.5" ry="18" fill="#660000" opacity="0.85" transform="rotate(-18 35 46)" />
-                    <ellipse cx="54" cy="38" rx="6.8" ry="25" fill="#660000" opacity="0.9" transform="rotate(-6 54 38)" />
-                    <ellipse cx="72" cy="32" rx="7.2" ry="28" fill="#660000" opacity="0.95" />
-                    <ellipse cx="90" cy="36" rx="6.8" ry="26" fill="#660000" opacity="0.9" transform="rotate(6 90 36)" />
-                    <ellipse cx="108" cy="46" rx="6.2" ry="20" fill="#660000" opacity="0.85" transform="rotate(18 108 46)" />
-                    
-                    <!-- 指の引きずり線 -->
-                    ${fingerStreaks}
-                    <!-- 手のひらから下へ伸びる血の擦れ線 -->
-                    ${scrapeLines}
-                </g>
-            </svg>
-            `;
-        }
-
         // ==========================================
-        // 🩸 オープニングアニメーション実行
+        // 🩸 オープニングアニメーション（毎回必ず再生）
         // ==========================================
         window.onload = () => {
-            
-            if (sessionStorage.getItem('opened')) {
-                document.getElementById('opening').style.display = 'none';
-                document.getElementById('main-content').style.opacity = '1';
-                return;
-            }
-            sessionStorage.setItem('opened', 'true');
-
             const opening = document.getElementById('opening');
             const bloodScreen = document.getElementById('blood-screen');
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            const maxCount = 38; // 画面を覆い尽くす数
+            const maxCount = 35; // 画面を覆い尽くす手形の数
             let delay = 350;
 
             function showHand() {
-                const hand = document.createElement('div');
-                hand.className = 'handprint';
+                // 外側の枠（位置・回転・反転を担当）
+                const wrapper = document.createElement('div');
+                wrapper.className = 'hand-wrapper';
                 
-                // 超リアルな引きずり手形をセット
-                hand.innerHTML = createBloodyHandSvg();
+                // 大きさを 180px 〜 420px でランダムに
+                const size = 180 + (Math.random() * 240); 
+                wrapper.style.width = `${size}px`;
                 
-                // 大きさを 200px 〜 480px の特大サイズでランダムに
-                const size = 200 + (Math.random() * 280); 
-                hand.style.width = `${size}px`;
-                hand.style.height = `${size * 1.6}px`; // 引きずり線があるため縦長
-                
-                // 角度をリアルに傾ける (-40度〜40度)
-                const rotate = (Math.random() - 0.5) * 80; 
+                // 角度を 0度 〜 360度 で完全ランダム回転
+                const rotate = Math.floor(Math.random() * 360); 
+                // 50%の確率で左右反転（左手・右手の両方を再現）
+                const flip = Math.random() > 0.5 ? -1 : 1; 
                 
                 // 画面全体に散らす
                 const x = -15 + (Math.random() * 110); 
-                const y = -20 + (Math.random() * 105); 
+                const y = -15 + (Math.random() * 110); 
                 
-                hand.style.left = `${x}%`;
-                hand.style.top = `${y}%`;
-                hand.style.transform = `scale(0.6) rotate(${rotate}deg)`;
+                wrapper.style.left = `${x}%`;
+                wrapper.style.top = `${y}%`;
+                // ここで回転と反転を合体して適用
+                wrapper.style.transform = `rotate(${rotate}deg) scaleX(${flip})`;
                 
-                opening.appendChild(hand);
+                // 内側の画像要素
+                const img = document.createElement('img');
+                img.src = 'hand.png'; // 添付の画像を読み込み
+                img.className = 'hand-img';
+                
+                wrapper.appendChild(img);
+                opening.appendChild(wrapper);
                 count++;
                 
                 if (count < maxCount) {
