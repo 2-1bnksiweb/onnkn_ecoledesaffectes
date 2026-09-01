@@ -13,19 +13,24 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap" rel="stylesheet">
+    <!-- 予備のホラー・筆文字フォント (Google Fonts) -->
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&display=swap" rel="stylesheet">
     
     <style>
-        /* 【修正】実際のファイル名「onryu.ttf」に合わせて読み込み */
+        /* 怨霊フォントの読み込み強化 (大文字・小文字両対応) */
         @font-face {
             font-family: 'OnryouFont';
-            src: url('home/onryu.ttf') format('truetype');
+            src: url('home/onryu.ttf') format('truetype'),
+                 url('./home/onryu.ttf') format('truetype'),
+                 url('home/onryou.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
             font-display: swap;
         }
 
-        /* サイト全体に怨霊フォントを強制適用 */
+        /* サイト全体に怨霊フォントを優先適用（読めない場合は毛筆ホラーフォントへフォールバック） */
         body, h1, h2, p, span, a, button { 
-            font-family: 'OnryouFont', 'Shippori Mincho', serif !important; 
+            font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
         }
 
         body { 
@@ -153,15 +158,16 @@
             menu.classList.toggle('flex');
         }
 
+        // ==========================================
+        // 🩸 アニメーション（緩急つき）
+        // ==========================================
         window.onload = () => {
             const opening = document.getElementById('opening');
             const bloodScreen = document.getElementById('blood-screen');
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            // 【変更】手形の出現数を「倍（70個）」に増加！
-            const maxCount = 70; 
-            let delay = 250;
+            const maxCount = 70; // 画面を覆い尽くす総数
 
             function showHand() {
                 const wrapper = document.createElement('div');
@@ -189,9 +195,16 @@
                 count++;
                 
                 if (count < maxCount) {
-                    // 数が多いのでテンポよく加速
-                    delay = Math.max(15, delay * 0.92); 
-                    setTimeout(showHand, delay);
+                    let nextDelay;
+                    // 【ご要望】最初の5個は2秒で3個ペース（約666ms）
+                    if (count < 5) {
+                        nextDelay = 666;
+                    } else {
+                        // 5個目以降、急激にスピードアップして画面を埋め尽くす！
+                        const progress = (count - 5) / (maxCount - 5);
+                        nextDelay = Math.max(15, 666 * Math.pow(1 - progress, 2.2));
+                    }
+                    setTimeout(showHand, nextDelay);
                 } else {
                     setTimeout(() => {
                         bloodScreen.style.opacity = '1';
@@ -208,7 +221,8 @@
                 }
             }
             
-            setTimeout(showHand, 150);
+            // 最初の1個目を開始
+            setTimeout(showHand, 300);
         };
     </script>
 </body>
