@@ -35,17 +35,18 @@
             overflow: hidden; display: flex; flex-direction: column; 
         }
         
+        /* 手形のスタイル */
         .handprint { 
             position: absolute; 
             opacity: 0; 
-            transform: scale(0.5); 
-            animation: stamp 0.15s forwards; 
+            transform: scale(0.6); 
+            animation: stamp 0.12s forwards; 
             pointer-events: none;
         }
         @keyframes stamp { to { opacity: 0.95; transform: scale(1); } }
         
         #blood-screen { 
-            position: absolute; inset: 0; background: #880000; 
+            position: absolute; inset: 0; background: #660000; 
             opacity: 0; transition: opacity 0.3s; z-index: 10000; 
             pointer-events: none;
         }
@@ -128,9 +129,7 @@
                     document.getElementById('story-text').innerHTML = (data.storyText || "怨念渦巻く廃校に迷い込んでしまったあなた達...。\n制限時間内に謎を解き、最速タイムで脱出せよ！").replace(/\n/g, '<br>');
                 }
             });
-        } catch (e) {
-            console.error("Firebase読み込みスキップ");
-        }
+        } catch (e) {}
 
         function toggleMenu() {
             const menu = document.getElementById('nav-menu');
@@ -138,8 +137,75 @@
             menu.classList.toggle('flex');
         }
 
+        // ========================================================
+        // 🩸 リアルな引きずり血痕手形を動的生成するジェネレーター
+        // ========================================================
+        function createBloodyHandSvg() {
+            const isRight = Math.random() > 0.5;
+            const filterId = 'rough_' + Math.random().toString(36).substr(2, 9);
+            
+            // 下方向へ激しく伸びる無数の擦れ線（45本）
+            let scrapeLines = '';
+            for (let i = 0; i < 45; i++) {
+                const lx = 30 + Math.random() * 85;
+                const ly = 55 + Math.random() * 80;
+                const length = 40 + Math.random() * 120;
+                const strokeW = 0.5 + Math.random() * 2.8;
+                const opacity = 0.3 + Math.random() * 0.65;
+                const color = Math.random() > 0.3 ? '#660000' : '#880000';
+                scrapeLines += `<line x1="${lx}" y1="${ly}" x2="${lx + (Math.random() - 0.5) * 5}" y2="${ly + length}" stroke="${color}" stroke-width="${strokeW}" opacity="${opacity}" stroke-linecap="round" />`;
+            }
+
+            // 各指の縦方向の擦れ筋
+            let fingerStreaks = '';
+            const fingers = [
+                {x: 35, y: 32, h: 48, rot: -18}, // 親指
+                {x: 54, y: 15, h: 65, rot: -6},  // 人差し指
+                {x: 72, y: 5,  h: 75, rot: 0},   // 中指
+                {x: 90, y: 12, h: 68, rot: 6},   // 薬指
+                {x: 108,y: 28, h: 50, rot: 18}   // 小指
+            ];
+
+            fingers.forEach(f => {
+                for (let j = 0; j < 9; j++) {
+                    const fx = f.x + (Math.random() - 0.5) * 11;
+                    const fy = f.y + Math.random() * 10;
+                    const fh = f.h + 20 + Math.random() * 55;
+                    const fw = 1.2 + Math.random() * 2.6;
+                    fingerStreaks += `<line x1="${fx}" y1="${fy}" x2="${fx + (Math.random() - 0.5) * 4}" y2="${fy + fh}" stroke="#730000" stroke-width="${fw}" opacity="${0.45 + Math.random() * 0.5}" />`;
+                }
+            });
+
+            return `
+            <svg viewBox="0 0 145 240" style="width:100%; height:100%; filter: drop-shadow(0 0 8px rgba(180,0,0,0.7)); ${isRight ? '' : 'transform: scaleX(-1);'}">
+                <defs>
+                    <!-- かすれた有機的な縁を作るノイズフィルター -->
+                    <filter id="${filterId}" x="-20%" y="-20%" width="140%" height="140%">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.07" numOctaves="3" result="noise" />
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5.5" xChannelSelector="R" yChannelSelector="G" />
+                    </filter>
+                </defs>
+                <g filter="url(#${filterId})">
+                    <!-- 手のひらの本体 -->
+                    <path d="M42,80 C32,100 32,125 46,140 C62,155 98,155 114,140 C124,122 122,95 108,80 Z" fill="#5a0000" opacity="0.88" />
+                    <!-- 各指の肉付け -->
+                    <ellipse cx="35" cy="46" rx="6.5" ry="18" fill="#660000" opacity="0.85" transform="rotate(-18 35 46)" />
+                    <ellipse cx="54" cy="38" rx="6.8" ry="25" fill="#660000" opacity="0.9" transform="rotate(-6 54 38)" />
+                    <ellipse cx="72" cy="32" rx="7.2" ry="28" fill="#660000" opacity="0.95" />
+                    <ellipse cx="90" cy="36" rx="6.8" ry="26" fill="#660000" opacity="0.9" transform="rotate(6 90 36)" />
+                    <ellipse cx="108" cy="46" rx="6.2" ry="20" fill="#660000" opacity="0.85" transform="rotate(18 108 46)" />
+                    
+                    <!-- 指の引きずり線 -->
+                    ${fingerStreaks}
+                    <!-- 手のひらから下へ伸びる血の擦れ線 -->
+                    ${scrapeLines}
+                </g>
+            </svg>
+            `;
+        }
+
         // ==========================================
-        // 🩸 血の手形＆垂れるオープニングアニメーション
+        // 🩸 オープニングアニメーション実行
         // ==========================================
         window.onload = () => {
             
@@ -155,54 +221,37 @@
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            const maxCount = 40; 
-            let delay = 400;
-
-            // リアルな血の手形（指・手のひら・垂れる血・飛び散る飛沫）のSVGデータ群
-            const handSvgs = [
-                // パターン1: 垂れる血つき手形
-                `<svg viewBox="0 0 200 260" fill="#880000" style="filter: drop-shadow(0 0 8px #ff0000); width:100%; height:100%;">
-                    <path d="M68,95 Q70,40 76,20 Q82,10 88,20 Q92,40 92,95 M96,90 Q102,28 108,8 Q114,-2 120,8 Q125,28 124,90 M128,95 Q134,35 140,16 Q146,6 152,16 Q156,35 154,95 M158,110 Q165,55 170,38 Q176,28 182,38 Q184,55 180,115 M42,125 Q24,105 18,98 Q10,92 15,108 Q26,130 48,150 M56,115 C46,145 46,185 72,205 C108,230 156,220 176,190 C192,160 186,125 166,115 Z" />
-                    <!-- 垂れる血 -->
-                    <path d="M72,205 Q70,235 68,255 M118,215 Q120,240 118,250 M160,195 Q164,225 162,245" stroke="#880000" stroke-width="4.5" stroke-linecap="round" fill="none" />
-                    <!-- 飛沫 -->
-                    <circle cx="28" cy="180" r="3.5" /><circle cx="188" cy="78" r="3" /><circle cx="55" cy="240" r="2.5" />
-                </svg>`,
-                // パターン2: べったりした濃い手形
-                `<svg viewBox="0 0 200 260" fill="#990000" style="filter: drop-shadow(0 0 8px #ff0000); width:100%; height:100%;">
-                    <path d="M64,98 Q66,35 74,15 Q82,5 88,15 Q94,35 94,98 M98,92 Q104,22 110,3 Q118,-4 122,3 Q128,22 126,92 M130,98 Q136,30 142,12 Q148,2 154,12 Q158,30 156,98 M160,112 Q168,48 174,32 Q180,22 186,32 Q188,48 182,118 M38,128 Q20,105 15,96 Q8,90 12,106 Q22,130 44,152 M52,118 C42,148 42,190 68,210 C104,235 158,225 178,195 C194,162 188,128 168,118 Z" />
-                    <path d="M88,210 Q85,240 82,258 M142,215 Q145,235 140,250" stroke="#990000" stroke-width="5" stroke-linecap="round" fill="none" />
-                </svg>`
-            ];
+            const maxCount = 38; // 画面を覆い尽くす数
+            let delay = 350;
 
             function showHand() {
                 const hand = document.createElement('div');
                 hand.className = 'handprint';
                 
-                // パターンをランダムで選んでSVGを描画（画像ファイル不要！）
-                hand.innerHTML = handSvgs[Math.floor(Math.random() * handSvgs.length)];
+                // 超リアルな引きずり手形をセット
+                hand.innerHTML = createBloodyHandSvg();
                 
-                // 大きさを 150px 〜 400px で超バラバラに
-                const size = 150 + (Math.random() * 250); 
+                // 大きさを 200px 〜 480px の特大サイズでランダムに
+                const size = 200 + (Math.random() * 280); 
                 hand.style.width = `${size}px`;
-                hand.style.height = `${size * 1.3}px`;
+                hand.style.height = `${size * 1.6}px`; // 引きずり線があるため縦長
                 
-                // 角度を 0度 〜 360度 で完全ランダム
-                const rotate = Math.random() * 360; 
+                // 角度をリアルに傾ける (-40度〜40度)
+                const rotate = (Math.random() - 0.5) * 80; 
                 
-                // 画面全体にはみ出るように配置
+                // 画面全体に散らす
                 const x = -15 + (Math.random() * 110); 
-                const y = -15 + (Math.random() * 110); 
+                const y = -20 + (Math.random() * 105); 
                 
                 hand.style.left = `${x}%`;
                 hand.style.top = `${y}%`;
-                hand.style.transform = `scale(0.5) rotate(${rotate}deg)`;
+                hand.style.transform = `scale(0.6) rotate(${rotate}deg)`;
                 
                 opening.appendChild(hand);
                 count++;
                 
                 if (count < maxCount) {
-                    delay = Math.max(20, delay * 0.90); 
+                    delay = Math.max(20, delay * 0.88); 
                     setTimeout(showHand, delay);
                 } else {
                     setTimeout(() => {
@@ -214,14 +263,13 @@
                             opening.style.borderTopRightRadius = "50% 15%";
                             
                             mainContent.style.opacity = '1';
-                            
                             setTimeout(() => { opening.style.display = 'none'; }, 1200);
                         }, 500);
                     }, 300);
                 }
             }
             
-            setTimeout(showHand, 300);
+            setTimeout(showHand, 200);
         };
     </script>
 </body>
