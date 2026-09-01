@@ -11,7 +11,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="../firebase-config.js"></script>
+    
+    <!-- ★ここを修正しました！ -->
+    <script src="firebase-config.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap" rel="stylesheet">
     
@@ -121,13 +123,18 @@
     </div>
 
     <script>
-        db.collection('settings').doc('config').onSnapshot(doc => {
-            if(doc.exists) {
-                const data = doc.data();
-                document.getElementById('story-title').innerText = data.storyTitle || "恐怖の廃校";
-                document.getElementById('story-text').innerHTML = (data.storyText || "怨念渦巻く廃校に迷い込んでしまったあなた達...。\n制限時間内に謎を解き、最速タイムで脱出せよ！").replace(/\n/g, '<br>');
-            }
-        });
+        // エラーが起きてもアニメーションが止まらないように少し安全にしました
+        try {
+            db.collection('settings').doc('config').onSnapshot(doc => {
+                if(doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('story-title').innerText = data.storyTitle || "恐怖の廃校";
+                    document.getElementById('story-text').innerHTML = (data.storyText || "怨念渦巻く廃校に迷い込んでしまったあなた達...。\n制限時間内に謎を解き、最速タイムで脱出せよ！").replace(/\n/g, '<br>');
+                }
+            });
+        } catch (e) {
+            console.error("Firebaseの読み込みエラー:", e);
+        }
 
         function toggleMenu() {
             const menu = document.getElementById('nav-menu');
@@ -154,7 +161,6 @@
 
             function showHand() {
                 const hand = document.createElement('img');
-                // 【修正】透過PNGファイルの「hand.png」に戻しました
                 hand.src = 'hand.png'; 
                 hand.className = 'handprint';
                 
