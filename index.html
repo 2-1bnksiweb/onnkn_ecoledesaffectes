@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#050505">
     
-    <title>おののきのエコールデザフェクテ - HOME</title>
+    <title>恐怖の廃校 - HOME</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -26,16 +26,27 @@
             font-display: swap;
         }
 
-        /* 画面上のすべての文字を徹底的に怨霊フォントに強制統一 */
-        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header { 
+        /* 画面上のすべての文字を怨霊フォントに強制統一 */
+        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby { 
             font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
         }
 
         body { 
             background-color: #050505; 
-            color: #e5e5e5; 
+            color: #d1d1d1; 
             overflow-x: hidden; 
             min-height: 100dvh; 
+        }
+
+        /* 🩸 ドス黒い血の文字スタイル */
+        .text-blood-dark {
+            color: #800505;
+            text-shadow: 2px 2px 4px #000000, 0 0 10px #400000, 0 0 20px #1a0000;
+        }
+        
+        .sub-blood-dark {
+            color: #660000;
+            text-shadow: 1px 1px 2px #000;
         }
 
         #opening { 
@@ -55,7 +66,7 @@
             opacity: 0; 
             transform: scale(0.6); 
             animation: stampIn 0.08s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; 
-            filter: drop-shadow(0px 0px 8px rgba(255, 0, 0, 0.8));
+            filter: drop-shadow(0px 0px 8px rgba(180, 0, 0, 0.8));
         }
         @keyframes stampIn { 
             to { 
@@ -65,18 +76,17 @@
         }
         
         #blood-screen { 
-            position: absolute; inset: 0; background: #660000; 
+            position: absolute; inset: 0; background: #500000; 
             opacity: 0; transition: opacity 0.2s; z-index: 10000; 
             pointer-events: none;
         }
 
         .blood-splatter { 
             position: absolute; 
-            background-image: radial-gradient(circle, #5a0000 0%, transparent 60%); 
-            opacity: 0.25; border-radius: 50%; pointer-events: none; z-index: -1; 
+            background-image: radial-gradient(circle, #3d0000 0%, transparent 65%); 
+            opacity: 0.35; border-radius: 50%; pointer-events: none; z-index: -1; 
         }
-        .shadow-red { text-shadow: 0 0 15px #ff0000; }
-        .shadow-btn { box-shadow: 0 4px 15px rgba(136, 0, 0, 0.5); }
+        .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
     </style>
 </head>
 <body class="relative">
@@ -90,49 +100,49 @@
         <div class="blood-splatter w-64 h-64 top-10 -left-10"></div>
         <div class="blood-splatter w-80 h-80 bottom-10 -right-20"></div>
 
-        <header class="flex justify-between items-center border-b border-red-900 pb-3 mb-8 text-gray-400 absolute top-6 left-6 right-6">
+        <header class="flex justify-between items-center border-b border-red-950 pb-3 mb-8 text-gray-500 absolute top-6 left-6 right-6">
             <span class="tracking-widest text-lg">2-1 教室発表</span>
             <button onclick="toggleMenu()" class="text-3xl hover:text-white">☰</button>
         </header>
 
-        <div id="nav-menu" class="hidden flex-col bg-gray-900 p-4 rounded border border-red-900 mb-6 space-y-3 text-base absolute top-20 right-6 z-50">
-            <a href="timeattack.html" class="text-red-400 hover:text-red-300">✝ スタッフ用: タイム計測＆謎発動</a>
-            <a href="admin.html" class="text-red-400 hover:text-red-300">✝ 管理者設定</a>
+        <div id="nav-menu" class="hidden flex-col bg-gray-950 p-4 rounded border border-red-950 mb-6 space-y-3 text-base absolute top-20 right-6 z-50">
+            <a href="timeattack.html" class="text-red-700 hover:text-red-500">✝ スタッフ用: タイム計測＆謎発動</a>
+            <a href="admin.html" class="text-red-700 hover:text-red-500">✝ 管理者設定</a>
         </div>
 
+        <!-- タイトルエリア（ルビ付き・ドス黒い赤） -->
         <div class="text-center mb-10 mt-16">
-            <!-- 【変更】正式タイトル -->
-            <h1 class="text-3xl sm:text-4xl font-black text-white tracking-wider shadow-red mb-2 leading-relaxed" id="story-title">
-                おののきのエコールデザフェクテ
+            <h1 class="text-4xl sm:text-5xl font-black tracking-widest text-blood-dark mb-2 leading-relaxed" id="story-title">
+                <ruby>恐怖<rt class="text-xs sm:text-sm sub-blood-dark tracking-widest">おののき</rt></ruby>の<ruby>廃校<rt class="text-xs sm:text-sm sub-blood-dark tracking-widest">エコールデザフェクテ</rt></ruby>
             </h1>
         </div>
 
         <div class="mb-10 text-center flex-1">
-            <p class="text-red-500 mb-4 text-2xl tracking-widest">〜 あらすじ 〜</p>
-            <svg class="w-full h-4 text-red-900 mb-4" fill="none" stroke="currentColor" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M0,5 Q25,0 50,5 T100,5 T150,5 T200,5" stroke-width="1"></path></svg>
+            <p class="text-blood-dark mb-4 text-2xl tracking-widest">〜 あらすじ 〜</p>
+            <svg class="w-full h-4 text-red-950 mb-4" fill="none" stroke="currentColor" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M0,5 Q25,0 50,5 T100,5 T150,5 T200,5" stroke-width="1"></path></svg>
             
-            <p id="story-text" class="text-xl text-gray-300 leading-loose px-4">
+            <p id="story-text" class="text-xl text-gray-400 leading-loose px-4">
                 読込中...
             </p>
             
-            <svg class="w-full h-4 text-red-900 mt-4" fill="none" stroke="currentColor" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M0,5 Q25,10 50,5 T100,5 T150,5 T200,5" stroke-width="1"></path></svg>
+            <svg class="w-full h-4 text-red-950 mt-4" fill="none" stroke="currentColor" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M0,5 Q25,10 50,5 T100,5 T150,5 T200,5" stroke-width="1"></path></svg>
         </div>
 
         <div class="mb-8 text-center px-2">
-            <h2 class="text-2xl text-red-500 mb-4 tracking-widest font-bold">予約</h2>
-            <p class="text-base text-gray-400 mb-1">下のボタンから予約をすることができます。</p>
-            <p class="text-base text-gray-400 mb-3">前日でも当日でも予約可能です。</p>
-            <a href="#" class="inline-block mb-4 text-base text-blue-500 hover:text-blue-400 underline decoration-blue-500">詳しいやり方、注意点はこちらから</a>
+            <h2 class="text-2xl text-blood-dark mb-4 tracking-widest font-bold">予約</h2>
+            <p class="text-base text-gray-500 mb-1">下のボタンから予約をすることができます。</p>
+            <p class="text-base text-gray-500 mb-3">前日でも当日でも予約可能です。</p>
+            <a href="#" class="inline-block mb-4 text-base text-red-700 hover:text-red-500 underline decoration-red-900">詳しいやり方、注意点はこちらから</a>
             
-            <a href="ticket.html" class="block w-full py-4 bg-red-900 border border-red-700 text-white text-2xl hover:bg-red-800 transition tracking-widest shadow-btn">
+            <a href="ticket.html" class="block w-full py-4 bg-red-950 border border-red-900 text-blood-dark text-2xl hover:bg-black transition tracking-widest shadow-btn">
                 予約 はこちらから
             </a>
         </div>
 
         <div class="mb-4 text-center px-2">
-            <h2 class="text-2xl text-red-500 mb-4 tracking-widest font-bold">ランキング</h2>
-            <p class="text-base text-gray-400 mb-4">上位TOP3まで表示されます</p>
-            <a href="ranking.html" class="block w-full py-4 bg-gray-800 border border-gray-600 text-white text-xl hover:bg-gray-700 transition tracking-widest">
+            <h2 class="text-2xl text-blood-dark mb-4 tracking-widest font-bold">ランキング</h2>
+            <p class="text-base text-gray-500 mb-4">上位TOP3まで表示されます</p>
+            <a href="ranking.html" class="block w-full py-4 bg-gray-950 border border-gray-800 text-gray-300 text-xl hover:bg-gray-900 transition tracking-widest">
                 ランキングはこちらから
             </a>
         </div>
@@ -143,8 +153,10 @@
             db.collection('settings').doc('config').onSnapshot(doc => {
                 if(doc.exists) {
                     const data = doc.data();
-                    document.getElementById('story-title').innerText = data.storyTitle || "おののきのエコールデザフェクテ";
-                    document.getElementById('story-text').innerHTML = (data.storyText || "怨念渦巻く廃校に迷い込んでしまったあなた達...。\n制限時間内に謎を解き、最速タイムで脱出せよ！").replace(/\n/g, '<br>');
+                    // タイトルは固定ルビ付きを維持しつつ、あらすじ本文をFirebaseから反映
+                    if (data.storyText) {
+                        document.getElementById('story-text').innerHTML = data.storyText.replace(/\n/g, '<br>');
+                    }
                 }
             });
         } catch (e) {}
