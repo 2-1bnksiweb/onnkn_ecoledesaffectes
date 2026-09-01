@@ -16,14 +16,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap" rel="stylesheet">
     
     <style>
-        /* 【修正】homeフォルダの中のフォントを指定 */
+        /* 【修正】実際のファイル名「onryu.ttf」に合わせて読み込み */
         @font-face {
-            font-family: 'Onryou';
-            src: url('home/onryou.ttf') format('truetype');
+            font-family: 'OnryouFont';
+            src: url('home/onryu.ttf') format('truetype');
+            font-display: swap;
+        }
+
+        /* サイト全体に怨霊フォントを強制適用 */
+        body, h1, h2, p, span, a, button { 
+            font-family: 'OnryouFont', 'Shippori Mincho', serif !important; 
         }
 
         body { 
-            font-family: 'Onryou', 'Shippori Mincho', serif; 
             background-color: #050505; 
             color: #e5e5e5; 
             overflow-x: hidden; 
@@ -82,18 +87,18 @@
         <div class="blood-splatter w-64 h-64 top-10 -left-10"></div>
         <div class="blood-splatter w-80 h-80 bottom-10 -right-20"></div>
 
-        <header class="flex justify-between items-center border-b border-red-900 pb-3 mb-8 text-gray-400 font-sans absolute top-6 left-6 right-6">
+        <header class="flex justify-between items-center border-b border-red-900 pb-3 mb-8 text-gray-400 absolute top-6 left-6 right-6">
             <span class="tracking-widest">2-1 教室発表</span>
             <button onclick="toggleMenu()" class="text-3xl hover:text-white">☰</button>
         </header>
 
-        <div id="nav-menu" class="hidden flex-col bg-gray-900 p-4 rounded border border-red-900 mb-6 space-y-3 font-sans text-sm absolute top-20 right-6 z-50">
+        <div id="nav-menu" class="hidden flex-col bg-gray-900 p-4 rounded border border-red-900 mb-6 space-y-3 text-sm absolute top-20 right-6 z-50">
             <a href="timeattack.html" class="text-red-400 hover:text-red-300">✝ スタッフ用: タイム計測＆謎発動</a>
             <a href="admin.html" class="text-red-400 hover:text-red-300">✝ 管理者設定</a>
         </div>
 
         <div class="text-center mb-10 mt-16">
-            <div class="flex justify-center space-x-6 text-xs text-red-600 mb-2 tracking-widest font-bold font-sans">
+            <div class="flex justify-center space-x-6 text-xs text-red-600 mb-2 tracking-widest font-bold">
                 <span>おののけ</span>
                 <span>エコールデサフェクテ</span>
             </div>
@@ -154,8 +159,9 @@
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            const maxCount = 35;
-            let delay = 350;
+            // 【変更】手形の出現数を「倍（70個）」に増加！
+            const maxCount = 70; 
+            let delay = 250;
 
             function showHand() {
                 const wrapper = document.createElement('div');
@@ -175,7 +181,6 @@
                 wrapper.style.transform = `rotate(${rotate}deg) scaleX(${flip})`;
                 
                 const img = document.createElement('img');
-                // 【修正】homeフォルダの中の画像を指定
                 img.src = 'home/hand.png'; 
                 img.className = 'hand-img';
                 
@@ -184,7 +189,8 @@
                 count++;
                 
                 if (count < maxCount) {
-                    delay = Math.max(20, delay * 0.88); 
+                    // 数が多いのでテンポよく加速
+                    delay = Math.max(15, delay * 0.92); 
                     setTimeout(showHand, delay);
                 } else {
                     setTimeout(() => {
@@ -202,7 +208,7 @@
                 }
             }
             
-            setTimeout(showHand, 200);
+            setTimeout(showHand, 150);
         };
     </script>
 </body>
