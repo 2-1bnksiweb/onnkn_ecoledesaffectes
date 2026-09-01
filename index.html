@@ -156,7 +156,7 @@
         }
 
         // ========================================================
-        // 🩸 200個・全体6秒・緩急つきオープニングアニメーション
+        // 🩸 中央から始まる200個・全体6秒・緩急オープニング
         // ========================================================
         window.onload = () => {
             const opening = document.getElementById('opening');
@@ -164,22 +164,28 @@
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            const maxCount = 200; // 【ご要望】合計200個
+            const maxCount = 200;
 
-            // 1個の手形を生成して画面に押す関数
-            function stampOne() {
+            function stampOne(isCenter = false) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'hand-wrapper';
                 
-                const size = 160 + (Math.random() * 260); 
+                const size = 170 + (Math.random() * 250); 
                 wrapper.style.width = `${size}px`;
                 
                 const rotate = Math.floor(Math.random() * 360); 
                 const flip = Math.random() > 0.5 ? -1 : 1; 
                 
-                // 画面外側の黒い隙間も完全に覆い尽くす座標範囲
-                const x = -20 + (Math.random() * 125); 
-                const y = -20 + (Math.random() * 125); 
+                let x, y;
+                if (isCenter) {
+                    // 【ご要望】最初は画面の中央周辺（幅25〜55%、高さ25〜55%）に集中配置
+                    x = 22 + (Math.random() * 36); 
+                    y = 22 + (Math.random() * 36); 
+                } else {
+                    // 5個目以降は画面の四隅や外側まで完全に覆い尽くす
+                    x = -20 + (Math.random() * 125); 
+                    y = -20 + (Math.random() * 125); 
+                }
                 
                 wrapper.style.left = `${x}%`;
                 wrapper.style.top = `${y}%`;
@@ -193,32 +199,28 @@
                 opening.appendChild(wrapper);
             }
 
-            // ループ処理（緩急をコントロール）
             function runLoop() {
                 let batchSize = 1;
                 let nextDelay = 666; // 最初の5個は2秒で3個ペース（666ms）
 
                 if (count >= 5) {
-                    // 5個目以降：急速に加速しつつ同時発生数を爆発的に増やす
                     const progress = (count - 5) / (maxCount - 5);
                     nextDelay = Math.max(12, 500 * Math.pow(1 - progress, 3));
-                    // 同時に出す数を 1個 -> 最大16個 に増やして隙間を一掃
                     batchSize = Math.min(maxCount - count, Math.floor(1 + (progress * progress * 16)));
                 }
 
                 for (let i = 0; i < batchSize; i++) {
                     if (count >= maxCount) break;
-                    stampOne();
+                    // 最初の5個は真ん中周辺に配置（isCenter = true）
+                    stampOne(count < 5);
                     count++;
                 }
 
                 if (count < maxCount) {
                     setTimeout(runLoop, nextDelay);
                 } else {
-                    // 200個完了 → 全画面赤フェード（約0.25秒）
                     bloodScreen.style.opacity = '1';
                     setTimeout(() => {
-                        // 垂れ落ちるアニメーション（約1.0秒）
                         opening.style.transition = "transform 1.0s cubic-bezier(0.5, 0, 1, 0.5), border-radius 1.0s";
                         opening.style.transform = "translateY(100%)";
                         opening.style.borderTopLeftRadius = "50% 15%";
@@ -230,7 +232,6 @@
                 }
             }
 
-            // 開始（0.2秒後スタート）
             setTimeout(runLoop, 200);
         };
     </script>
