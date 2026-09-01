@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#050505">
     
-    <title>恐怖の廃校 - HOME</title>
+    <title>おののきのエコールデザフェクテ - HOME</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -26,7 +26,8 @@
             font-display: swap;
         }
 
-        body, h1, h2, p, span, a, button { 
+        /* 画面上のすべての文字を徹底的に怨霊フォントに強制統一 */
+        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header { 
             font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
         }
 
@@ -90,25 +91,24 @@
         <div class="blood-splatter w-80 h-80 bottom-10 -right-20"></div>
 
         <header class="flex justify-between items-center border-b border-red-900 pb-3 mb-8 text-gray-400 absolute top-6 left-6 right-6">
-            <span class="tracking-widest">2-1 教室発表</span>
+            <span class="tracking-widest text-lg">2-1 教室発表</span>
             <button onclick="toggleMenu()" class="text-3xl hover:text-white">☰</button>
         </header>
 
-        <div id="nav-menu" class="hidden flex-col bg-gray-900 p-4 rounded border border-red-900 mb-6 space-y-3 text-sm absolute top-20 right-6 z-50">
+        <div id="nav-menu" class="hidden flex-col bg-gray-900 p-4 rounded border border-red-900 mb-6 space-y-3 text-base absolute top-20 right-6 z-50">
             <a href="timeattack.html" class="text-red-400 hover:text-red-300">✝ スタッフ用: タイム計測＆謎発動</a>
             <a href="admin.html" class="text-red-400 hover:text-red-300">✝ 管理者設定</a>
         </div>
 
         <div class="text-center mb-10 mt-16">
-            <div class="flex justify-center space-x-6 text-xs text-red-600 mb-2 tracking-widest font-bold">
-                <span>おののけ</span>
-                <span>エコールデサフェクテ</span>
-            </div>
-            <h1 class="text-5xl font-black text-white tracking-widest shadow-red mb-2" id="story-title">恐怖の廃校</h1>
+            <!-- 【変更】正式タイトル -->
+            <h1 class="text-3xl sm:text-4xl font-black text-white tracking-wider shadow-red mb-2 leading-relaxed" id="story-title">
+                おののきのエコールデザフェクテ
+            </h1>
         </div>
 
         <div class="mb-10 text-center flex-1">
-            <p class="text-red-500 mb-4 text-lg">〜 あらすじ 〜</p>
+            <p class="text-red-500 mb-4 text-2xl tracking-widest">〜 あらすじ 〜</p>
             <svg class="w-full h-4 text-red-900 mb-4" fill="none" stroke="currentColor" viewBox="0 0 200 10" preserveAspectRatio="none"><path d="M0,5 Q25,0 50,5 T100,5 T150,5 T200,5" stroke-width="1"></path></svg>
             
             <p id="story-text" class="text-xl text-gray-300 leading-loose px-4">
@@ -120,9 +120,9 @@
 
         <div class="mb-8 text-center px-2">
             <h2 class="text-2xl text-red-500 mb-4 tracking-widest font-bold">予約</h2>
-            <p class="text-sm text-gray-400 mb-1">下のボタンから予約をすることができます。</p>
-            <p class="text-sm text-gray-400 mb-3">前日でも当日でも予約可能です。</p>
-            <a href="#" class="inline-block mb-4 text-sm text-blue-500 hover:text-blue-400 underline decoration-blue-500">詳しいやり方、注意点はこちらから</a>
+            <p class="text-base text-gray-400 mb-1">下のボタンから予約をすることができます。</p>
+            <p class="text-base text-gray-400 mb-3">前日でも当日でも予約可能です。</p>
+            <a href="#" class="inline-block mb-4 text-base text-blue-500 hover:text-blue-400 underline decoration-blue-500">詳しいやり方、注意点はこちらから</a>
             
             <a href="ticket.html" class="block w-full py-4 bg-red-900 border border-red-700 text-white text-2xl hover:bg-red-800 transition tracking-widest shadow-btn">
                 予約 はこちらから
@@ -131,7 +131,7 @@
 
         <div class="mb-4 text-center px-2">
             <h2 class="text-2xl text-red-500 mb-4 tracking-widest font-bold">ランキング</h2>
-            <p class="text-sm text-gray-400 mb-4">上位TOP3まで表示されます</p>
+            <p class="text-base text-gray-400 mb-4">上位TOP3まで表示されます</p>
             <a href="ranking.html" class="block w-full py-4 bg-gray-800 border border-gray-600 text-white text-xl hover:bg-gray-700 transition tracking-widest">
                 ランキングはこちらから
             </a>
@@ -143,7 +143,7 @@
             db.collection('settings').doc('config').onSnapshot(doc => {
                 if(doc.exists) {
                     const data = doc.data();
-                    document.getElementById('story-title').innerText = data.storyTitle || "恐怖の廃校";
+                    document.getElementById('story-title').innerText = data.storyTitle || "おののきのエコールデザフェクテ";
                     document.getElementById('story-text').innerHTML = (data.storyText || "怨念渦巻く廃校に迷い込んでしまったあなた達...。\n制限時間内に謎を解き、最速タイムで脱出せよ！").replace(/\n/g, '<br>');
                 }
             });
@@ -156,7 +156,7 @@
         }
 
         // ========================================================
-        // 🩸 最適バランス版オープニング（端の見切れ防止＆バズーカ抑制）
+        // 🩸 拍子木リズム・最適バランス版オープニング
         // ========================================================
         window.onload = () => {
             const opening = document.getElementById('opening');
@@ -164,7 +164,6 @@
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            // 【調整】多すぎないベストな総数（220個）
             const maxCount = 220; 
 
             function stampOne(isCenter = false) {
@@ -179,12 +178,9 @@
                 
                 let x, y;
                 if (isCenter) {
-                    // 最初は真ん中周辺
                     x = 22 + (Math.random() * 32); 
                     y = 22 + (Math.random() * 32); 
                 } else {
-                    // 【修正】手の先1ミリだけが見切れるのを防止！
-                    // 手形がしっかり画面内に見える絶妙な範囲（-2%〜82%）
                     x = -2 + (Math.random() * 84); 
                     y = -2 + (Math.random() * 84); 
                 }
@@ -205,18 +201,17 @@
                 let batchSize = 1;
                 let nextDelay = 850;
 
-                // 拍子木リズム
                 if (count < 15) {
-                    // ① 始まり：カン…………カン………カン……カン…カン…カンカンカンカン…
+                    // ① 拍子木の始まり
                     nextDelay = Math.max(70, Math.floor(850 * Math.pow(0.85, count)));
                     batchSize = 1;
                 } else if (count < 50) {
-                    // ② 連打ラッシュ：カンカンカンカンカンッ！
+                    // ② 連打ラッシュ
                     const p = (count - 15) / (50 - 15);
                     nextDelay = Math.max(15, Math.floor(65 - (p * 45)));
                     batchSize = Math.floor(1 + (p * 2));
                 } else {
-                    // ③ 【調整】バズーカの勢いを程よくマイルドに（1回最大16個）
+                    // ③ バズーカ
                     const p = (count - 50) / (maxCount - 50);
                     nextDelay = 12;
                     batchSize = Math.min(maxCount - count, Math.floor(4 + (p * 12)));
@@ -231,7 +226,6 @@
                 if (count < maxCount) {
                     setTimeout(runLoop, nextDelay);
                 } else {
-                    // 完了 → 画面が真っ赤に染まる
                     bloodScreen.style.opacity = '1';
                     
                     // 2.0秒かけて重厚にドロ〜リと垂れ落ちる
