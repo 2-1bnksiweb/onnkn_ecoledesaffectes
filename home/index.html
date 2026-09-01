@@ -11,8 +11,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
-    <!-- ★ここを修正しました！ -->
     <script src="firebase-config.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap" rel="stylesheet">
@@ -42,10 +40,9 @@
             opacity: 0; 
             transform: scale(0.5); 
             animation: stamp 0.15s forwards; 
-            filter: drop-shadow(0px 0px 5px rgba(136,0,0,0.8));
             pointer-events: none;
         }
-        @keyframes stamp { to { opacity: 0.9; transform: scale(1); } }
+        @keyframes stamp { to { opacity: 0.95; transform: scale(1); } }
         
         #blood-screen { 
             position: absolute; inset: 0; background: #880000; 
@@ -123,7 +120,6 @@
     </div>
 
     <script>
-        // エラーが起きてもアニメーションが止まらないように少し安全にしました
         try {
             db.collection('settings').doc('config').onSnapshot(doc => {
                 if(doc.exists) {
@@ -133,7 +129,7 @@
                 }
             });
         } catch (e) {
-            console.error("Firebaseの読み込みエラー:", e);
+            console.error("Firebase読み込みスキップ");
         }
 
         function toggleMenu() {
@@ -142,6 +138,9 @@
             menu.classList.toggle('flex');
         }
 
+        // ==========================================
+        // 🩸 血の手形＆垂れるオープニングアニメーション
+        // ==========================================
         window.onload = () => {
             
             if (sessionStorage.getItem('opened')) {
@@ -156,21 +155,44 @@
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            const maxCount = 45; 
+            const maxCount = 40; 
             let delay = 400;
 
+            // リアルな血の手形（指・手のひら・垂れる血・飛び散る飛沫）のSVGデータ群
+            const handSvgs = [
+                // パターン1: 垂れる血つき手形
+                `<svg viewBox="0 0 200 260" fill="#880000" style="filter: drop-shadow(0 0 8px #ff0000); width:100%; height:100%;">
+                    <path d="M68,95 Q70,40 76,20 Q82,10 88,20 Q92,40 92,95 M96,90 Q102,28 108,8 Q114,-2 120,8 Q125,28 124,90 M128,95 Q134,35 140,16 Q146,6 152,16 Q156,35 154,95 M158,110 Q165,55 170,38 Q176,28 182,38 Q184,55 180,115 M42,125 Q24,105 18,98 Q10,92 15,108 Q26,130 48,150 M56,115 C46,145 46,185 72,205 C108,230 156,220 176,190 C192,160 186,125 166,115 Z" />
+                    <!-- 垂れる血 -->
+                    <path d="M72,205 Q70,235 68,255 M118,215 Q120,240 118,250 M160,195 Q164,225 162,245" stroke="#880000" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                    <!-- 飛沫 -->
+                    <circle cx="28" cy="180" r="3.5" /><circle cx="188" cy="78" r="3" /><circle cx="55" cy="240" r="2.5" />
+                </svg>`,
+                // パターン2: べったりした濃い手形
+                `<svg viewBox="0 0 200 260" fill="#990000" style="filter: drop-shadow(0 0 8px #ff0000); width:100%; height:100%;">
+                    <path d="M64,98 Q66,35 74,15 Q82,5 88,15 Q94,35 94,98 M98,92 Q104,22 110,3 Q118,-4 122,3 Q128,22 126,92 M130,98 Q136,30 142,12 Q148,2 154,12 Q158,30 156,98 M160,112 Q168,48 174,32 Q180,22 186,32 Q188,48 182,118 M38,128 Q20,105 15,96 Q8,90 12,106 Q22,130 44,152 M52,118 C42,148 42,190 68,210 C104,235 158,225 178,195 C194,162 188,128 168,118 Z" />
+                    <path d="M88,210 Q85,240 82,258 M142,215 Q145,235 140,250" stroke="#990000" stroke-width="5" stroke-linecap="round" fill="none" />
+                </svg>`
+            ];
+
             function showHand() {
-                const hand = document.createElement('img');
-                hand.src = 'hand.png'; 
+                const hand = document.createElement('div');
                 hand.className = 'handprint';
                 
-                const size = 150 + (Math.random() * 300); 
-                hand.style.width = `${size}px`;
+                // パターンをランダムで選んでSVGを描画（画像ファイル不要！）
+                hand.innerHTML = handSvgs[Math.floor(Math.random() * handSvgs.length)];
                 
+                // 大きさを 150px 〜 400px で超バラバラに
+                const size = 150 + (Math.random() * 250); 
+                hand.style.width = `${size}px`;
+                hand.style.height = `${size * 1.3}px`;
+                
+                // 角度を 0度 〜 360度 で完全ランダム
                 const rotate = Math.random() * 360; 
                 
-                const x = -10 + (Math.random() * 110); 
-                const y = -10 + (Math.random() * 110); 
+                // 画面全体にはみ出るように配置
+                const x = -15 + (Math.random() * 110); 
+                const y = -15 + (Math.random() * 110); 
                 
                 hand.style.left = `${x}%`;
                 hand.style.top = `${y}%`;
