@@ -156,7 +156,7 @@
         }
 
         // ========================================================
-        // 🩸 紙芝居の拍子木リズム・300個オープニング
+        // 🩸 最適バランス版オープニング（端の見切れ防止＆バズーカ抑制）
         // ========================================================
         window.onload = () => {
             const opening = document.getElementById('opening');
@@ -164,13 +164,14 @@
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            const maxCount = 300; // 【ご要望】合計300個
+            // 【調整】多すぎないベストな総数（220個）
+            const maxCount = 220; 
 
             function stampOne(isCenter = false) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'hand-wrapper';
                 
-                const size = 160 + (Math.random() * 260); 
+                const size = 160 + (Math.random() * 220); 
                 wrapper.style.width = `${size}px`;
                 
                 const rotate = Math.floor(Math.random() * 360); 
@@ -178,11 +179,14 @@
                 
                 let x, y;
                 if (isCenter) {
-                    x = 22 + (Math.random() * 36); 
-                    y = 22 + (Math.random() * 36); 
+                    // 最初は真ん中周辺
+                    x = 22 + (Math.random() * 32); 
+                    y = 22 + (Math.random() * 32); 
                 } else {
-                    x = -20 + (Math.random() * 125); 
-                    y = -20 + (Math.random() * 125); 
+                    // 【修正】手の先1ミリだけが見切れるのを防止！
+                    // 手形がしっかり画面内に見える絶妙な範囲（-2%〜82%）
+                    x = -2 + (Math.random() * 84); 
+                    y = -2 + (Math.random() * 84); 
                 }
                 
                 wrapper.style.left = `${x}%`;
@@ -201,27 +205,25 @@
                 let batchSize = 1;
                 let nextDelay = 850;
 
-                // 【紙芝居の拍子木（小槌）のリズム制御】
+                // 拍子木リズム
                 if (count < 15) {
                     // ① 始まり：カン…………カン………カン……カン…カン…カンカンカンカン…
-                    // 1打ごとに約0.85倍ずつ間隔が自然に詰まっていく計算式
                     nextDelay = Math.max(70, Math.floor(850 * Math.pow(0.85, count)));
                     batchSize = 1;
                 } else if (count < 50) {
                     // ② 連打ラッシュ：カンカンカンカンカンッ！
                     const p = (count - 15) / (50 - 15);
-                    nextDelay = Math.max(12, Math.floor(65 - (p * 50)));
-                    batchSize = Math.floor(1 + (p * 3));
+                    nextDelay = Math.max(15, Math.floor(65 - (p * 45)));
+                    batchSize = Math.floor(1 + (p * 2));
                 } else {
-                    // ③ バズーカ炸裂（51〜300個）：残り250個を一気に超乱射！
+                    // ③ 【調整】バズーカの勢いを程よくマイルドに（1回最大16個）
                     const p = (count - 50) / (maxCount - 50);
-                    nextDelay = 8;
-                    batchSize = Math.min(maxCount - count, Math.floor(6 + (p * 30)));
+                    nextDelay = 12;
+                    batchSize = Math.min(maxCount - count, Math.floor(4 + (p * 12)));
                 }
 
                 for (let i = 0; i < batchSize; i++) {
                     if (count >= maxCount) break;
-                    // 最初の7個は真ん中に集中配置
                     stampOne(count < 7);
                     count++;
                 }
@@ -229,7 +231,7 @@
                 if (count < maxCount) {
                     setTimeout(runLoop, nextDelay);
                 } else {
-                    // 300個完了 → 画面が真っ赤に染まる
+                    // 完了 → 画面が真っ赤に染まる
                     bloodScreen.style.opacity = '1';
                     
                     // 2.0秒かけて重厚にドロ〜リと垂れ落ちる
@@ -245,7 +247,6 @@
                 }
             }
 
-            // 0.15秒後に拍子木の1打目が鳴る
             setTimeout(runLoop, 150);
         };
     </script>
