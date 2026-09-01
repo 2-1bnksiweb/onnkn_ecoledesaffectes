@@ -53,7 +53,7 @@
             height: auto;
             opacity: 0; 
             transform: scale(0.6); 
-            animation: stampIn 0.1s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; 
+            animation: stampIn 0.08s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; 
             filter: drop-shadow(0px 0px 8px rgba(255, 0, 0, 0.8));
         }
         @keyframes stampIn { 
@@ -65,7 +65,7 @@
         
         #blood-screen { 
             position: absolute; inset: 0; background: #660000; 
-            opacity: 0; transition: opacity 0.25s; z-index: 10000; 
+            opacity: 0; transition: opacity 0.15s; z-index: 10000; 
             pointer-events: none;
         }
 
@@ -84,7 +84,7 @@
         <div id="blood-screen"></div>
     </div>
 
-    <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center">
+    <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-500 flex flex-col justify-center">
         
         <div class="blood-splatter w-64 h-64 top-10 -left-10"></div>
         <div class="blood-splatter w-80 h-80 bottom-10 -right-20"></div>
@@ -156,7 +156,7 @@
         }
 
         // ========================================================
-        // 🩸 中央から始まる200個・全体6秒・緩急オープニング
+        // 🩸 超高速＆キレ重視オープニング（約3.5秒完了）
         // ========================================================
         window.onload = () => {
             const opening = document.getElementById('opening');
@@ -178,11 +178,9 @@
                 
                 let x, y;
                 if (isCenter) {
-                    // 【ご要望】最初は画面の中央周辺（幅25〜55%、高さ25〜55%）に集中配置
                     x = 22 + (Math.random() * 36); 
                     y = 22 + (Math.random() * 36); 
                 } else {
-                    // 5個目以降は画面の四隅や外側まで完全に覆い尽くす
                     x = -20 + (Math.random() * 125); 
                     y = -20 + (Math.random() * 125); 
                 }
@@ -201,17 +199,18 @@
 
             function runLoop() {
                 let batchSize = 1;
-                let nextDelay = 666; // 最初の5個は2秒で3個ペース（666ms）
+                let nextDelay = 320; // 最初のテンポをスピーディに（320ms）
 
                 if (count >= 5) {
+                    // 5個目以降：一瞬で爆発的に加速
                     const progress = (count - 5) / (maxCount - 5);
-                    nextDelay = Math.max(12, 500 * Math.pow(1 - progress, 3));
-                    batchSize = Math.min(maxCount - count, Math.floor(1 + (progress * progress * 16)));
+                    nextDelay = Math.max(8, 160 * Math.pow(1 - progress, 3));
+                    // 1回で最大25個同時にスタンプして超速ラッシュ
+                    batchSize = Math.min(maxCount - count, Math.floor(2 + (progress * progress * 24)));
                 }
 
                 for (let i = 0; i < batchSize; i++) {
                     if (count >= maxCount) break;
-                    // 最初の5個は真ん中周辺に配置（isCenter = true）
                     stampOne(count < 5);
                     count++;
                 }
@@ -219,20 +218,23 @@
                 if (count < maxCount) {
                     setTimeout(runLoop, nextDelay);
                 } else {
+                    // 200個完了 → 瞬時に真っ赤へ（0.12秒）
                     bloodScreen.style.opacity = '1';
                     setTimeout(() => {
-                        opening.style.transition = "transform 1.0s cubic-bezier(0.5, 0, 1, 0.5), border-radius 1.0s";
+                        // 高速でドロっと下に流れ落ちる（0.65秒）
+                        opening.style.transition = "transform 0.65s cubic-bezier(0.4, 0, 0.8, 0.2), border-radius 0.65s";
                         opening.style.transform = "translateY(100%)";
                         opening.style.borderTopLeftRadius = "50% 15%";
                         opening.style.borderTopRightRadius = "50% 15%";
                         
                         mainContent.style.opacity = '1';
-                        setTimeout(() => { opening.style.display = 'none'; }, 1000);
-                    }, 250);
+                        setTimeout(() => { opening.style.display = 'none'; }, 650);
+                    }, 120);
                 }
             }
 
-            setTimeout(runLoop, 200);
+            // 0.1秒後に即スタート
+            setTimeout(runLoop, 100);
         };
     </script>
 </body>
