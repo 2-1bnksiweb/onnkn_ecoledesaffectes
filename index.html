@@ -156,7 +156,7 @@
         }
 
         // ========================================================
-        // 🩸 オープニング演出（手形超高速 ＆ 血の滴り重厚版）
+        // 🩸 緩急バランス調整版オープニング
         // ========================================================
         window.onload = () => {
             const opening = document.getElementById('opening');
@@ -199,7 +199,8 @@
 
             function runLoop() {
                 let batchSize = 1;
-                let nextDelay = 320; // 最初の中央はテンポよく開始
+                // 【変更】最初の5個は少しゆっくり（480ms間隔）で緊張感を演出
+                let nextDelay = 480; 
 
                 if (count >= 5) {
                     // 5個目以降：一瞬で爆発的に加速
@@ -217,24 +218,23 @@
                 if (count < maxCount) {
                     setTimeout(runLoop, nextDelay);
                 } else {
-                    // 200個完了 → 画面が真っ赤に染まる
                     bloodScreen.style.opacity = '1';
                     
-                    // 少しタメを作ってから、ドロッと重厚に垂れ落ちる
+                    // 少しタメを作ってから垂れ落ちる
                     setTimeout(() => {
-                        // 【変更】垂れ落ちる時間を「1.2秒」に伸ばし、液体がネットリ落ちるイージングを適用
-                        opening.style.transition = "transform 1.2s cubic-bezier(0.5, 0, 0.85, 0.3), border-radius 1.2s";
+                        // 【変更】血が垂れ落ちる時間を「2.0秒」にじっくり設定
+                        opening.style.transition = "transform 2.0s cubic-bezier(0.4, 0, 0.8, 0.3), border-radius 2.0s";
                         opening.style.transform = "translateY(100%)";
                         opening.style.borderTopLeftRadius = "50% 15%";
                         opening.style.borderTopRightRadius = "50% 15%";
                         
                         mainContent.style.opacity = '1';
-                        setTimeout(() => { opening.style.display = 'none'; }, 1200);
-                    }, 200);
+                        setTimeout(() => { opening.style.display = 'none'; }, 2000);
+                    }, 250);
                 }
             }
 
-            setTimeout(runLoop, 100);
+            setTimeout(runLoop, 150);
         };
     </script>
 </body>
