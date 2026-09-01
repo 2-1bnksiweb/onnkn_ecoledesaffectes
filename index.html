@@ -16,9 +16,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;800&display=swap" rel="stylesheet">
     
     <style>
+        /* 【修正】homeフォルダの中のフォントを指定 */
         @font-face {
             font-family: 'Onryou';
-            src: url('onryou.ttf') format('truetype');
+            src: url('home/onryou.ttf') format('truetype');
         }
 
         body { 
@@ -34,14 +35,12 @@
             overflow: hidden; display: flex; flex-direction: column; 
         }
         
-        /* 手形の回転と位置を管理する親枠 */
         .hand-wrapper { 
             position: absolute; 
             pointer-events: none;
             z-index: 9999;
         }
         
-        /* 手形の画像（アニメーションで拡大・出現） */
         .hand-img { 
             width: 100%; 
             height: auto;
@@ -149,44 +148,35 @@
             menu.classList.toggle('flex');
         }
 
-        // ==========================================
-        // 🩸 オープニングアニメーション（毎回必ず再生）
-        // ==========================================
         window.onload = () => {
             const opening = document.getElementById('opening');
             const bloodScreen = document.getElementById('blood-screen');
             const mainContent = document.getElementById('main-content');
             
             let count = 0;
-            const maxCount = 35; // 画面を覆い尽くす手形の数
+            const maxCount = 35;
             let delay = 350;
 
             function showHand() {
-                // 外側の枠（位置・回転・反転を担当）
                 const wrapper = document.createElement('div');
                 wrapper.className = 'hand-wrapper';
                 
-                // 大きさを 180px 〜 420px でランダムに
                 const size = 180 + (Math.random() * 240); 
                 wrapper.style.width = `${size}px`;
                 
-                // 角度を 0度 〜 360度 で完全ランダム回転
                 const rotate = Math.floor(Math.random() * 360); 
-                // 50%の確率で左右反転（左手・右手の両方を再現）
                 const flip = Math.random() > 0.5 ? -1 : 1; 
                 
-                // 画面全体に散らす
                 const x = -15 + (Math.random() * 110); 
                 const y = -15 + (Math.random() * 110); 
                 
                 wrapper.style.left = `${x}%`;
                 wrapper.style.top = `${y}%`;
-                // ここで回転と反転を合体して適用
                 wrapper.style.transform = `rotate(${rotate}deg) scaleX(${flip})`;
                 
-                // 内側の画像要素
                 const img = document.createElement('img');
-                img.src = 'hand.png'; // 添付の画像を読み込み
+                // 【修正】homeフォルダの中の画像を指定
+                img.src = 'home/hand.png'; 
                 img.className = 'hand-img';
                 
                 wrapper.appendChild(img);
