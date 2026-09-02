@@ -37,19 +37,17 @@
             min-height: 100dvh; 
         }
 
-        /* 🩸 超リアルな「血文字」エフェクト（グラデーションと強い影） */
+        /* 🩸 見やすく調整した血の文字（少し鮮血のハイライトを足し、黒い影でくっきり浮かばせる） */
         .text-blood-dark {
-            background: linear-gradient(180deg, #b30000 0%, #660000 40%, #2a0000 100%);
+            background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(2px 2px 3px #000000) drop-shadow(0 0 15px rgba(100,0,0,0.6));
+            filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9));
         }
         
         .sub-blood-dark {
-            background: linear-gradient(180deg, #8a0000 0%, #3d0000 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(1px 1px 1px #000);
+            color: #d90000;
+            text-shadow: 1px 1px 2px #000000, 0 0 8px rgba(0,0,0,0.8);
         }
 
         /* オープニング */
@@ -87,13 +85,10 @@
 </head>
 <body class="relative">
 
-    <!-- ========================================================
-         🩸 生乾きの「艶・光沢」を生み出す魔法のSVGフィルター
-         ======================================================== -->
+    <!-- 光沢フィルター -->
     <svg style="position:absolute; width:0; height:0; pointer-events:none;">
         <defs>
             <filter id="blood-shine">
-                <!-- 液体の立体的な丸みとテカリ（ハイライト）を計算 -->
                 <feGaussianBlur in="SourceAlpha" stdDeviation="1.5" result="blur" />
                 <feSpecularLighting in="blur" surfaceScale="4" specularConstant="1.2" specularExponent="25" lighting-color="#ffb3b3" result="spec">
                     <fePointLight x="500" y="-100" z="200" />
@@ -105,17 +100,16 @@
     </svg>
 
     <!-- ========================================================
-         🩸 極細・艶ありのリアル血筋カーテン（JSで自動生成）
+         🩸 血の装飾群（すべて z-index: 0 に配置して背景化）
          ======================================================== -->
-    <svg class="fixed top-0 left-0 w-full pointer-events-none z-20 h-56 sm:h-72 opacity-85" viewBox="0 0 1000 300" preserveAspectRatio="none">
+    
+    <!-- 細・光沢ありのリアル血筋カーテン -->
+    <svg class="fixed top-0 left-0 w-full pointer-events-none z-0 h-56 sm:h-72 opacity-85" viewBox="0 0 1000 300" preserveAspectRatio="none">
         <g id="curtain-layers"></g>
     </svg>
 
-    <!-- ========================================================
-         🩸 艶ありリアル・スプラッター血飛沫（四隅）
-         ======================================================== -->
-    <!-- 左上 -->
-    <svg class="fixed top-0 left-0 w-64 h-64 pointer-events-none z-10 opacity-60" viewBox="0 0 250 250" filter="url(#blood-shine)">
+    <!-- 四隅スプラッター -->
+    <svg class="fixed top-0 left-0 w-64 h-64 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" filter="url(#blood-shine)">
         <path d="M0,0 L110,0 C90,25 120,50 95,70 C70,85 60,115 30,95 C10,90 0,110 0,110 Z" fill="#4a0000" />
         <g fill="#7a0202">
             <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="150" cy="25" r="1.5" />
@@ -123,8 +117,7 @@
             <circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" /><circle cx="25" cy="160" r="3" />
         </g>
     </svg>
-    <!-- 右上 -->
-    <svg class="fixed top-0 right-0 w-64 h-64 pointer-events-none z-10 opacity-60" viewBox="0 0 250 250" style="transform: scaleX(-1);" filter="url(#blood-shine)">
+    <svg class="fixed top-0 right-0 w-64 h-64 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" style="transform: scaleX(-1);" filter="url(#blood-shine)">
         <path d="M0,0 L110,0 C90,25 120,50 95,70 C70,85 60,115 30,95 C10,90 0,110 0,110 Z" fill="#4a0000" />
         <g fill="#7a0202">
             <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" />
@@ -132,8 +125,7 @@
             <circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" />
         </g>
     </svg>
-    <!-- 左下 -->
-    <svg class="fixed bottom-0 left-0 w-72 h-72 pointer-events-none z-10 opacity-60" viewBox="0 0 250 250" style="transform: scaleY(-1);" filter="url(#blood-shine)">
+    <svg class="fixed bottom-0 left-0 w-72 h-72 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" style="transform: scaleY(-1);" filter="url(#blood-shine)">
         <path d="M0,0 L120,0 C100,35 130,60 100,80 C75,100 65,130 35,115 C10,105 0,125 0,125 Z" fill="#3d0000" />
         <g fill="#7a0202">
             <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
@@ -141,8 +133,7 @@
             <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
         </g>
     </svg>
-    <!-- 右下 -->
-    <svg class="fixed bottom-0 right-0 w-72 h-72 pointer-events-none z-10 opacity-60" viewBox="0 0 250 250" style="transform: scale(-1, -1);" filter="url(#blood-shine)">
+    <svg class="fixed bottom-0 right-0 w-72 h-72 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" style="transform: scale(-1, -1);" filter="url(#blood-shine)">
         <path d="M0,0 L120,0 C100,35 130,60 100,80 C75,100 65,130 35,115 C10,105 0,125 0,125 Z" fill="#3d0000" />
         <g fill="#7a0202">
             <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
@@ -150,31 +141,40 @@
             <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
         </g>
     </svg>
+
 
     <!-- オープニングレイヤー -->
     <div id="opening">
         <div id="blood-screen"></div>
     </div>
 
-    <!-- メインコンテンツ -->
-    <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center z-30">
+
+    <!-- ========================================================
+         🩸 メインコンテンツ（z-20で血のレイヤーより上に配置）
+         ======================================================== -->
+    <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center z-20">
         
-        <header class="flex justify-between items-center border-b border-red-950 pb-3 mb-8 text-gray-500 absolute top-8 left-6 right-6 z-30">
+        <!-- ヘッダー -->
+        <header class="flex justify-between items-center border-b border-red-950 pb-3 mb-8 text-gray-300 absolute top-8 left-6 right-6 z-30" style="text-shadow: 0 2px 4px #000;">
             <span class="tracking-widest text-lg">2-1 教室発表</span>
-            <button onclick="toggleMenu()" class="text-3xl hover:text-white">☰</button>
+            <button onclick="toggleMenu()" class="text-4xl hover:text-white drop-shadow-md">☰</button>
         </header>
 
+        <!-- メニュー -->
         <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-3 text-base absolute top-20 right-6 z-50 shadow-2xl">
-            <a href="timeattack.html" class="text-red-600 hover:text-red-400">✝ スタッフ用: タイム計測＆謎発動</a>
-            <a href="admin.html" class="text-red-400 hover:text-red-200">✝ 管理者設定</a>
+            <a href="timeattack.html" class="text-red-500 hover:text-red-300">✝ スタッフ用: タイム計測＆謎発動</a>
+            <a href="admin.html" class="text-red-500 hover:text-red-300">✝ 管理者設定</a>
         </div>
 
-        <div class="text-center mb-10 mt-20 relative">
-            <h1 class="text-4xl sm:text-5xl font-black tracking-widest text-blood-dark mb-2 leading-relaxed relative z-10" id="story-title">
-                <ruby>恐怖<rt class="text-xs sm:text-sm sub-blood-dark tracking-widest">おののき</rt></ruby>の<ruby>廃校<rt class="text-xs sm:text-sm sub-blood-dark tracking-widest">エコールデザフェクテ</rt></ruby>
-            </h1>
+        <!-- タイトルエリア（ルビ分離・文字間隔短縮） -->
+        <div class="text-center mb-10 mt-20 relative flex flex-col items-center">
+            <!-- ルビを独立した要素として配置 -->
+            <span class="text-[10px] sm:text-xs sub-blood-dark tracking-[0.4em] mb-1 pl-2">おののきのエコールデザフェクテ</span>
+            <!-- 親文字は間隔を詰めてホラー感アップ -->
+            <h1 class="text-5xl sm:text-6xl font-black tracking-widest text-blood-dark leading-none" id="story-title">恐怖の廃校</h1>
         </div>
 
+        <!-- あらすじエリア（初期テキスト空） -->
         <div class="mb-10 text-center flex-1 relative">
             <p class="text-blood-dark mb-4 text-2xl tracking-widest">〜 あらすじ 〜</p>
             
@@ -184,9 +184,8 @@
                 <circle cx="140" cy="12" r="1.5" fill="currentColor" stroke="none" />
             </svg>
             
-            <p id="story-text" class="text-xl text-gray-300 leading-loose px-4 font-bold relative z-10" style="text-shadow: 0 2px 4px #000;">
-                怨念渦巻く廃校に迷い込んでしまったあなた達...。<br>制限時間内に謎を解き、最速タイムで脱出せよ！
-            </p>
+            <!-- 初期状態は何も表示しない -->
+            <p id="story-text" class="text-xl text-gray-200 leading-loose px-4 font-bold relative z-10" style="text-shadow: 0 2px 4px #000, 0 0 10px #000; min-height: 2rem;"></p>
             
             <svg class="w-full h-5 text-red-950 mt-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none">
                 <path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path>
@@ -195,11 +194,12 @@
             </svg>
         </div>
 
+        <!-- 予約ボタンエリア -->
         <div class="mb-8 text-center px-2 relative">
             <h2 class="text-2xl text-blood-dark mb-4 tracking-widest font-bold">予約</h2>
-            <p class="text-base text-gray-400 mb-1">下のボタンから予約をすることができます。</p>
-            <p class="text-base text-gray-400 mb-3">前日でも当日でも予約可能です。</p>
-            <a href="#" class="inline-block mb-4 text-base text-red-600 hover:text-red-400 underline decoration-red-900">詳しいやり方、注意点はこちらから</a>
+            <p class="text-base text-gray-300 mb-1" style="text-shadow: 0 2px 4px #000;">下のボタンから予約をすることができます。</p>
+            <p class="text-base text-gray-300 mb-3" style="text-shadow: 0 2px 4px #000;">前日でも当日でも予約可能です。</p>
+            <a href="#" class="inline-block mb-4 text-base text-red-500 hover:text-red-300 underline decoration-red-800" style="text-shadow: 0 2px 4px #000;">詳しいやり方、注意点はこちらから</a>
             
             <div class="relative">
                 <a href="ticket.html" class="block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark text-2xl hover:bg-black transition tracking-widest shadow-btn relative z-10">
@@ -208,24 +208,22 @@
             </div>
         </div>
 
+        <!-- ランキングボタンエリア -->
         <div class="mb-4 text-center px-2">
             <h2 class="text-2xl text-blood-dark mb-4 tracking-widest font-bold">ランキング</h2>
-            <p class="text-base text-gray-400 mb-4">上位TOP3まで表示されます</p>
-            <a href="ranking.html" class="block w-full py-4 bg-gray-950 border border-gray-800 text-gray-400 text-xl hover:bg-gray-900 transition tracking-widest">
+            <p class="text-base text-gray-300 mb-4" style="text-shadow: 0 2px 4px #000;">上位TOP3まで表示されます</p>
+            <a href="ranking.html" class="block w-full py-4 bg-gray-950 border border-gray-800 text-gray-300 text-xl hover:bg-gray-900 transition tracking-widest shadow-lg">
                 ランキングはこちらから
             </a>
         </div>
     </div>
 
     <script>
-        // ========================================================
-        // 🩸 極細・光沢ありのリアル血筋を自動生成するエンジン
-        // ========================================================
+        // 血筋生成エンジン
         function buildRealBloodCurtain() {
             const svg = document.getElementById('curtain-layers');
             if(!svg) return;
 
-            // ランダムに極細の血の糸（パス）を大量生成する関数
             function genDripPath(maxLen, density, widthBase) {
                 let path = "M0,0 L1000,0 L1000,5 ";
                 let x = 1000;
@@ -235,13 +233,11 @@
                     let h = 15 + Math.pow(Math.random(), 3.5) * maxLen;
                     
                     if (h > 40) {
-                        // 鋭利で極細の垂れ
                         let bot = 0.5 + Math.random() * 1.5;
                         path += `C${x-w*0.1},5 ${x-w/2+bot},${h*0.4} ${x-w/2+bot},${h} `;
                         path += `A${bot},${bot} 0 0 1 ${x-w/2-bot},${h} `;
                         path += `C${x-w/2-bot},${h*0.4} ${nx+w*0.1},5 ${nx},5 `;
                     } else {
-                        // 短いうねり
                         path += `Q${x-w/2},${5+h} ${nx},5 `;
                     }
                     x = nx;
@@ -249,31 +245,26 @@
                 return path + "Z";
             }
 
-            // 【第1層】奥の暗くて太い滲み
             const p1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
             p1.setAttribute("d", genDripPath(150, 2.0, 15));
             p1.setAttribute("fill", "#2a0000");
             p1.setAttribute("opacity", "0.8");
             
-            // 【第2層】中間の立体的な塊
             const p2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
             p2.setAttribute("d", genDripPath(220, 1.2, 8));
             p2.setAttribute("fill", "#4a0000");
             p2.setAttribute("opacity", "0.9");
             p2.setAttribute("filter", "drop-shadow(0 3px 5px rgba(0,0,0,0.6))");
 
-            // 【第3層】手前の「極細・光沢あり」の鮮血
             const p3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            p3.setAttribute("d", genDripPath(290, 0.7, 4)); // 密度を詰めて、極細で長く
+            p3.setAttribute("d", genDripPath(290, 0.7, 4)); 
             p3.setAttribute("fill", "#8a0303");
-            // 光沢フィルター適用
             p3.setAttribute("filter", "url(#blood-shine) drop-shadow(0 2px 2px rgba(40,0,0,0.8))");
 
             svg.appendChild(p1);
             svg.appendChild(p2);
             svg.appendChild(p3);
 
-            // 独立して垂れ落ちた雫（艶あり）
             for(let i=0; i<45; i++) {
                 let dx = Math.random() * 1000;
                 let dy = 30 + Math.pow(Math.random(), 3) * 260;
@@ -288,9 +279,7 @@
             }
         }
 
-        // ========================================================
-        // 🩸 その他の制御・アニメーション
-        // ========================================================
+        // Firebase通信
         try {
             if (typeof db !== 'undefined') {
                 db.collection('settings').doc('config').onSnapshot(doc => {
@@ -358,7 +347,6 @@
                 img.src = 'home/hand.png'; 
                 img.className = 'hand-img';
                 
-                // 画像エラー時は艶ありのSVGを描画
                 img.onerror = function() { wrapper.innerHTML = createFallbackHandSvg(); };
                 
                 wrapper.appendChild(img);
