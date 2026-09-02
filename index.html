@@ -87,47 +87,72 @@
 <body class="relative">
 
     <!-- ========================================================
-         🩸 上部：自然で不規則にドロリと垂れる血のカーテン
+         🩸 【ご提示画像完全再現】リアル血のドリップカーテン
          ======================================================== -->
-    <svg class="fixed top-0 left-0 w-full pointer-events-none z-10 h-36 sm:h-56 opacity-70" viewBox="0 0 1000 220" preserveAspectRatio="none">
+    <svg class="fixed top-0 left-0 w-full pointer-events-none z-20 h-44 sm:h-64 opacity-85" viewBox="0 0 1000 270" preserveAspectRatio="none">
         <defs>
-            <linearGradient id="naturalBloodGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#3d0000" stop-opacity="0.9" />
-                <stop offset="60%" stop-color="#730101" stop-opacity="0.7" />
-                <stop offset="100%" stop-color="#210000" stop-opacity="0.1" />
+            <linearGradient id="realBloodGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#450000" />
+                <stop offset="45%" stop-color="#780202" />
+                <stop offset="90%" stop-color="#940303" />
             </linearGradient>
+            <filter id="bloodGlow" x="-5%" y="-5%" width="110%" height="110%">
+                <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.8"/>
+            </filter>
         </defs>
 
-        <path d="M0,0 L1000,0 L1000,20 
-                 C970,20 960,95 945,95 C930,95 925,35 910,25 
-                 C890,20 880,150 865,150 C855,150 850,40 835,20 
-                 C815,20 805,75 795,75 C785,75 780,25 760,20 
-                 C730,15 720,165 705,165 C695,165 690,35 665,20 
-                 C635,15 625,85 615,85 C605,85 595,25 565,20 
-                 C535,15 525,185 510,185 C500,185 495,45 470,20 
-                 C440,15 430,95 420,95 C410,95 400,25 370,20 
-                 C340,15 330,155 315,155 C305,155 300,35 275,20 
-                 C245,15 235,80 225,80 C215,80 205,25 175,20 
-                 C145,15 135,175 120,175 C110,175 105,40 80,20 
-                 C55,15 45,90 35,90 C25,90 15,25 0,20 Z" fill="url(#naturalBloodGrad)" />
+        <g filter="url(#bloodGlow)">
+            <!-- 画像に忠実なくびれ・雫付きのドリップパス -->
+            <path d="M0,0 L1000,0 L1000,25 
+                     C985,25 980,125 970,125 C960,125 955,35 945,35
+                     C935,35 930,200 920,200 C910,200 905,55 895,55
+                     C885,55 880,110 870,110 C860,110 855,40 845,40
+                     C835,40 830,230 818,230 C808,230 802,45 790,45
+                     C775,45 770,150 760,150 C750,150 745,30 730,30
+                     C715,30 710,180 700,180 C690,180 685,50 670,50
+                     C655,50 650,120 640,120 C630,120 625,35 610,35
+                     C595,35 590,255 575,255 C562,255 558,65 540,65
+                     C525,65 520,160 510,160 C500,160 495,40 480,40
+                     C465,40 460,220 445,220 C435,220 430,55 415,55
+                     C400,55 395,140 385,140 C375,140 370,30 355,30
+                     C340,30 335,190 325,190 C315,190 310,45 295,45
+                     C280,45 275,110 265,110 C255,110 250,35 235,35
+                     C220,35 215,240 200,240 C190,240 185,60 170,60
+                     C155,60 150,150 140,150 C130,150 125,30 110,30
+                     C95,30 90,200 80,200 C70,200 65,50 50,50
+                     C35,50 30,120 20,120 C10,120 5,25 0,25 Z" 
+                  fill="url(#realBloodGrad)" />
 
-        <g stroke="#730101" stroke-linecap="round">
-            <path d="M120,170 C121,185 119,195 120,205" stroke-width="2.5" />
-            <circle cx="120" cy="210" r="2.5" fill="#730101" stroke="none" />
-            <path d="M315,150 C316,165 314,175 315,185" stroke-width="2" />
-            <circle cx="315" cy="190" r="2" fill="#730101" stroke="none" />
-            <path d="M510,180 C511,195 509,205 510,215" stroke-width="2.5" />
-            <circle cx="510" cy="220" r="2.5" fill="#730101" stroke="none" />
-            <path d="M705,160 C706,175 704,185 705,195" stroke-width="2" />
-            <path d="M865,145 C866,160 864,170 865,180" stroke-width="2" />
-            <circle cx="865" cy="185" r="2" fill="#730101" stroke="none" />
+            <!-- 滴り落ちる独立したリアルな雫（ティアドロップ） -->
+            <circle cx="818" cy="245" r="4.5" fill="#940303" />
+            <circle cx="818" cy="258" r="2.5" fill="#940303" />
+            
+            <circle cx="575" cy="268" r="4.0" fill="#940303" />
+            
+            <circle cx="200" cy="252" r="4.5" fill="#940303" />
+            <circle cx="200" cy="264" r="2.5" fill="#940303" />
+            
+            <circle cx="920" cy="212" r="3.5" fill="#940303" />
+            <circle cx="445" cy="232" r="3.5" fill="#940303" />
+            <circle cx="325" cy="202" r="3.0" fill="#940303" />
         </g>
     </svg>
 
     <!-- ========================================================
-         🩸 四隅の自然なスプラッター血飛沫
+         🩸 四隅のリアル細密スプラッター血飛沫
          ======================================================== -->
+    <!-- 左上スプラッター -->
     <svg class="fixed top-0 left-0 w-56 h-56 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200">
+        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
+        <g fill="#7a0202">
+            <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="150" cy="25" r="1.5" />
+            <circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" /><circle cx="130" cy="120" r="1.8" />
+            <circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" /><circle cx="25" cy="160" r="3" />
+        </g>
+    </svg>
+
+    <!-- 右上スプラッター -->
+    <svg class="fixed top-0 right-0 w-56 h-56 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scaleX(-1);">
         <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
         <g fill="#7a0202">
             <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" />
@@ -136,27 +161,23 @@
         </g>
     </svg>
 
-    <svg class="fixed top-0 right-0 w-56 h-56 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scaleX(-1);">
-        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
-        <g fill="#7a0202">
-            <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" />
-            <circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" />
-        </g>
-    </svg>
-
+    <!-- 左下スプラッター -->
     <svg class="fixed bottom-0 left-0 w-60 h-60 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scaleY(-1);">
         <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
         <g fill="#7a0202">
             <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
             <circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" />
+            <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
         </g>
     </svg>
 
+    <!-- 右下スプラッター -->
     <svg class="fixed bottom-0 right-0 w-60 h-60 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scale(-1, -1);">
         <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
         <g fill="#7a0202">
             <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
             <circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" />
+            <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
         </g>
     </svg>
 
@@ -233,7 +254,6 @@
     </div>
 
     <script>
-        // Firebase通信（アニメーションとは完全分離）
         try {
             if (typeof db !== 'undefined') {
                 db.collection('settings').doc('config').onSnapshot(doc => {
@@ -300,52 +320,4 @@
 
             function runLoop() {
                 let batchSize = 1;
-                let nextDelay = 850;
-
-                if (count < 15) {
-                    nextDelay = Math.max(70, Math.floor(850 * Math.pow(0.85, count)));
-                    batchSize = 1;
-                } else if (count < 50) {
-                    const p = (count - 15) / (50 - 15);
-                    nextDelay = Math.max(15, Math.floor(65 - (p * 45)));
-                    batchSize = Math.floor(1 + (p * 2));
-                } else {
-                    const p = (count - 50) / (maxCount - 50);
-                    nextDelay = 12;
-                    batchSize = Math.min(maxCount - count, Math.floor(4 + (p * 12)));
-                }
-
-                for (let i = 0; i < batchSize; i++) {
-                    if (count >= maxCount) break;
-                    stampOne(count < 7);
-                    count++;
-                }
-
-                if (count < maxCount) {
-                    setTimeout(runLoop, nextDelay);
-                } else {
-                    bloodScreen.style.opacity = '1';
-                    setTimeout(() => {
-                        opening.style.transition = "transform 2.0s cubic-bezier(0.4, 0, 0.8, 0.3), border-radius 2.0s";
-                        opening.style.transform = "translateY(100%)";
-                        opening.style.borderTopLeftRadius = "50% 15%";
-                        opening.style.borderTopRightRadius = "50% 15%";
-                        
-                        mainContent.style.opacity = '1';
-                        setTimeout(() => { opening.style.display = 'none'; }, 2000);
-                    }, 250);
-                }
-            }
-
-            setTimeout(runLoop, 100);
-        }
-
-        // 外部読み込み待ちをせず即座に起動
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initHorrorOpening);
-        } else {
-            initHorrorOpening();
-        }
-    </script>
-</body>
-</html>
+                let nextDe
