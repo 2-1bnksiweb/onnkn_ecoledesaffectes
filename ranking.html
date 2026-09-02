@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#020403">
     
-    <title>親友救出記録 - 恐怖の廃校</title>
+    <title>救出記録 - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -29,7 +29,7 @@
         }
 
         body { 
-            background-color: #020403; 
+            background-color: #030504; 
             color: #d1d5db; 
             overflow-x: hidden; 
             min-height: 100dvh; 
@@ -43,21 +43,11 @@
             filter: drop-shadow(0 0 15px rgba(255, 30, 30, 0.6)) drop-shadow(2px 2px 4px #000);
         }
 
-        /* 遠くの不穏な影のゆらめき */
-        @keyframes shadowSway {
-            0%, 100% { transform: rotate(-1deg) translateY(0px); }
-            50% { transform: rotate(1deg) translateY(-2px); }
-        }
-
-        .shadow-sway {
-            animation: shadowSway 5s ease-in-out infinite;
-        }
-
-        /* 浮遊する不穏な塵・粒子 */
+        /* 浮遊する不穏な粒子 */
         @keyframes floatDust {
             0% { transform: translateY(105vh) scale(0.6); opacity: 0; }
-            20% { opacity: 0.4; }
-            80% { opacity: 0.4; }
+            20% { opacity: 0.35; }
+            80% { opacity: 0.35; }
             100% { transform: translateY(-10vh) scale(1.1); opacity: 0; }
         }
 
@@ -81,56 +71,88 @@
 <body class="relative">
 
     <!-- ========================================================
-         🏚️ 背景：赤い月 ＆ 廃校 ＆ 遠くの闇に潜む極小の影（ネタバレ防止）
+         🏚️ 背景：赤い月 ＆ リアルな廃校のシルエット（ゾンビ完全排除）
          ======================================================== -->
     <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         
-        <!-- 不気味に滲む赤い月 -->
-        <div class="absolute top-12 left-1/2 -translate-x-1/2 w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-gradient-to-b from-red-950/40 via-red-900/20 to-transparent blur-2xl opacity-60"></div>
+        <!-- 廃校の背後に浮かぶ不気味な赤い月・光背 -->
+        <div class="absolute top-16 left-1/2 -translate-x-1/2 w-64 h-64 sm:w-96 sm:h-96 rounded-full bg-gradient-to-b from-red-900/50 via-red-950/25 to-transparent blur-3xl opacity-75"></div>
 
-        <!-- 廃校の校舎シルエット（奥） -->
-        <svg class="absolute bottom-0 left-0 w-full h-64 sm:h-80 text-[#090e0b] opacity-80" viewBox="0 0 1000 350" preserveAspectRatio="none" fill="currentColor">
-            <!-- 時計塔・本館 -->
-            <rect x="420" y="80" width="160" height="270" />
-            <polygon points="420,80 500,20 580,80" />
-            <circle cx="500" cy="70" r="16" fill="#140202" />
-            <!-- 東館・西館 -->
-            <rect x="150" y="140" width="270" height="210" />
-            <rect x="580" y="140" width="270" height="210" />
-            <!-- 屋上フェンス・アンテナ -->
-            <line x1="150" y1="130" x2="420" y2="130" stroke="#090e0b" stroke-width="6" />
-            <line x1="580" y1="130" x2="850" y2="130" stroke="#090e0b" stroke-width="6" />
-            <line x1="500" y1="20" x2="500" y2="0" stroke="#090e0b" stroke-width="4" />
-            <!-- 割れた窓（うっすら赤く光る） -->
-            <rect x="460" y="140" width="25" height="35" fill="#380000" opacity="0.6" />
-            <rect x="515" y="140" width="25" height="35" fill="#380000" opacity="0.4" />
-            <rect x="250" y="180" width="30" height="40" fill="#290000" opacity="0.5" />
-            <rect x="720" y="180" width="30" height="40" fill="#290000" opacity="0.5" />
-            <!-- 荒れ果てた地面 -->
-            <path d="M0,320 Q250,300 500,325 T1000,315 L1000,350 L0,350 Z" fill="#060907" />
-        </svg>
-
-        <!-- 👤 【ネタバレ防止】遠くの闇・窓辺にわずかに見える極小の人影のみ -->
-        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1000 800" preserveAspectRatio="none">
+        <!-- リアル廃校校舎（明度アップ＆精密ディテール） -->
+        <svg class="absolute bottom-0 left-0 w-full h-80 sm:h-96 opacity-95" viewBox="0 0 1000 400" preserveAspectRatio="none">
             <defs>
-                <g id="distant-figure">
-                    <circle cx="0" cy="-65" r="9" fill="currentColor" />
-                    <path d="M -7,-55 C -5,-35 -8,-10 -5,0 L 5,0 C 7,-15 5,-35 7,-55 Z" fill="currentColor" />
-                    <path d="M -4,-50 L -18,-42 L -30,-38" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none" />
-                    <path d="M 4,-48 L -12,-38 L -24,-30" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" fill="none" />
-                    <path d="M -4,0 L -8,32 L -12,65" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none" />
-                    <path d="M 4,0 L 8,28 L 6,62" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" fill="none" />
-                </g>
+                <linearGradient id="schoolGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2a3830" />
+                    <stop offset="40%" stop-color="#16201a" />
+                    <stop offset="100%" stop-color="#080c0a" />
+                </linearGradient>
+                <linearGradient id="windowGlow" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#660000" stop-opacity="0.8" />
+                    <stop offset="100%" stop-color="#200000" stop-opacity="0.2" />
+                </linearGradient>
             </defs>
 
-            <!-- 遠くの校舎付近にうっすら潜む影のみ（手前の巨大な影は全削除） -->
-            <use href="#distant-figure" x="380" y="550" transform="scale(0.28)" class="text-[#0d1410] opacity-40 shadow-sway" />
-            <use href="#distant-figure" x="490" y="565" transform="scale(0.24) scaleX(-1)" class="text-[#0d1410] opacity-35 shadow-sway" style="animation-delay: -1.2s;" />
-            <use href="#distant-figure" x="620" y="540" transform="scale(0.30)" class="text-[#0d1410] opacity-40 shadow-sway" style="animation-delay: -2.5s;" />
+            <!-- ① 校舎の本体外郭 -->
+            <g fill="url(#schoolGrad)" stroke="#3a4d42" stroke-width="1.5">
+                <!-- 中央：崩れかけた時計塔・本館 -->
+                <polygon points="410,100 490,30 510,30 590,100 590,380 410,380" />
+                <rect x="440" y="70" width="120" height="40" />
+                <!-- 避雷針・アンテナ -->
+                <line x1="500" y1="30" x2="500" y2="5" stroke="#4a5f52" stroke-width="3" />
+                
+                <!-- 西館（左校舎） -->
+                <polygon points="120,160 410,160 410,380 120,380" />
+                <!-- 東館（右校舎） -->
+                <polygon points="590,160 880,160 880,380 590,380" />
+
+                <!-- 屋上のボロボロのフェンス・手すり -->
+                <line x1="120" y1="150" x2="410" y2="150" stroke="#3a4d42" stroke-width="4" stroke-dasharray="4,4" />
+                <line x1="590" y1="150" x2="880" y2="150" stroke="#3a4d42" stroke-width="4" stroke-dasharray="4,4" />
+            </g>
+
+            <!-- ② 壊れた時計台の文字盤 -->
+            <circle cx="500" cy="85" r="22" fill="#0b100d" stroke="#4a5f52" stroke-width="2" />
+            <line x1="500" y1="85" x2="500" y2="72" stroke="#ff4d4d" stroke-width="2" stroke-linecap="round" /> <!-- 止まった短針 -->
+            <line x1="500" y1="85" x2="512" y2="92" stroke="#ff4d4d" stroke-width="1.5" stroke-linecap="round" /> <!-- 止まった長針 -->
+
+            <!-- ③ 割れた窓ガラス群（リアルな格子と不気味な赤い光） -->
+            <g fill="url(#windowGlow)" stroke="#1a241e" stroke-width="2">
+                <!-- 本館の窓 -->
+                <rect x="445" y="140" width="30" height="45" />
+                <rect x="525" y="140" width="30" height="45" />
+                <rect x="445" y="210" width="30" height="45" />
+                <rect x="525" y="210" width="30" height="45" />
+
+                <!-- 西館の窓列 -->
+                <rect x="150" y="190" width="35" height="45" /><rect x="210" y="190" width="35" height="45" />
+                <rect x="270" y="190" width="35" height="45" /><rect x="330" y="190" width="35" height="45" />
+                <rect x="150" y="260" width="35" height="45" /><rect x="210" y="260" width="35" height="45" />
+                <rect x="270" y="260" width="35" height="45" /><rect x="330" y="260" width="35" height="45" />
+
+                <!-- 東館の窓列 -->
+                <rect x="630" y="190" width="35" height="45" /><rect x="690" y="190" width="35" height="45" />
+                <rect x="750" y="190" width="35" height="45" /><rect x="810" y="190" width="35" height="45" />
+                <rect x="630" y="260" width="35" height="45" /><rect x="690" y="260" width="35" height="45" />
+                <rect x="750" y="260" width="35" height="45" /><rect x="810" y="260" width="35" height="45" />
+            </g>
+
+            <!-- ④ 窓のヒビ割れ・破壊ディテール -->
+            <g stroke="#ff3333" stroke-width="1.2" opacity="0.65" fill="none">
+                <path d="M165,190 L170,210 L160,225 M170,210 L180,215" />
+                <path d="M340,265 L355,280 L345,300" />
+                <path d="M760,195 L775,205 L765,220" />
+                <path d="M535,145 L545,160 L550,180" />
+            </g>
+
+            <!-- ⑤ ひび割れた校門・崩れた外壁と地面 -->
+            <path d="M0,360 Q250,345 500,365 T1000,355 L1000,400 L0,400 Z" fill="#060a08" />
+            <rect x="80" y="320" width="25" height="60" fill="#1b2620" stroke="#334239" />
+            <rect x="895" y="320" width="25" height="60" fill="#1b2620" stroke="#334239" />
+            <line x1="80" y1="340" x2="30" y2="380" stroke="#1b2620" stroke-width="6" /> <!-- 倒れた門扉 -->
         </svg>
 
-        <!-- 地面を這う不気味な黒煙・霧 -->
-        <div class="absolute bottom-0 left-0 w-full h-44 bg-gradient-to-t from-black via-[#020403]/80 to-transparent"></div>
+        <!-- 地面付近の不気味な黒煙・霧 -->
+        <div class="absolute bottom-0 left-0 w-full h-36 bg-gradient-to-t from-black via-[#030504]/70 to-transparent"></div>
     </div>
 
     <!-- 浮遊する不穏な粒子コンテナ -->
@@ -148,15 +170,14 @@
             </a>
             <div class="flex items-center gap-2 blink-alert text-red-500 font-bold tracking-wider">
                 <span class="w-2 h-2 rounded-full bg-red-600 inline-block shadow-[0_0_8px_#ff0000]"></span>
-                MISSION: SEARCH & RESCUE // 弐ノ壱 廃校
+                AREA: 弐ノ壱 廃校 // 救出作戦展開中
             </div>
         </div>
 
-        <!-- タイトルエリア -->
+        <!-- タイトルエリア（一言一句違わず「救出記録」） -->
         <div class="text-center mb-10">
-            <p class="text-[11px] font-mono-tech text-red-500/80 tracking-[0.4em] mb-1">FRIEND SEARCH & RESCUE DATABASE</p>
-            <h1 class="text-4xl sm:text-5xl font-black text-center text-rescue-glow tracking-widest">
-                廃校 親友救出記録
+            <h1 class="text-5xl sm:text-6xl font-black text-center text-rescue-glow tracking-widest" id="main-title">
+                救出記録
             </h1>
         </div>
         
@@ -167,9 +188,9 @@
             <div class="bg-black/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.9)] border-t-4 border-red-800 border-x border-b border-red-950/80">
                 <div class="flex justify-between items-center border-b border-red-950 pb-2 mb-4">
                     <h2 class="text-xl sm:text-2xl font-bold text-red-500 tracking-wider">
-                        【初回】親友救出記録
+                        【初回】救出記録
                     </h2>
-                    <span class="text-[10px] font-mono-tech text-gray-400 bg-red-950/60 px-2 py-0.5 rounded border border-red-900/60">RESCUE</span>
+                    <span class="text-[10px] font-mono-tech text-gray-400 bg-red-950/60 px-2 py-0.5 rounded border border-red-900/60">FIRST</span>
                 </div>
                 <ul id="first-timer-list" class="space-y-3">
                     <p class="text-gray-600 text-sm font-mono-tech">SEARCHING RECORDS...</p>
@@ -180,9 +201,9 @@
             <div id="repeater-section" class="bg-black/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(255,0,0,0.15)] border-t-4 border-amber-600 border-x border-b border-red-950/80 hidden">
                 <div class="flex justify-between items-center border-b border-red-950 pb-2 mb-4">
                     <h2 class="text-xl sm:text-2xl font-bold text-amber-500 tracking-wider">
-                        【2回目以降】最速救出隊
+                        【2回目以降】救出記録
                     </h2>
-                    <span class="text-[10px] font-mono-tech text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/60 animate-pulse">EXPERIENCED</span>
+                    <span class="text-[10px] font-mono-tech text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/60 animate-pulse">RETRY</span>
                 </div>
                 <ul id="repeater-list" class="space-y-3"></ul>
             </div>
@@ -190,12 +211,12 @@
         </div>
 
         <div class="mt-12 text-center text-xs font-mono-tech text-gray-700 border-t border-red-950/40 pt-4">
-            CONFIDENTIAL // MISSING FRIEND RESCUE OPERATION #2-1
+            CONFIDENTIAL // RESCUE MISSION LOG DATABASE #2-1
         </div>
     </div>
 
     <script>
-        // 浮遊する不穏な粒子ジェネレーター
+        // 浮遊する不穏な粒子
         function generateDustDots() {
             const container = document.getElementById("dust-particles");
             const count = 15;
@@ -262,7 +283,7 @@
                 else rankStyle += "text-gray-600";
                 
                 const countBadge = data.count > 1 
-                    ? `<span class="text-xs bg-amber-950/80 border border-amber-600 text-amber-200 px-2 py-0.5 rounded ml-2 font-mono-tech font-bold">RESCUE-${data.count}</span>` 
+                    ? `<span class="text-xs bg-amber-950/80 border border-amber-600 text-amber-200 px-2 py-0.5 rounded ml-2 font-mono-tech font-bold">${data.count}回目</span>` 
                     : '';
                 
                 const timeColor = isRepeater ? "text-amber-400" : "text-red-400";
@@ -281,7 +302,7 @@
             });
 
             if(dataArray.length === 0) {
-                list.innerHTML = '<p class="text-gray-700 text-sm font-mono-tech">NO RESCUE RECORDED</p>';
+                list.innerHTML = '<p class="text-gray-700 text-sm font-mono-tech">記録がありません</p>';
             }
         }
 
