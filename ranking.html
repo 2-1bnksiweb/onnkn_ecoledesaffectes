@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#030806">
+    <meta name="theme-color" content="#020403">
     
     <title>脱出記録分析室 - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,191 +29,204 @@
         }
 
         body { 
-            background-color: #030806; 
-            color: #c2e5d6; 
+            background-color: #020403; 
+            color: #d1d5db; 
             overflow-x: hidden; 
             min-height: 100dvh; 
         }
 
-        /* 🧪 研究室の走査線（スキャンライン）エフェクト */
-        .scanlines {
-            background: linear-gradient(
-                rgba(18, 16, 16, 0) 50%, 
-                rgba(0, 255, 120, 0.03) 50%
-            ), linear-gradient(
-                90deg,
-                rgba(255, 0, 0, 0.02),
-                rgba(0, 255, 0, 0.01),
-                rgba(0, 0, 255, 0.02)
-            );
-            background-size: 100% 3px, 6px 100%;
-        }
-
-        /* 🧪 研究室グリッド背景 */
-        .lab-grid {
-            background-image: 
-                linear-gradient(to right, rgba(0, 255, 136, 0.04) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0, 255, 136, 0.04) 1px, transparent 1px);
-            background-size: 40px 40px;
-        }
-
-        /* 🧪 バイオ発光タイトル */
-        .text-bio-glow {
-            background: linear-gradient(180deg, #5effb1 0%, #00d668 50%, #004d25 100%);
+        /* ゾンビウイルス発光タイトル */
+        .text-virus-glow {
+            background: linear-gradient(180deg, #ff4d4d 0%, #a80000 50%, #3d0000 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 12px rgba(0, 255, 136, 0.6)) drop-shadow(2px 2px 3px #000);
+            filter: drop-shadow(0 0 15px rgba(255, 30, 30, 0.6)) drop-shadow(2px 2px 4px #000);
         }
 
-        /* 🧪 浮遊するウイルス・気泡のアニメーション */
-        @keyframes floatUp {
-            0% {
-                transform: translateY(105vh) scale(0.8) rotate(0deg);
-                opacity: 0;
-            }
-            15% { opacity: 0.6; }
-            85% { opacity: 0.6; }
-            100% {
-                transform: translateY(-10vh) scale(1.2) rotate(360deg);
-                opacity: 0;
-            }
+        /* ゾンビのゆらゆら徘徊アニメーション */
+        @keyframes zombieSway {
+            0%, 100% { transform: rotate(-1.5deg) translateY(0px); }
+            50% { transform: rotate(1.5deg) translateY(-2px); }
         }
 
-        .virus-particle {
+        .zombie-sway {
+            animation: zombieSway 4s ease-in-out infinite;
+        }
+
+        /* 浮遊するウイルス粒子 */
+        @keyframes floatVirus {
+            0% { transform: translateY(105vh) scale(0.6); opacity: 0; }
+            20% { opacity: 0.5; }
+            80% { opacity: 0.5; }
+            100% { transform: translateY(-10vh) scale(1.1); opacity: 0; }
+        }
+
+        .virus-dot {
             position: absolute;
             pointer-events: none;
-            animation: floatUp linear infinite;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 40, 40, 0.8) 0%, rgba(20, 255, 120, 0) 70%);
+            animation: floatVirus linear infinite;
         }
 
-        /* 警告点滅 */
-        @keyframes blinkWarn {
+        .blink-alert {
+            animation: blinkAnim 2s infinite;
+        }
+        @keyframes blinkAnim {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
         }
-        .blink-alert { animation: blinkWarn 1.8s infinite; }
     </style>
 </head>
-<body class="relative scanlines lab-grid">
+<body class="relative">
 
-    <!-- 🧪 背景：巨大バイオハザードマーク -->
-    <div class="fixed inset-0 flex items-center justify-center pointer-events-none z-0 opacity-[0.06]">
-        <svg class="w-[85vw] max-w-[600px] h-auto text-emerald-400" viewBox="0 0 512 512" fill="currentColor">
-            <path d="M256,0 C223.9,0 195.4,14.6 176,37.6 C156.6,14.6 128.1,0 96,0 C43,0 0,43 0,96 C0,131.6 19.3,162.7 48,179.2 L48,224 L80,224 L80,189.6 C98.5,197.6 118.8,202.1 140,202.6 C129.2,217.4 122.7,235.6 122.7,255.4 C122.7,275.1 129.2,293.3 140,308.1 C118.8,308.7 98.5,313.1 80,321.2 L80,286.7 L48,286.7 L48,331.6 C19.3,348.1 0,379.2 0,414.7 C0,467.8 43,510.7 96,510.7 C128.1,510.7 156.6,496.1 176,473.1 C195.4,496.1 223.9,510.7 256,510.7 C288.1,510.7 316.6,496.1 336,473.1 C355.4,496.1 383.9,510.7 416,510.7 C469,510.7 512,467.8 512,414.7 C512,379.2 492.7,348.1 464,331.6 L464,286.7 L432,286.7 L432,321.2 C413.5,313.2 393.2,308.7 372,308.2 C382.8,293.4 389.3,275.2 389.3,255.4 C389.3,235.7 382.8,217.5 372,202.7 C393.2,202.1 413.5,197.7 432,189.6 L432,224 L464,224 L464,179.2 C492.7,162.7 512,131.6 512,96 C512,43 469,0 416,0 C383.9,0 355.4,14.6 336,37.6 C316.6,14.6 288.1,0 256,0 Z"/>
+    <!-- ========================================================
+         🧟‍♂️ 背景：赤い月 ＆ 廃校 ＆ 遠近法ゾンビの群れ（固定配置 z-0）
+         ======================================================== -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        
+        <!-- 不気味に滲む赤い月 -->
+        <div class="absolute top-12 left-1/2 -translate-x-1/2 w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-gradient-to-b from-red-950/40 via-red-900/20 to-transparent blur-2xl opacity-60"></div>
+
+        <!-- 廃校の校舎シルエット（奥） -->
+        <svg class="absolute bottom-0 left-0 w-full h-64 sm:h-80 text-[#090e0b] opacity-80" viewBox="0 0 1000 350" preserveAspectRatio="none" fill="currentColor">
+            <!-- 時計塔・本館 -->
+            <rect x="420" y="80" width="160" height="270" />
+            <polygon points="420,80 500,20 580,80" /> <!-- 時計塔屋根 -->
+            <circle cx="500" cy="70" r="16" fill="#140202" /> <!-- 壊れた時計 -->
+            <!-- 東館・西館 -->
+            <rect x="150" y="140" width="270" height="210" />
+            <rect x="580" y="140" width="270" height="210" />
+            <!-- 屋上フェンス・アンテナ -->
+            <line x1="150" y1="130" x2="420" y2="130" stroke="#090e0b" stroke-width="6" />
+            <line x1="580" y1="130" x2="850" y2="130" stroke="#090e0b" stroke-width="6" />
+            <line x1="500" y1="20" x2="500" y2="0" stroke="#090e0b" stroke-width="4" />
+            <!-- 割れた窓（うっすら赤く光る） -->
+            <rect x="460" y="140" width="25" height="35" fill="#380000" opacity="0.6" />
+            <rect x="515" y="140" width="25" height="35" fill="#380000" opacity="0.4" />
+            <rect x="250" y="180" width="30" height="40" fill="#290000" opacity="0.5" />
+            <rect x="720" y="180" width="30" height="40" fill="#290000" opacity="0.5" />
+            <!-- 荒れ果てた地面 -->
+            <path d="M0,320 Q250,300 500,325 T1000,315 L1000,350 L0,350 Z" fill="#060907" />
         </svg>
+
+        <!-- 🧟‍♂️ 遠近法ゾンビたち（大小サイズで配置） -->
+        <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1000 800" preserveAspectRatio="none">
+            <defs>
+                <!-- ゾンビのリアルシルエットパス（腕を前に伸ばしてよろめく姿） -->
+                <g id="zombie-figure">
+                    <!-- 頭・首 -->
+                    <circle cx="0" cy="-65" r="9" fill="currentColor" />
+                    <!-- 胴体（前傾姿勢） -->
+                    <path d="M -7,-55 C -5,-35 -8,-10 -5,0 L 5,0 C 7,-15 5,-35 7,-55 Z" fill="currentColor" />
+                    <!-- 前に突き出された腕（左腕・右腕） -->
+                    <path d="M -4,-50 L -18,-42 L -32,-38 L -38,-35" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none" />
+                    <path d="M 4,-48 L -12,-38 L -26,-30 L -32,-28" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" fill="none" />
+                    <!-- 足（よろめいて引きずる足） -->
+                    <path d="M -4,0 L -8,32 L -14,65" stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none" />
+                    <path d="M 4,0 L 8,28 L 6,62" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" fill="none" />
+                </g>
+            </defs>
+
+            <!-- ① 【遠景・極小】廃校のふもとを歩くゾンビ群（薄く小さい） -->
+            <use href="#zombie-figure" x="380" y="550" transform="scale(0.32)" class="text-[#0d1410] opacity-60 zombie-sway" />
+            <use href="#zombie-figure" x="490" y="565" transform="scale(0.28) scaleX(-1)" class="text-[#0d1410] opacity-50 zombie-sway" style="animation-delay: -1.2s;" />
+            <use href="#zombie-figure" x="620" y="540" transform="scale(0.35)" class="text-[#0d1410] opacity-60 zombie-sway" style="animation-delay: -2.5s;" />
+
+            <!-- ② 【中景・中サイズ】校庭から迫るゾンビ（少し濃い） -->
+            <use href="#zombie-figure" x="180" y="660" transform="scale(0.65)" class="text-[#080d0a] opacity-75 zombie-sway" style="animation-delay: -0.7s;" />
+            <use href="#zombie-figure" x="820" y="640" transform="scale(0.7) scaleX(-1)" class="text-[#080d0a] opacity-75 zombie-sway" style="animation-delay: -1.8s;" />
+
+            <!-- ③ 【近景・大きめ】画面端の闇から忍び寄るゾンビ影 -->
+            <use href="#zombie-figure" x="40" y="740" transform="scale(1.15)" class="text-[#040705] opacity-90 zombie-sway" style="animation-delay: -3.1s;" />
+            <use href="#zombie-figure" x="940" y="730" transform="scale(1.2) scaleX(-1)" class="text-[#040705] opacity-90 zombie-sway" style="animation-delay: -0.4s;" />
+        </svg>
+
+        <!-- 地面を這う不気味な黒煙・霧 -->
+        <div class="absolute bottom-0 left-0 w-full h-44 bg-gradient-to-t from-black via-[#020403]/80 to-transparent"></div>
     </div>
 
-    <!-- 🧪 背景：浮遊するウイルス・気泡コンテナ -->
-    <div id="virus-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+    <!-- 浮遊するウイルス粒子コンテナ -->
+    <div id="virus-particles" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
 
-    <!-- 🧪 メインコンテンツ -->
+    <!-- ========================================================
+         🧪 メインコンテンツ（z-10 前面配置で視認性抜群）
+         ======================================================== -->
     <div class="max-w-4xl mx-auto p-6 relative z-10 mt-6 mb-12">
         
         <!-- ヘッダー・ステータスバー -->
-        <div class="flex justify-between items-center border-b border-emerald-900/60 pb-3 mb-8 text-xs font-mono-tech">
-            <a href="index.html" class="text-emerald-400 hover:text-emerald-200 transition flex items-center gap-1">
-                &lt; EXIT LAB
+        <div class="flex justify-between items-center border-b border-red-950/80 pb-3 mb-8 text-xs font-mono-tech">
+            <a href="index.html" class="text-gray-400 hover:text-white transition flex items-center gap-1">
+                &lt; 廃校を脱出する
             </a>
             <div class="flex items-center gap-2 blink-alert text-red-500 font-bold tracking-wider">
-                <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
-                BIOHAZARD LEVEL 4 : CONTAMINATED
+                <span class="w-2 h-2 rounded-full bg-red-600 inline-block shadow-[0_0_8px_#ff0000]"></span>
+                ZOMBIE VIRUS OUTBREAK : AREA 2-1
             </div>
         </div>
 
         <!-- タイトルエリア -->
         <div class="text-center mb-10">
-            <p class="text-xs font-mono-tech text-emerald-500/80 tracking-[0.4em] mb-1">FACILITY ESCAPE LOG DATABASE</p>
-            <h1 class="text-4xl sm:text-5xl font-black text-center text-bio-glow tracking-widest">
-                検体脱出記録解析
+            <p class="text-[11px] font-mono-tech text-red-500/80 tracking-[0.4em] mb-1">INFECTED ZONE ESCAPE RECORD</p>
+            <h1 class="text-4xl sm:text-5xl font-black text-center text-virus-glow tracking-widest">
+                感染廃校 脱出生存記録
             </h1>
         </div>
         
         <!-- ランキンググリッド -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
             
-            <!-- ① 初回ランキング（検体群・グリーン系） -->
-            <div class="bg-gray-950/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(0,255,136,0.1)] border-t-4 border-emerald-500 border-x border-b border-emerald-950">
-                <div class="flex justify-between items-center border-b border-emerald-900/60 pb-2 mb-4">
-                    <h2 class="text-xl sm:text-2xl font-bold text-emerald-400 tracking-wider">
-                        【第1種検体】初回脱出記録
+            <!-- ① 初回ランキング -->
+            <div class="bg-black/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.9)] border-t-4 border-red-800 border-x border-b border-red-950/80">
+                <div class="flex justify-between items-center border-b border-red-950 pb-2 mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-red-500 tracking-wider">
+                        【初回】生存者脱出記録
                     </h2>
-                    <span class="text-[10px] font-mono-tech text-emerald-600 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-900">TYPE-A</span>
+                    <span class="text-[10px] font-mono-tech text-gray-400 bg-red-950/60 px-2 py-0.5 rounded border border-red-900/60">SURVIVOR</span>
                 </div>
                 <ul id="first-timer-list" class="space-y-3">
-                    <p class="text-emerald-800 text-sm font-mono-tech">SCANNING DATABASE...</p>
+                    <p class="text-gray-600 text-sm font-mono-tech">SCANNING SURVIVORS...</p>
                 </ul>
             </div>
 
-            <!-- ② リピーターランキング（変異体・レッド系） -->
-            <div id="repeater-section" class="bg-gray-950/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(255,50,50,0.15)] border-t-4 border-red-600 border-x border-b border-red-950 hidden">
-                <div class="flex justify-between items-center border-b border-red-900/60 pb-2 mb-4">
-                    <h2 class="text-xl sm:text-2xl font-bold text-red-500 tracking-wider">
-                        【変異体】猛者脱出記録
+            <!-- ② リピーターランキング（変異体・猛者） -->
+            <div id="repeater-section" class="bg-black/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(255,0,0,0.15)] border-t-4 border-amber-600 border-x border-b border-red-950/80 hidden">
+                <div class="flex justify-between items-center border-b border-red-950 pb-2 mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-amber-500 tracking-wider">
+                        【2回目以降】抗体保持者
                     </h2>
-                    <span class="text-[10px] font-mono-tech text-red-400 bg-red-950/80 px-2 py-0.5 rounded border border-red-800 animate-pulse">MUTATED</span>
+                    <span class="text-[10px] font-mono-tech text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/60 animate-pulse">MUTATED</span>
                 </div>
                 <ul id="repeater-list" class="space-y-3"></ul>
             </div>
 
         </div>
 
-        <!-- 下部ラボインフォ -->
-        <div class="mt-12 text-center text-xs font-mono-tech text-emerald-800 border-t border-emerald-950/60 pt-4">
-            CONFIDENTIAL // RESTRICTED ACCESS ONLY // FACILITY #2-1
+        <div class="mt-12 text-center text-xs font-mono-tech text-gray-700 border-t border-red-950/40 pt-4">
+            CONFIDENTIAL // ZOMBIE CONTAMINATED SCHOOL FACILITY #2-1
         </div>
     </div>
 
     <script>
         // ========================================================
-        // 🧪 浮遊するウイルス粒子＆気泡ジェネレーター
+        // 🧪 浮遊するウイルス微粒子ジェネレーター
         // ========================================================
-        function generateLabParticles() {
-            const container = document.getElementById("virus-container");
-            const particleCount = 18;
-            
-            // ウイルスのSVG形状
-            const virusSvg = `
-                <svg viewBox="0 0 100 100" class="w-full h-full text-emerald-500/30" fill="currentColor">
-                    <circle cx="50" cy="50" r="24" />
-                    <!-- スパイク突起 -->
-                    <circle cx="50" cy="14" r="5" /><line x1="50" y1="26" x2="50" y2="14" stroke="currentColor" stroke-width="4"/>
-                    <circle cx="50" cy="86" r="5" /><line x1="50" y1="74" x2="50" y2="86" stroke="currentColor" stroke-width="4"/>
-                    <circle cx="14" cy="50" r="5" /><line x1="26" y1="50" x2="14" y2="50" stroke="currentColor" stroke-width="4"/>
-                    <circle cx="86" cy="50" r="5" /><line x1="74" y1="50" x2="86" y2="50" stroke="currentColor" stroke-width="4"/>
-                    <circle cx="24" cy="24" r="4.5" /><line x1="33" y1="33" x2="24" y2="24" stroke="currentColor" stroke-width="3.5"/>
-                    <circle cx="76" cy="76" r="4.5" /><line x1="67" y1="67" x2="76" y2="76" stroke="currentColor" stroke-width="3.5"/>
-                    <circle cx="76" cy="24" r="4.5" /><line x1="67" y1="33" x2="76" y2="24" stroke="currentColor" stroke-width="3.5"/>
-                    <circle cx="24" cy="76" r="4.5" /><line x1="33" y1="67" x2="24" y2="76" stroke="currentColor" stroke-width="3.5"/>
-                </svg>
-            `;
-
-            for (let i = 0; i < particleCount; i++) {
+        function generateVirusDots() {
+            const container = document.getElementById("virus-particles");
+            const count = 15;
+            for (let i = 0; i < count; i++) {
                 const el = document.createElement("div");
-                el.className = "virus-particle";
-                
-                const size = 20 + Math.random() * 45;
-                const left = Math.random() * 100;
-                const duration = 12 + Math.random() * 16;
-                const delay = Math.random() * -25;
-                
+                el.className = "virus-dot";
+                const size = 10 + Math.random() * 22;
                 el.style.width = `${size}px`;
                 el.style.height = `${size}px`;
-                el.style.left = `${left}%`;
-                el.style.animationDuration = `${duration}s`;
-                el.style.animationDelay = `${delay}s`;
-
-                // 半分はウイルス、半分は気泡
-                if (Math.random() > 0.4) {
-                    el.innerHTML = virusSvg;
-                } else {
-                    el.innerHTML = `
-                        <div class="w-full h-full rounded-full border border-emerald-400/30 bg-emerald-500/10 backdrop-blur-[1px] shadow-[0_0_8px_rgba(0,255,136,0.2)]"></div>
-                    `;
-                }
-
+                el.style.left = `${Math.random() * 100}%`;
+                el.style.animationDuration = `${10 + Math.random() * 14}s`;
+                el.style.animationDelay = `${Math.random() * -20}s`;
                 container.appendChild(el);
             }
         }
-        window.addEventListener('DOMContentLoaded', generateLabParticles);
+        window.addEventListener('DOMContentLoaded', generateVirusDots);
 
         // ========================================================
         // 🧪 Firebase ランキング機能
@@ -253,27 +266,23 @@
             dataArray.sort((a, b) => a.time - b.time).slice(0, 10).forEach((data, index) => {
                 const li = document.createElement('li');
                 
-                // カードスタイル
                 if (isRepeater) {
-                    li.className = "flex justify-between items-center bg-red-950/30 border border-red-900/40 p-3 rounded text-gray-200 shadow-sm hover:border-red-600 transition";
+                    li.className = "flex justify-between items-center bg-zinc-950/90 border border-amber-900/40 p-3 rounded text-gray-200 shadow-sm hover:border-amber-600 transition";
                 } else {
-                    li.className = "flex justify-between items-center bg-emerald-950/30 border border-emerald-900/40 p-3 rounded text-gray-200 shadow-sm hover:border-emerald-600 transition";
+                    li.className = "flex justify-between items-center bg-zinc-950/90 border border-red-950/60 p-3 rounded text-gray-200 shadow-sm hover:border-red-600 transition";
                 }
                 
-                // 順位デザイン
                 let rankStyle = "text-xl font-bold font-mono-tech ";
                 if(index === 0) rankStyle += "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]";
                 else if(index === 1) rankStyle += "text-gray-300";
                 else if(index === 2) rankStyle += "text-amber-600";
-                else rankStyle += "text-emerald-600";
+                else rankStyle += "text-gray-600";
                 
-                // 変異回数バッジ
                 const countBadge = data.count > 1 
-                    ? `<span class="text-xs bg-red-900/80 border border-red-600 text-red-200 px-2 py-0.5 rounded ml-2 font-mono-tech font-bold tracking-tight">MUTATION-${data.count}</span>` 
+                    ? `<span class="text-xs bg-amber-950/80 border border-amber-600 text-amber-200 px-2 py-0.5 rounded ml-2 font-mono-tech font-bold">MUTATION-${data.count}</span>` 
                     : '';
                 
-                // タイムカラー
-                const timeColor = isRepeater ? "text-red-400" : "text-emerald-400";
+                const timeColor = isRepeater ? "text-amber-400" : "text-red-400";
                 
                 li.innerHTML = `
                     <div class="flex items-center">
@@ -289,7 +298,7 @@
             });
 
             if(dataArray.length === 0) {
-                list.innerHTML = '<p class="text-emerald-900 text-sm font-mono-tech">NO ESCAPE DATA RECORDED</p>';
+                list.innerHTML = '<p class="text-gray-700 text-sm font-mono-tech">NO SURVIVOR RECORDED</p>';
             }
         }
 
