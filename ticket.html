@@ -123,10 +123,24 @@
                 const x = cx + Math.cos(a) * r;
                 const y = cy + Math.sin(a) * r;
                 
+                // 通常の糸
                 const line = document.createElementNS(svgNs, "line");
                 line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
                 line.setAttribute("stroke", "rgba(160, 160, 160, 0.4)"); line.setAttribute("stroke-width", "1.2");
                 svg.appendChild(line);
+
+                // 🩸 糸にべっとりとまとわりつく血（破線で重ねる）
+                if (Math.random() < 0.6) {
+                    const bLine = document.createElementNS(svgNs, "line");
+                    bLine.setAttribute("x1", cx); bLine.setAttribute("y1", cy); bLine.setAttribute("x2", x); bLine.setAttribute("y2", y);
+                    bLine.setAttribute("stroke", "#940303"); 
+                    bLine.setAttribute("stroke-width", "1.8");
+                    bLine.setAttribute("stroke-dasharray", `${Math.random()*15+5} ${Math.random()*30+10}`);
+                    bLine.setAttribute("stroke-dashoffset", `${Math.random()*50}`);
+                    bLine.setAttribute("opacity", "0.85");
+                    svg.appendChild(bLine);
+                }
+
                 rays.push({ angle: a, r: r });
             });
 
@@ -134,7 +148,7 @@
             for (let rIdx = 1; rIdx <= rings; rIdx++) {
                 const rBase = (maxR / rings) * rIdx;
                 for (let i = 0; i < rayCount - 1; i++) {
-                    if (Math.random() < 0.1) continue; // たまに糸が切れる
+                    if (Math.random() < 0.1) continue; 
                     const r1 = rBase * (0.95 + Math.random() * 0.1);
                     const r2 = rBase * (0.95 + Math.random() * 0.1);
                     if (r1 > rays[i].r || r2 > rays[i+1].r) continue;
@@ -146,38 +160,38 @@
                     const midR = (r1 + r2) / 2 * 0.94; // 糸のたわみ
                     const mx = cx + Math.cos(midAngle) * midR; const my = cy + Math.sin(midAngle) * midR;
 
+                    // 通常の横糸
                     const path = document.createElementNS(svgNs, "path");
                     path.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`);
                     path.setAttribute("fill", "none");
                     path.setAttribute("stroke", "rgba(160, 160, 160, 0.5)"); path.setAttribute("stroke-width", "0.8");
                     svg.appendChild(path);
 
-                    // 🩸 糸に絡む血の雫
-                    if (Math.random() < 0.08) {
-                        const drop = document.createElementNS(svgNs, "circle");
-                        drop.setAttribute("cx", mx); drop.setAttribute("cy", my); drop.setAttribute("r", 1.8 + Math.random() * 2);
-                        drop.setAttribute("fill", "#940303"); drop.setAttribute("opacity", "0.85");
-                        svg.appendChild(drop);
-                        
-                        if (Math.random() < 0.6) {
-                            const drip = document.createElementNS(svgNs, "line");
-                            drip.setAttribute("x1", mx); drip.setAttribute("y1", my); drip.setAttribute("x2", mx); drip.setAttribute("y2", my + 10 + Math.random() * 25);
-                            drip.setAttribute("stroke", "#940303"); drip.setAttribute("stroke-width", "1.5"); drip.setAttribute("stroke-linecap", "round");
-                            svg.appendChild(drip);
-                        }
+                    // 🩸 横糸にべっとりとまとわりつく血
+                    if (Math.random() < 0.4) {
+                        const bPath = document.createElementNS(svgNs, "path");
+                        bPath.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`);
+                        bPath.setAttribute("fill", "none");
+                        bPath.setAttribute("stroke", "#940303"); 
+                        bPath.setAttribute("stroke-width", "1.5");
+                        bPath.setAttribute("stroke-dasharray", `${Math.random()*10+5} ${Math.random()*20+10}`);
+                        bPath.setAttribute("stroke-dashoffset", `${Math.random()*20}`);
+                        bPath.setAttribute("opacity", "0.85");
+                        svg.appendChild(bPath);
                     }
                 }
             }
 
-            // 🕷️ リアルな蜘蛛のシルエットパス（脚がカクッと折れ曲がっている）
+            // 🕷️ リアルな蜘蛛のシルエットパス
             const spiderPath = "M 0,-5 C 3,-5 6,-1 6,5 C 6,11 3,15 0,15 C -3,15 -6,11 -6,5 C -6,-1 -3,-5 0,-5 Z M 0,-7.5 A 2.5 2.5 0 1 1 0,-7.49 Z M 3,-4 L 11,-9 L 15,-4 M 5,1 L 13,-2 L 19,2 M 5,6 L 15,7 L 19,14 M 4,10 L 11,15 L 13,22 M -3,-4 L -11,-9 L -15,-4 M -5,1 L -13,-2 L -19,2 M -5,6 L -15,7 L -19,14 M -4,10 L -11,15 L -13,22";
 
-            // 巣の主（巨大蜘蛛）
+            // 巣の主（巨大蜘蛛：見やすいように白の細い輪郭を追加）
             const masterSpider = document.createElementNS(svgNs, "g");
-            masterSpider.setAttribute("fill", "#000"); masterSpider.setAttribute("stroke", "#000"); masterSpider.setAttribute("stroke-width", "1.5");
-            masterSpider.setAttribute("stroke-linejoin", "round"); masterSpider.setAttribute("stroke-linecap", "round");
             masterSpider.setAttribute("class", "spider-shadow");
-            masterSpider.innerHTML = `<path d="${spiderPath}" />`;
+            masterSpider.innerHTML = `
+                <path d="${spiderPath}" stroke="rgba(255,255,255,0.7)" stroke-width="2.5" fill="rgba(255,255,255,0.7)" stroke-linejoin="round" stroke-linecap="round" />
+                <path d="${spiderPath}" stroke="#000" stroke-width="1.5" fill="#000" stroke-linejoin="round" stroke-linecap="round" />
+            `;
             const masterR = maxR * 0.35; const masterA = Math.PI / 2 + Math.PI / 4.5;
             masterSpider.setAttribute("transform", `translate(${cx + Math.cos(masterA) * masterR}, ${cy + Math.sin(masterA) * masterR}) rotate(-50) scale(1.8)`);
             svg.appendChild(masterSpider);
@@ -192,25 +206,34 @@
                 g.style.transformOrigin = `${lx}px 0px`;
                 g.style.animation = `swing ${3 + Math.random() * 4}s ease-in-out ${Math.random() * -5}s infinite alternate`;
 
+                // 通常の垂れる糸
                 const line = document.createElementNS(svgNs, "line");
                 line.setAttribute("x1", lx); line.setAttribute("y1", 0); line.setAttribute("x2", lx); line.setAttribute("y2", ly);
                 line.setAttribute("stroke", "rgba(180, 180, 180, 0.6)"); line.setAttribute("stroke-width", "1.2");
                 g.appendChild(line);
 
+                // 🩸 垂れる糸にまとわりつく血
+                if (Math.random() < 0.7) {
+                    const bLine = document.createElementNS(svgNs, "line");
+                    bLine.setAttribute("x1", lx); bLine.setAttribute("y1", 0); bLine.setAttribute("x2", lx); bLine.setAttribute("y2", ly);
+                    bLine.setAttribute("stroke", "#940303"); 
+                    bLine.setAttribute("stroke-width", "2"); 
+                    bLine.setAttribute("stroke-dasharray", `${Math.random()*20+10} ${Math.random()*40+20}`);
+                    bLine.setAttribute("stroke-dashoffset", `${Math.random()*50}`);
+                    bLine.setAttribute("opacity", "0.85");
+                    g.appendChild(bLine);
+                }
+
+                // 蜘蛛（白輪郭付き）
                 const spider = document.createElementNS(svgNs, "g");
-                spider.setAttribute("fill", "#000"); spider.setAttribute("stroke", "#000"); spider.setAttribute("stroke-width", "1.5");
-                spider.setAttribute("stroke-linejoin", "round"); spider.setAttribute("stroke-linecap", "round");
                 spider.setAttribute("class", "spider-shadow");
                 spider.setAttribute("transform", `translate(${lx}, ${ly}) scale(${0.8 + Math.random() * 0.5})`);
-                spider.innerHTML = `<path d="${spiderPath}" />`;
+                spider.innerHTML = `
+                    <path d="${spiderPath}" stroke="rgba(255,255,255,0.7)" stroke-width="2.5" fill="rgba(255,255,255,0.7)" stroke-linejoin="round" stroke-linecap="round" />
+                    <path d="${spiderPath}" stroke="#000" stroke-width="1.5" fill="#000" stroke-linejoin="round" stroke-linecap="round" />
+                `;
                 g.appendChild(spider);
 
-                if (Math.random() < 0.5) {
-                    const by = ly * (0.2 + Math.random() * 0.6);
-                    const drop = document.createElementNS(svgNs, "circle");
-                    drop.setAttribute("cx", lx); drop.setAttribute("cy", by); drop.setAttribute("r", 2.5); drop.setAttribute("fill", "#940303");
-                    g.appendChild(drop);
-                }
                 svg.appendChild(g);
             }
         }
