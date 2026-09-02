@@ -46,8 +46,8 @@
         /* 浮遊する不穏な粒子 */
         @keyframes floatDust {
             0% { transform: translateY(105vh) scale(0.6); opacity: 0; }
-            20% { opacity: 0.35; }
-            80% { opacity: 0.35; }
+            20% { opacity: 0.3; }
+            80% { opacity: 0.3; }
             100% { transform: translateY(-10vh) scale(1.1); opacity: 0; }
         }
 
@@ -55,7 +55,7 @@
             position: absolute;
             pointer-events: none;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 40, 40, 0.7) 0%, rgba(0, 0, 0, 0) 70%);
+            background: radial-gradient(circle, rgba(255, 40, 40, 0.6) 0%, rgba(0, 0, 0, 0) 70%);
             animation: floatDust linear infinite;
         }
 
@@ -71,95 +71,91 @@
 <body class="relative">
 
     <!-- ========================================================
-         🏚️ 背景：赤い月 ＆ リアルな廃校のシルエット（ゾンビ完全排除）
+         🏚️ 背景：写真完全再現・リアル廃校舎（明度抑制＆遠景配置）
          ======================================================== -->
     <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         
-        <!-- 廃校の背後に浮かぶ不気味な赤い月・光背 -->
-        <div class="absolute top-16 left-1/2 -translate-x-1/2 w-64 h-64 sm:w-96 sm:h-96 rounded-full bg-gradient-to-b from-red-900/50 via-red-950/25 to-transparent blur-3xl opacity-75"></div>
+        <!-- 背景の赤い月明かり（暗めに調整） -->
+        <div class="absolute top-20 left-1/2 -translate-x-1/2 w-64 h-64 sm:w-96 sm:h-96 rounded-full bg-gradient-to-b from-red-950/30 via-red-950/10 to-transparent blur-3xl opacity-50"></div>
 
-        <!-- リアル廃校校舎（明度アップ＆精密ディテール） -->
-        <svg class="absolute bottom-0 left-0 w-full h-80 sm:h-96 opacity-95" viewBox="0 0 1000 400" preserveAspectRatio="none">
+        <!-- 📸 ご提示写真通りの廃校舎SVG（パース付き＆暗めのトーン） -->
+        <svg class="absolute bottom-0 left-0 w-full h-80 sm:h-96 opacity-45" viewBox="0 0 1000 450" preserveAspectRatio="none">
             <defs>
-                <linearGradient id="schoolGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#2a3830" />
-                    <stop offset="40%" stop-color="#16201a" />
-                    <stop offset="100%" stop-color="#080c0a" />
+                <linearGradient id="realSchoolGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1a241e" />
+                    <stop offset="50%" stop-color="#0f1511" />
+                    <stop offset="100%" stop-color="#040605" />
                 </linearGradient>
-                <linearGradient id="windowGlow" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#660000" stop-opacity="0.8" />
-                    <stop offset="100%" stop-color="#200000" stop-opacity="0.2" />
+                <linearGradient id="woodBoardGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#241912" />
+                    <stop offset="100%" stop-color="#0d0906" />
                 </linearGradient>
             </defs>
 
-            <!-- ① 校舎の本体外郭 -->
-            <g fill="url(#schoolGrad)" stroke="#3a4d42" stroke-width="1.5">
-                <!-- 中央：崩れかけた時計塔・本館 -->
-                <polygon points="410,100 490,30 510,30 590,100 590,380 410,380" />
-                <rect x="440" y="70" width="120" height="40" />
-                <!-- 避雷針・アンテナ -->
-                <line x1="500" y1="30" x2="500" y2="5" stroke="#4a5f52" stroke-width="3" />
+            <!-- ① 右手前：そびえ立つ直方体の階段塔屋・給水塔 -->
+            <polygon points="560,65 780,135 780,450 560,450" fill="url(#realSchoolGrad)" stroke="#1e2b23" stroke-width="1.2" />
+            <polygon points="560,65 780,135 765,135 560,65" fill="#293b30" /> <!-- 屋根庇の立体感 -->
+            <rect x="745" y="200" width="15" height="30" fill="#080c0a" stroke="#1e2b23" stroke-width="1" /> <!-- 塔屋の小窓 -->
+
+            <!-- ② 左奥へパースが伸びる3階建て本校舎 -->
+            <polygon points="25,270 560,145 560,450 25,450" fill="url(#realSchoolGrad)" stroke="#1e2b23" stroke-width="1.2" />
+            
+            <!-- 屋上のアンテナ群・避雷針・手すり・排気塔 -->
+            <line x1="210" y1="190" x2="210" y2="135" stroke="#1f2c24" stroke-width="1.8" />
+            <line x1="270" y1="175" x2="270" y2="120" stroke="#1f2c24" stroke-width="1.8" />
+            <line x1="290" y1="170" x2="290" y2="120" stroke="#1f2c24" stroke-width="1.8" />
+            <line x1="25" y1="270" x2="560" y2="145" stroke="#25352c" stroke-width="2.5" /> <!-- 屋上フチ -->
+            <rect x="50" y="235" width="22" height="40" fill="#141c17" stroke="#1e2b23" stroke-width="1" /> <!-- 左端の煙突塔 -->
+
+            <!-- ③ 3階＆2階の突き出たバルコニー/ベランダ（写真の特徴的な丸穴付き） -->
+            <!-- 3階 手前ベランダ -->
+            <polygon points="365,215 470,190 470,240 365,265" fill="#121a15" stroke="#24332a" stroke-width="1.2" />
+            <circle cx="420" cy="225" r="4.5" fill="#060907" stroke="#1a241e" stroke-width="1" />
+            
+            <!-- 2階 手前ベランダ -->
+            <polygon points="355,295 470,270 470,320 355,345" fill="#121a15" stroke="#24332a" stroke-width="1.2" />
+            <circle cx="415" cy="305" r="4.5" fill="#060907" stroke="#1a241e" stroke-width="1" />
+            
+            <!-- 3階 奥のベランダ -->
+            <polygon points="110,290 160,280 160,310 110,320" fill="#121a15" stroke="#24332a" stroke-width="1" />
+            <circle cx="135" cy="300" r="3" fill="#060907" />
+
+            <!-- ④ 3階・2階の横長連窓（格子窓の陰影） -->
+            <g stroke="#1a241e" stroke-width="1.2" fill="#0a0f0c" opacity="0.8">
+                <!-- 3階 窓列 -->
+                <polygon points="45,285 360,205 360,245 45,320" />
+                <polygon points="475,185 550,170 550,210 475,225" />
                 
-                <!-- 西館（左校舎） -->
-                <polygon points="120,160 410,160 410,380 120,380" />
-                <!-- 東館（右校舎） -->
-                <polygon points="590,160 880,160 880,380 590,380" />
-
-                <!-- 屋上のボロボロのフェンス・手すり -->
-                <line x1="120" y1="150" x2="410" y2="150" stroke="#3a4d42" stroke-width="4" stroke-dasharray="4,4" />
-                <line x1="590" y1="150" x2="880" y2="150" stroke="#3a4d42" stroke-width="4" stroke-dasharray="4,4" />
+                <!-- 2階 窓列 -->
+                <polygon points="45,345 350,280 350,320 45,380" />
+                <polygon points="475,265 550,250 550,290 475,305" />
             </g>
 
-            <!-- ② 壊れた時計台の文字盤 -->
-            <circle cx="500" cy="85" r="22" fill="#0b100d" stroke="#4a5f52" stroke-width="2" />
-            <line x1="500" y1="85" x2="500" y2="72" stroke="#ff4d4d" stroke-width="2" stroke-linecap="round" /> <!-- 止まった短針 -->
-            <line x1="500" y1="85" x2="512" y2="92" stroke="#ff4d4d" stroke-width="1.5" stroke-linecap="round" /> <!-- 止まった長針 -->
+            <!-- ⑤ 1階の板張りで塞がれた不気味な窓（写真の木板を再現） -->
+            <polygon points="35,395 550,315 550,380 35,450" fill="url(#woodBoardGrad)" stroke="#110c08" stroke-width="1.5" />
+            <line x1="35" y1="415" x2="550" y2="335" stroke="#0a0705" stroke-width="1" stroke-dasharray="8,2" />
+            <line x1="35" y1="435" x2="550" y2="355" stroke="#0a0705" stroke-width="1" stroke-dasharray="8,2" />
 
-            <!-- ③ 割れた窓ガラス群（リアルな格子と不気味な赤い光） -->
-            <g fill="url(#windowGlow)" stroke="#1a241e" stroke-width="2">
-                <!-- 本館の窓 -->
-                <rect x="445" y="140" width="30" height="45" />
-                <rect x="525" y="140" width="30" height="45" />
-                <rect x="445" y="210" width="30" height="45" />
-                <rect x="525" y="210" width="30" height="45" />
+            <!-- ⑥ 右手の平屋・体育館/渡り廊下棟 -->
+            <polygon points="780,240 1000,200 1000,450 780,450" fill="#0a0f0c" stroke="#16201a" stroke-width="1.2" />
+            <!-- 体育館の木製ルーバー/板張り窓 -->
+            <polygon points="860,250 985,230 985,310 860,330" fill="url(#woodBoardGrad)" opacity="0.75" />
+            <line x1="860" y1="270" x2="985" y2="250" stroke="#080604" stroke-width="2" />
+            <line x1="860" y1="290" x2="985" y2="270" stroke="#080604" stroke-width="2" />
 
-                <!-- 西館の窓列 -->
-                <rect x="150" y="190" width="35" height="45" /><rect x="210" y="190" width="35" height="45" />
-                <rect x="270" y="190" width="35" height="45" /><rect x="330" y="190" width="35" height="45" />
-                <rect x="150" y="260" width="35" height="45" /><rect x="210" y="260" width="35" height="45" />
-                <rect x="270" y="260" width="35" height="45" /><rect x="330" y="260" width="35" height="45" />
-
-                <!-- 東館の窓列 -->
-                <rect x="630" y="190" width="35" height="45" /><rect x="690" y="190" width="35" height="45" />
-                <rect x="750" y="190" width="35" height="45" /><rect x="810" y="190" width="35" height="45" />
-                <rect x="630" y="260" width="35" height="45" /><rect x="690" y="260" width="35" height="45" />
-                <rect x="750" y="260" width="35" height="45" /><rect x="810" y="260" width="35" height="45" />
-            </g>
-
-            <!-- ④ 窓のヒビ割れ・破壊ディテール -->
-            <g stroke="#ff3333" stroke-width="1.2" opacity="0.65" fill="none">
-                <path d="M165,190 L170,210 L160,225 M170,210 L180,215" />
-                <path d="M340,265 L355,280 L345,300" />
-                <path d="M760,195 L775,205 L765,220" />
-                <path d="M535,145 L545,160 L550,180" />
-            </g>
-
-            <!-- ⑤ ひび割れた校門・崩れた外壁と地面 -->
-            <path d="M0,360 Q250,345 500,365 T1000,355 L1000,400 L0,400 Z" fill="#060a08" />
-            <rect x="80" y="320" width="25" height="60" fill="#1b2620" stroke="#334239" />
-            <rect x="895" y="320" width="25" height="60" fill="#1b2620" stroke="#334239" />
-            <line x1="80" y1="340" x2="30" y2="380" stroke="#1b2620" stroke-width="6" /> <!-- 倒れた門扉 -->
+            <!-- 地面 -->
+            <rect x="0" y="430" width="1000" height="20" fill="#030504" />
         </svg>
 
-        <!-- 地面付近の不気味な黒煙・霧 -->
-        <div class="absolute bottom-0 left-0 w-full h-36 bg-gradient-to-t from-black via-[#030504]/70 to-transparent"></div>
+        <!-- 地面付近の不気味な黒煙・霧フェード -->
+        <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black via-[#030504]/70 to-transparent"></div>
     </div>
 
     <!-- 浮遊する不穏な粒子コンテナ -->
     <div id="dust-particles" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
 
     <!-- ========================================================
-         🧪 メインコンテンツ
+         🧪 メインコンテンツ（前面配置 z-10）
          ======================================================== -->
     <div class="max-w-4xl mx-auto p-6 relative z-10 mt-6 mb-12">
         
@@ -174,7 +170,7 @@
             </div>
         </div>
 
-        <!-- タイトルエリア（一言一句違わず「救出記録」） -->
+        <!-- タイトルエリア（厳密に「救出記録」） -->
         <div class="text-center mb-10">
             <h1 class="text-5xl sm:text-6xl font-black text-center text-rescue-glow tracking-widest" id="main-title">
                 救出記録
