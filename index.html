@@ -296,4 +296,53 @@
                 
                 const img = document.createElement('img');
                 img.src = 'home/hand.png'; 
-                img.className
+                img.className = 'hand-img';
+                
+                wrapper.appendChild(img);
+                opening.appendChild(wrapper);
+            }
+
+            function runLoop() {
+                let batchSize = 1;
+                let nextDelay = 850;
+
+                if (count < 15) {
+                    nextDelay = Math.max(70, Math.floor(850 * Math.pow(0.85, count)));
+                    batchSize = 1;
+                } else if (count < 50) {
+                    const p = (count - 15) / (50 - 15);
+                    nextDelay = Math.max(15, Math.floor(65 - (p * 45)));
+                    batchSize = Math.floor(1 + (p * 2));
+                } else {
+                    const p = (count - 50) / (maxCount - 50);
+                    nextDelay = 12;
+                    batchSize = Math.min(maxCount - count, Math.floor(4 + (p * 12)));
+                }
+
+                for (let i = 0; i < batchSize; i++) {
+                    if (count >= maxCount) break;
+                    stampOne(count < 7);
+                    count++;
+                }
+
+                if (count < maxCount) {
+                    setTimeout(runLoop, nextDelay);
+                } else {
+                    bloodScreen.style.opacity = '1';
+                    setTimeout(() => {
+                        opening.style.transition = "transform 2.0s cubic-bezier(0.4, 0, 0.8, 0.3), border-radius 2.0s";
+                        opening.style.transform = "translateY(100%)";
+                        opening.style.borderTopLeftRadius = "50% 15%";
+                        opening.style.borderTopRightRadius = "50% 15%";
+                        
+                        mainContent.style.opacity = '1';
+                        setTimeout(() => { opening.style.display = 'none'; }, 2000);
+                    }, 250);
+                }
+            }
+
+            setTimeout(runLoop, 150);
+        };
+    </script>
+</body>
+</html>
