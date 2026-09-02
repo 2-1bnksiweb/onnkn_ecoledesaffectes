@@ -3,101 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#050505">
+    <meta name="theme-color" content="#030806">
     
-    <title>最速脱出ランキング - 恐怖の廃校</title>
+    <title>脱出記録分析室 - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
     <style>
         @font-face {
             font-family: 'OnryouFont';
-            src: url('home/onryu.ttf') format('truetype'),
-                 url('./home/onryu.ttf') format('truetype'),
-                 url('home/onryou.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
+            src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype');
+            font-weight: normal; font-style: normal; font-display: swap;
         }
 
-        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, div, header, li { 
-            font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
+        body, h1, h2, h3, p, span, a, button, div, header, li { 
+            font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif; 
+        }
+
+        .font-mono-tech {
+            font-family: 'Share Tech Mono', monospace !important;
         }
 
         body { 
-            background-color: #030303; 
-            color: #d1d1d1; 
+            background-color: #030806; 
+            color: #c2e5d6; 
             overflow-x: hidden; 
             min-height: 100dvh; 
         }
 
-        .text-blood-dark {
-            background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%);
+        /* 🧪 研究室の走査線（スキャンライン）エフェクト */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 255, 120, 0.03) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.02),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.02)
+            );
+            background-size: 100% 3px, 6px 100%;
+        }
+
+        /* 🧪 研究室グリッド背景 */
+        .lab-grid {
+            background-image: 
+                linear-gradient(to right, rgba(0, 255, 136, 0.04) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 255, 136, 0.04) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* 🧪 バイオ発光タイトル */
+        .text-bio-glow {
+            background: linear-gradient(180deg, #5effb1 0%, #00d668 50%, #004d25 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9));
+            filter: drop-shadow(0 0 12px rgba(0, 255, 136, 0.6)) drop-shadow(2px 2px 3px #000);
         }
+
+        /* 🧪 浮遊するウイルス・気泡のアニメーション */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(105vh) scale(0.8) rotate(0deg);
+                opacity: 0;
+            }
+            15% { opacity: 0.6; }
+            85% { opacity: 0.6; }
+            100% {
+                transform: translateY(-10vh) scale(1.2) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .virus-particle {
+            position: absolute;
+            pointer-events: none;
+            animation: floatUp linear infinite;
+        }
+
+        /* 警告点滅 */
+        @keyframes blinkWarn {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .blink-alert { animation: blinkWarn 1.8s infinite; }
     </style>
 </head>
-<body class="relative">
+<body class="relative scanlines lab-grid">
 
-    <!-- 🩸 血の装飾群（背景 z-0） -->
-    <svg class="fixed top-0 left-0 w-full pointer-events-none z-0 h-44 sm:h-64 opacity-75" viewBox="0 0 1000 270" preserveAspectRatio="none">
-        <defs>
-            <linearGradient id="realBloodGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#450000" />
-                <stop offset="45%" stop-color="#780202" />
-                <stop offset="90%" stop-color="#940303" />
-            </linearGradient>
-        </defs>
-        <path d="M0,0 L1000,0 L1000,25 C985,25 980,125 970,125 C960,125 955,35 945,35 C935,35 930,200 920,200 C910,200 905,55 895,55 C885,55 880,110 870,110 C860,110 855,40 845,40 C835,40 830,230 818,230 C808,230 802,45 790,45 C775,45 770,150 760,150 C750,150 745,30 730,30 C715,30 710,180 700,180 C690,180 685,50 670,50 C655,50 650,120 640,120 C630,120 625,35 610,35 C595,35 590,255 575,255 C562,255 558,65 540,65 C525,65 520,160 510,160 C500,160 495,40 480,40 C465,40 460,220 445,220 C435,220 430,55 415,55 C400,55 395,140 385,140 C375,140 370,30 355,30 C340,30 335,190 325,190 C315,190 310,45 295,45 C280,45 275,110 265,110 C255,110 250,35 235,35 C220,35 215,240 200,240 C190,240 185,60 170,60 C155,60 150,150 140,150 C130,150 125,30 110,30 C95,30 90,200 80,200 C70,200 65,50 50,50 C35,50 30,120 20,120 C10,120 5,25 0,25 Z" fill="url(#realBloodGrad)" />
-    </svg>
-    <svg class="fixed top-0 left-0 w-56 h-56 pointer-events-none z-0 opacity-40" viewBox="0 0 200 200">
-        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
-        <g fill="#7a0202"><circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="95" cy="85" r="5" /></g>
-    </svg>
-    <svg class="fixed top-0 right-0 w-56 h-56 pointer-events-none z-0 opacity-40" viewBox="0 0 200 200" style="transform: scaleX(-1);">
-        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
-        <g fill="#7a0202"><circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="95" cy="85" r="5" /></g>
-    </svg>
-    <svg class="fixed bottom-0 left-0 w-60 h-60 pointer-events-none z-0 opacity-40" viewBox="0 0 200 200" style="transform: scaleY(-1);">
-        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
-        <g fill="#7a0202"><circle cx="120" cy="30" r="5" /><circle cx="105" cy="95" r="5.5" /></g>
-    </svg>
-    <svg class="fixed bottom-0 right-0 w-60 h-60 pointer-events-none z-0 opacity-40" viewBox="0 0 200 200" style="transform: scale(-1, -1);">
-        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
-        <g fill="#7a0202"><circle cx="120" cy="30" r="5" /><circle cx="105" cy="95" r="5.5" /></g>
-    </svg>
+    <!-- 🧪 背景：巨大バイオハザードマーク -->
+    <div class="fixed inset-0 flex items-center justify-center pointer-events-none z-0 opacity-[0.06]">
+        <svg class="w-[85vw] max-w-[600px] h-auto text-emerald-400" viewBox="0 0 512 512" fill="currentColor">
+            <path d="M256,0 C223.9,0 195.4,14.6 176,37.6 C156.6,14.6 128.1,0 96,0 C43,0 0,43 0,96 C0,131.6 19.3,162.7 48,179.2 L48,224 L80,224 L80,189.6 C98.5,197.6 118.8,202.1 140,202.6 C129.2,217.4 122.7,235.6 122.7,255.4 C122.7,275.1 129.2,293.3 140,308.1 C118.8,308.7 98.5,313.1 80,321.2 L80,286.7 L48,286.7 L48,331.6 C19.3,348.1 0,379.2 0,414.7 C0,467.8 43,510.7 96,510.7 C128.1,510.7 156.6,496.1 176,473.1 C195.4,496.1 223.9,510.7 256,510.7 C288.1,510.7 316.6,496.1 336,473.1 C355.4,496.1 383.9,510.7 416,510.7 C469,510.7 512,467.8 512,414.7 C512,379.2 492.7,348.1 464,331.6 L464,286.7 L432,286.7 L432,321.2 C413.5,313.2 393.2,308.7 372,308.2 C382.8,293.4 389.3,275.2 389.3,255.4 C389.3,235.7 382.8,217.5 372,202.7 C393.2,202.1 413.5,197.7 432,189.6 L432,224 L464,224 L464,179.2 C492.7,162.7 512,131.6 512,96 C512,43 469,0 416,0 C383.9,0 355.4,14.6 336,37.6 C316.6,14.6 288.1,0 256,0 Z"/>
+        </svg>
+    </div>
 
-    <div class="max-w-4xl mx-auto p-6 relative z-20 mt-10 mb-12">
-        <a href="index.html" class="text-xs text-red-500 hover:text-red-300 mb-4 inline-block">&lt; ホームへ戻る</a>
-        <h1 class="text-4xl sm:text-5xl font-black text-center text-blood-dark mb-10 tracking-widest relative z-10">TOP RANKING</h1>
+    <!-- 🧪 背景：浮遊するウイルス・気泡コンテナ -->
+    <div id="virus-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- 🧪 メインコンテンツ -->
+    <div class="max-w-4xl mx-auto p-6 relative z-10 mt-6 mb-12">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-            <!-- 初回ランキング -->
-            <div class="bg-gray-950/90 p-6 rounded-lg shadow-2xl border-t-4 border-red-800 border-x border-b border-red-950/50">
-                <h2 class="text-2xl font-bold text-red-500 mb-4 border-b border-red-950 pb-2">【初回】挑戦者ランキング</h2>
+        <!-- ヘッダー・ステータスバー -->
+        <div class="flex justify-between items-center border-b border-emerald-900/60 pb-3 mb-8 text-xs font-mono-tech">
+            <a href="index.html" class="text-emerald-400 hover:text-emerald-200 transition flex items-center gap-1">
+                &lt; EXIT LAB
+            </a>
+            <div class="flex items-center gap-2 blink-alert text-red-500 font-bold tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>
+                BIOHAZARD LEVEL 4 : CONTAMINATED
+            </div>
+        </div>
+
+        <!-- タイトルエリア -->
+        <div class="text-center mb-10">
+            <p class="text-xs font-mono-tech text-emerald-500/80 tracking-[0.4em] mb-1">FACILITY ESCAPE LOG DATABASE</p>
+            <h1 class="text-4xl sm:text-5xl font-black text-center text-bio-glow tracking-widest">
+                検体脱出記録解析
+            </h1>
+        </div>
+        
+        <!-- ランキンググリッド -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+            
+            <!-- ① 初回ランキング（検体群・グリーン系） -->
+            <div class="bg-gray-950/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(0,255,136,0.1)] border-t-4 border-emerald-500 border-x border-b border-emerald-950">
+                <div class="flex justify-between items-center border-b border-emerald-900/60 pb-2 mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-emerald-400 tracking-wider">
+                        【第1種検体】初回脱出記録
+                    </h2>
+                    <span class="text-[10px] font-mono-tech text-emerald-600 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-900">TYPE-A</span>
+                </div>
                 <ul id="first-timer-list" class="space-y-3">
-                    <p class="text-gray-500">データ集計中...</p>
+                    <p class="text-emerald-800 text-sm font-mono-tech">SCANNING DATABASE...</p>
                 </ul>
             </div>
 
-            <!-- リピーターランキング -->
-            <div id="repeater-section" class="bg-gray-950/90 p-6 rounded-lg shadow-2xl border-t-4 border-red-700 border-x border-b border-red-950/50 hidden">
-                <h2 class="text-2xl font-bold text-red-400 mb-4 border-b border-red-950 pb-2">【2回目以降】猛者ランキング</h2>
-                <ul id="repeater-list" class="space-y-3">
-                </ul>
+            <!-- ② リピーターランキング（変異体・レッド系） -->
+            <div id="repeater-section" class="bg-gray-950/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(255,50,50,0.15)] border-t-4 border-red-600 border-x border-b border-red-950 hidden">
+                <div class="flex justify-between items-center border-b border-red-900/60 pb-2 mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-red-500 tracking-wider">
+                        【変異体】猛者脱出記録
+                    </h2>
+                    <span class="text-[10px] font-mono-tech text-red-400 bg-red-950/80 px-2 py-0.5 rounded border border-red-800 animate-pulse">MUTATED</span>
+                </div>
+                <ul id="repeater-list" class="space-y-3"></ul>
             </div>
+
+        </div>
+
+        <!-- 下部ラボインフォ -->
+        <div class="mt-12 text-center text-xs font-mono-tech text-emerald-800 border-t border-emerald-950/60 pt-4">
+            CONFIDENTIAL // RESTRICTED ACCESS ONLY // FACILITY #2-1
         </div>
     </div>
 
     <script>
+        // ========================================================
+        // 🧪 浮遊するウイルス粒子＆気泡ジェネレーター
+        // ========================================================
+        function generateLabParticles() {
+            const container = document.getElementById("virus-container");
+            const particleCount = 18;
+            
+            // ウイルスのSVG形状
+            const virusSvg = `
+                <svg viewBox="0 0 100 100" class="w-full h-full text-emerald-500/30" fill="currentColor">
+                    <circle cx="50" cy="50" r="24" />
+                    <!-- スパイク突起 -->
+                    <circle cx="50" cy="14" r="5" /><line x1="50" y1="26" x2="50" y2="14" stroke="currentColor" stroke-width="4"/>
+                    <circle cx="50" cy="86" r="5" /><line x1="50" y1="74" x2="50" y2="86" stroke="currentColor" stroke-width="4"/>
+                    <circle cx="14" cy="50" r="5" /><line x1="26" y1="50" x2="14" y2="50" stroke="currentColor" stroke-width="4"/>
+                    <circle cx="86" cy="50" r="5" /><line x1="74" y1="50" x2="86" y2="50" stroke="currentColor" stroke-width="4"/>
+                    <circle cx="24" cy="24" r="4.5" /><line x1="33" y1="33" x2="24" y2="24" stroke="currentColor" stroke-width="3.5"/>
+                    <circle cx="76" cy="76" r="4.5" /><line x1="67" y1="67" x2="76" y2="76" stroke="currentColor" stroke-width="3.5"/>
+                    <circle cx="76" cy="24" r="4.5" /><line x1="67" y1="33" x2="76" y2="24" stroke="currentColor" stroke-width="3.5"/>
+                    <circle cx="24" cy="76" r="4.5" /><line x1="33" y1="67" x2="24" y2="76" stroke="currentColor" stroke-width="3.5"/>
+                </svg>
+            `;
+
+            for (let i = 0; i < particleCount; i++) {
+                const el = document.createElement("div");
+                el.className = "virus-particle";
+                
+                const size = 20 + Math.random() * 45;
+                const left = Math.random() * 100;
+                const duration = 12 + Math.random() * 16;
+                const delay = Math.random() * -25;
+                
+                el.style.width = `${size}px`;
+                el.style.height = `${size}px`;
+                el.style.left = `${left}%`;
+                el.style.animationDuration = `${duration}s`;
+                el.style.animationDelay = `${delay}s`;
+
+                // 半分はウイルス、半分は気泡
+                if (Math.random() > 0.4) {
+                    el.innerHTML = virusSvg;
+                } else {
+                    el.innerHTML = `
+                        <div class="w-full h-full rounded-full border border-emerald-400/30 bg-emerald-500/10 backdrop-blur-[1px] shadow-[0_0_8px_rgba(0,255,136,0.2)]"></div>
+                    `;
+                }
+
+                container.appendChild(el);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', generateLabParticles);
+
+        // ========================================================
+        // 🧪 Firebase ランキング機能
+        // ========================================================
         db.collection('settings').doc('config').onSnapshot(doc => {
             if(doc.exists && doc.data().showRepeaters) {
                 document.getElementById('repeater-section').style.display = 'block';
@@ -107,53 +227,70 @@
         });
 
         db.collection('times').onSnapshot(snapshot => {
-            const firstTimers = {};
+            const firstTimers = {}; 
             const repeaters = {};
 
             snapshot.forEach(doc => {
                 const data = doc.data();
-                if(data.count === 1) {
+                if(data.count === 1) { 
                     if(!firstTimers[data.teamName] || firstTimers[data.teamName].time > data.time) {
                         firstTimers[data.teamName] = data;
                     }
-                } else {
+                } else { 
                     if(!repeaters[data.teamName] || repeaters[data.teamName].time > data.time) {
                         repeaters[data.teamName] = data;
                     }
                 }
             });
-
-            renderList('first-timer-list', Object.values(firstTimers));
-            renderList('repeater-list', Object.values(repeaters));
+            renderList('first-timer-list', Object.values(firstTimers), false);
+            renderList('repeater-list', Object.values(repeaters), true);
         });
 
-        function renderList(elementId, dataArray) {
+        function renderList(elementId, dataArray, isRepeater) {
             const list = document.getElementById(elementId);
             list.innerHTML = '';
             
             dataArray.sort((a, b) => a.time - b.time).slice(0, 10).forEach((data, index) => {
                 const li = document.createElement('li');
-                li.className = "flex justify-between items-center bg-gray-900/80 border border-red-950/40 p-3 rounded text-gray-200 shadow-sm";
                 
-                let rankStyle = "text-xl font-bold ";
-                if(index === 0) rankStyle += "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]";
+                // カードスタイル
+                if (isRepeater) {
+                    li.className = "flex justify-between items-center bg-red-950/30 border border-red-900/40 p-3 rounded text-gray-200 shadow-sm hover:border-red-600 transition";
+                } else {
+                    li.className = "flex justify-between items-center bg-emerald-950/30 border border-emerald-900/40 p-3 rounded text-gray-200 shadow-sm hover:border-emerald-600 transition";
+                }
+                
+                // 順位デザイン
+                let rankStyle = "text-xl font-bold font-mono-tech ";
+                if(index === 0) rankStyle += "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]";
                 else if(index === 1) rankStyle += "text-gray-300";
                 else if(index === 2) rankStyle += "text-amber-600";
+                else rankStyle += "text-emerald-600";
                 
-                const countBadge = data.count > 1 ? `<span class="text-xs bg-red-900 border border-red-700 text-red-200 px-2 py-0.5 rounded ml-2">${data.count}回目</span>` : '';
+                // 変異回数バッジ
+                const countBadge = data.count > 1 
+                    ? `<span class="text-xs bg-red-900/80 border border-red-600 text-red-200 px-2 py-0.5 rounded ml-2 font-mono-tech font-bold tracking-tight">MUTATION-${data.count}</span>` 
+                    : '';
+                
+                // タイムカラー
+                const timeColor = isRepeater ? "text-red-400" : "text-emerald-400";
                 
                 li.innerHTML = `
                     <div class="flex items-center">
-                        <span class="w-8 ${rankStyle}">#${index + 1}</span>
-                        <span class="font-bold text-lg text-white">${data.teamName}</span>
+                        <span class="w-8 ${rankStyle}">#${(index + 1).toString().padStart(2, '0')}</span>
+                        <span class="font-bold text-base sm:text-lg text-white ml-1">${data.teamName}</span>
                         ${countBadge}
                     </div>
-                    <span class="font-mono text-xl text-red-400 font-bold">${formatTime(data.time)}</span>
+                    <span class="font-mono-tech text-lg sm:text-xl ${timeColor} font-bold tracking-wider drop-shadow-[0_0_6px_currentColor]">
+                        ${formatTime(data.time)}
+                    </span>
                 `;
                 list.appendChild(li);
             });
-            
-            if(dataArray.length === 0) list.innerHTML = '<p class="text-gray-500">まだ記録がありません</p>';
+
+            if(dataArray.length === 0) {
+                list.innerHTML = '<p class="text-emerald-900 text-sm font-mono-tech">NO ESCAPE DATA RECORDED</p>';
+            }
         }
 
         function formatTime(ms) {
