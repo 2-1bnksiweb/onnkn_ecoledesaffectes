@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#050505">
     
     <title>整理券発行＆チーム登録 - 恐怖の廃校</title>
@@ -19,12 +17,8 @@
     <style>
         @font-face {
             font-family: 'OnryouFont';
-            src: url('home/onryu.ttf') format('truetype'),
-                 url('./home/onryu.ttf') format('truetype'),
-                 url('home/onryou.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
+            src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype');
+            font-weight: normal; font-style: normal; font-display: swap;
         }
 
         *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby, select { 
@@ -45,50 +39,26 @@
             filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9));
         }
         
-        .sub-blood-dark {
-            color: #d90000;
-            text-shadow: 1px 1px 2px #000000, 0 0 8px rgba(0,0,0,0.8);
-        }
-
         .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
+
+        /* 蜘蛛の糸が風で揺れるアニメーション */
+        @keyframes swing {
+            0% { transform: rotate(-2.5deg); }
+            100% { transform: rotate(2.5deg); }
+        }
+        .spider-shadow { filter: drop-shadow(0 5px 8px rgba(0,0,0,1)); }
     </style>
 </head>
 <body class="relative">
 
-    <!-- 🩸 血の装飾群（背景 z-0） -->
-    <svg class="fixed top-0 left-0 w-full pointer-events-none z-0 h-44 sm:h-64 opacity-75" viewBox="0 0 1000 270" preserveAspectRatio="none">
-        <defs>
-            <linearGradient id="realBloodGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#450000" />
-                <stop offset="45%" stop-color="#780202" />
-                <stop offset="90%" stop-color="#940303" />
-            </linearGradient>
-        </defs>
-        <path d="M0,0 L1000,0 L1000,25 C985,25 980,125 970,125 C960,125 955,35 945,35 C935,35 930,200 920,200 C910,200 905,55 895,55 C885,55 880,110 870,110 C860,110 855,40 845,40 C835,40 830,230 818,230 C808,230 802,45 790,45 C775,45 770,150 760,150 C750,150 745,30 730,30 C715,30 710,180 700,180 C690,180 685,50 670,50 C655,50 650,120 640,120 C630,120 625,35 610,35 C595,35 590,255 575,255 C562,255 558,65 540,65 C525,65 520,160 510,160 C500,160 495,40 480,40 C465,40 460,220 445,220 C435,220 430,55 415,55 C400,55 395,140 385,140 C375,140 370,30 355,30 C340,30 335,190 325,190 C315,190 310,45 295,45 C280,45 275,110 265,110 C255,110 250,35 235,35 C220,35 215,240 200,240 C190,240 185,60 170,60 C155,60 150,150 140,150 C130,150 125,30 110,30 C95,30 90,200 80,200 C70,200 65,50 50,50 C35,50 30,120 20,120 C10,120 5,25 0,25 Z" fill="url(#realBloodGrad)" />
-    </svg>
-    <svg class="fixed top-0 left-0 w-56 h-56 pointer-events-none z-0 opacity-40" viewBox="0 0 200 200">
-        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
-        <g fill="#7a0202"><circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="95" cy="85" r="5" /></g>
-    </svg>
-    <svg class="fixed top-0 right-0 w-56 h-56 pointer-events-none z-0 opacity-40" viewBox="0 0 200 200" style="transform: scaleX(-1);">
-        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
-        <g fill="#7a0202"><circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="95" cy="85" r="5" /></g>
-    </svg>
-    <svg class="fixed bottom-0 left-0 w-60 h-60 pointer-events-none z-0 opacity-40" viewBox="0 0 200 200" style="transform: scaleY(-1);">
-        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
-        <g fill="#7a0202"><circle cx="120" cy="30" r="5" /><circle cx="105" cy="95" r="5.5" /></g>
-    </svg>
-    <svg class="fixed bottom-0 right-0 w-60 h-60 pointer-events-none z-0 opacity-40" viewBox="0 0 200 200" style="transform: scale(-1, -1);">
-        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
-        <g fill="#7a0202"><circle cx="120" cy="30" r="5" /><circle cx="105" cy="95" r="5.5" /></g>
-    </svg>
+    <!-- 蜘蛛の巣が自動生成されるコンテナ -->
+    <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
 
     <div class="max-w-2xl mx-auto p-6 relative z-20 mt-12 mb-12">
-        <div class="bg-gray-950/95 border border-red-950 p-8 rounded-lg shadow-2xl relative">
+        <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm">
             <a href="index.html" class="text-xs text-red-500 hover:text-red-300 mb-4 inline-block">&lt; ホームへ戻る</a>
             <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">整理券発行・チーム登録</h1>
             
-            <!-- 整理券取得UI -->
             <div id="ticket-section">
                 <h2 class="text-xl font-semibold mb-4 text-blood-dark border-b border-red-950 pb-2">ご希望の時間帯を選択</h2>
                 <div id="slots-container" class="space-y-3">
@@ -97,20 +67,18 @@
                 
                 <div id="walkin-container" class="mt-6 hidden border-t border-red-950 pt-4">
                     <h2 class="text-xl font-semibold mb-2 text-red-600">急に来た方用 (当日枠)</h2>
-                    <button onclick="issueTicket('walkin')" class="w-full bg-red-900 border border-red-700 text-white py-3 rounded hover:bg-red-800 font-bold shadow-btn">当日枠の整理券を発行する</button>
+                    <button onclick="issueTicket('walkin')" class="w-full bg-red-900 border border-red-700 text-white py-3 rounded hover:bg-red-800 font-bold shadow-btn tracking-widest">当日枠の整理券を発行する</button>
                 </div>
             </div>
 
-            <!-- QRコード＆完了画面UI -->
             <div id="qr-section" class="hidden text-center">
-                <h2 class="text-2xl font-bold text-green-500 mb-4" style="text-shadow: 0 0 10px rgba(0,255,0,0.5);">整理券を発行しました！</h2>
+                <h2 class="text-2xl font-bold text-green-600 mb-4" style="text-shadow: 0 0 10px rgba(0,255,0,0.5);">整理券を発行しました！</h2>
                 <p class="mb-4 text-gray-300">以下のQRコードを読み取り、チーム登録を完了させてください。</p>
                 <div id="qrcode" class="flex justify-center mb-4 p-4 bg-white rounded-lg inline-block shadow-lg"></div>
                 <p class="text-sm text-gray-500 break-all mb-4" id="qr-url"></p>
                 <a href="index.html" class="inline-block mt-4 text-red-500 hover:underline">ホームに戻る</a>
             </div>
 
-            <!-- チーム登録UI -->
             <div id="register-section" class="hidden">
                 <h2 class="text-2xl font-bold mb-4 text-blood-dark">チーム登録</h2>
                 <form id="team-form" onsubmit="submitTeam(event)">
@@ -118,8 +86,7 @@
                         <label class="block font-bold mb-1 text-gray-300">チーム名</label>
                         <input type="text" id="team-name" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded focus:outline-none focus:border-red-700">
                     </div>
-                    <div id="members-container" class="space-y-3 mb-4">
-                    </div>
+                    <div id="members-container" class="space-y-3 mb-4"></div>
                     <button type="button" onclick="addMemberField()" class="text-red-400 hover:text-red-300 text-sm mb-6 block">+ メンバーを追加</button>
                     <button type="submit" class="w-full bg-[#260101] border border-[#520202] text-blood-dark py-3 rounded font-bold hover:bg-black transition shadow-btn text-lg tracking-widest">登録する</button>
                 </form>
@@ -128,6 +95,129 @@
     </div>
 
     <script>
+        // 🕸️ 数学的・蜘蛛の巣ジェネレーター
+        function buildSpiderWebs() {
+            const container = document.getElementById("spider-web-container");
+            const svgNs = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNs, "svg");
+            svg.setAttribute("width", "100%"); svg.setAttribute("height", "100%");
+            container.appendChild(svg);
+
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            // --- 1. 右上の蜘蛛の巣 ---
+            const cx = width; const cy = 0;
+            const maxR = Math.min(width, height) * 0.9; 
+            const rayCount = 12 + Math.floor(Math.random() * 4); 
+
+            const angles = [];
+            for (let i = 0; i < rayCount; i++) {
+                const angle = Math.PI / 2 + (Math.PI / 2) * (i / (rayCount - 1));
+                angles.push(angle + (Math.random() * 0.06 - 0.03)); 
+            }
+
+            const rays = [];
+            angles.forEach(a => {
+                const r = maxR * (0.6 + Math.random() * 0.4); 
+                const x = cx + Math.cos(a) * r;
+                const y = cy + Math.sin(a) * r;
+                
+                const line = document.createElementNS(svgNs, "line");
+                line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
+                line.setAttribute("stroke", "rgba(160, 160, 160, 0.4)"); line.setAttribute("stroke-width", "1.2");
+                svg.appendChild(line);
+                rays.push({ angle: a, r: r });
+            });
+
+            const rings = 12 + Math.floor(Math.random() * 6);
+            for (let rIdx = 1; rIdx <= rings; rIdx++) {
+                const rBase = (maxR / rings) * rIdx;
+                for (let i = 0; i < rayCount - 1; i++) {
+                    if (Math.random() < 0.1) continue; // たまに糸が切れる
+                    const r1 = rBase * (0.95 + Math.random() * 0.1);
+                    const r2 = rBase * (0.95 + Math.random() * 0.1);
+                    if (r1 > rays[i].r || r2 > rays[i+1].r) continue;
+
+                    const x1 = cx + Math.cos(rays[i].angle) * r1; const y1 = cy + Math.sin(rays[i].angle) * r1;
+                    const x2 = cx + Math.cos(rays[i+1].angle) * r2; const y2 = cy + Math.sin(rays[i+1].angle) * r2;
+
+                    const midAngle = (rays[i].angle + rays[i+1].angle) / 2;
+                    const midR = (r1 + r2) / 2 * 0.94; // 糸のたわみ
+                    const mx = cx + Math.cos(midAngle) * midR; const my = cy + Math.sin(midAngle) * midR;
+
+                    const path = document.createElementNS(svgNs, "path");
+                    path.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`);
+                    path.setAttribute("fill", "none");
+                    path.setAttribute("stroke", "rgba(160, 160, 160, 0.5)"); path.setAttribute("stroke-width", "0.8");
+                    svg.appendChild(path);
+
+                    // 🩸 糸に絡む血の雫
+                    if (Math.random() < 0.08) {
+                        const drop = document.createElementNS(svgNs, "circle");
+                        drop.setAttribute("cx", mx); drop.setAttribute("cy", my); drop.setAttribute("r", 1.8 + Math.random() * 2);
+                        drop.setAttribute("fill", "#940303"); drop.setAttribute("opacity", "0.85");
+                        svg.appendChild(drop);
+                        
+                        if (Math.random() < 0.6) {
+                            const drip = document.createElementNS(svgNs, "line");
+                            drip.setAttribute("x1", mx); drip.setAttribute("y1", my); drip.setAttribute("x2", mx); drip.setAttribute("y2", my + 10 + Math.random() * 25);
+                            drip.setAttribute("stroke", "#940303"); drip.setAttribute("stroke-width", "1.5"); drip.setAttribute("stroke-linecap", "round");
+                            svg.appendChild(drip);
+                        }
+                    }
+                }
+            }
+
+            // 🕷️ リアルな蜘蛛のシルエットパス（脚がカクッと折れ曲がっている）
+            const spiderPath = "M 0,-5 C 3,-5 6,-1 6,5 C 6,11 3,15 0,15 C -3,15 -6,11 -6,5 C -6,-1 -3,-5 0,-5 Z M 0,-7.5 A 2.5 2.5 0 1 1 0,-7.49 Z M 3,-4 L 11,-9 L 15,-4 M 5,1 L 13,-2 L 19,2 M 5,6 L 15,7 L 19,14 M 4,10 L 11,15 L 13,22 M -3,-4 L -11,-9 L -15,-4 M -5,1 L -13,-2 L -19,2 M -5,6 L -15,7 L -19,14 M -4,10 L -11,15 L -13,22";
+
+            // 巣の主（巨大蜘蛛）
+            const masterSpider = document.createElementNS(svgNs, "g");
+            masterSpider.setAttribute("fill", "#000"); masterSpider.setAttribute("stroke", "#000"); masterSpider.setAttribute("stroke-width", "1.5");
+            masterSpider.setAttribute("stroke-linejoin", "round"); masterSpider.setAttribute("stroke-linecap", "round");
+            masterSpider.setAttribute("class", "spider-shadow");
+            masterSpider.innerHTML = `<path d="${spiderPath}" />`;
+            const masterR = maxR * 0.35; const masterA = Math.PI / 2 + Math.PI / 4.5;
+            masterSpider.setAttribute("transform", `translate(${cx + Math.cos(masterA) * masterR}, ${cy + Math.sin(masterA) * masterR}) rotate(-50) scale(1.8)`);
+            svg.appendChild(masterSpider);
+
+            // --- 2. 上から垂れる糸と蜘蛛 ---
+            const dropCount = 6 + Math.floor(Math.random() * 4); 
+            for (let i = 0; i < dropCount; i++) {
+                const lx = 20 + Math.random() * (width - 40);
+                const ly = 60 + Math.random() * (height * 0.85);
+
+                const g = document.createElementNS(svgNs, "g");
+                g.style.transformOrigin = `${lx}px 0px`;
+                g.style.animation = `swing ${3 + Math.random() * 4}s ease-in-out ${Math.random() * -5}s infinite alternate`;
+
+                const line = document.createElementNS(svgNs, "line");
+                line.setAttribute("x1", lx); line.setAttribute("y1", 0); line.setAttribute("x2", lx); line.setAttribute("y2", ly);
+                line.setAttribute("stroke", "rgba(180, 180, 180, 0.6)"); line.setAttribute("stroke-width", "1.2");
+                g.appendChild(line);
+
+                const spider = document.createElementNS(svgNs, "g");
+                spider.setAttribute("fill", "#000"); spider.setAttribute("stroke", "#000"); spider.setAttribute("stroke-width", "1.5");
+                spider.setAttribute("stroke-linejoin", "round"); spider.setAttribute("stroke-linecap", "round");
+                spider.setAttribute("class", "spider-shadow");
+                spider.setAttribute("transform", `translate(${lx}, ${ly}) scale(${0.8 + Math.random() * 0.5})`);
+                spider.innerHTML = `<path d="${spiderPath}" />`;
+                g.appendChild(spider);
+
+                if (Math.random() < 0.5) {
+                    const by = ly * (0.2 + Math.random() * 0.6);
+                    const drop = document.createElementNS(svgNs, "circle");
+                    drop.setAttribute("cx", lx); drop.setAttribute("cy", by); drop.setAttribute("r", 2.5); drop.setAttribute("fill", "#940303");
+                    g.appendChild(drop);
+                }
+                svg.appendChild(g);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', buildSpiderWebs);
+
+        // --- 以下、既存のFirebase機能処理 ---
         const urlParams = new URLSearchParams(window.location.search);
         const action = urlParams.get('action');
         const ticketId = urlParams.get('ticketId');
@@ -143,11 +233,8 @@
         async function loadSlots() {
             const container = document.getElementById('slots-container');
             container.innerHTML = '';
-            
             const settingsDoc = await db.collection('settings').doc('config').get();
-            if(settingsDoc.exists && settingsDoc.data().walkInActive) {
-                document.getElementById('walkin-container').style.display = 'block';
-            }
+            if(settingsDoc.exists && settingsDoc.data().walkInActive) document.getElementById('walkin-container').style.display = 'block';
 
             db.collection('slots').orderBy('time').onSnapshot(snapshot => {
                 container.innerHTML = '';
@@ -155,24 +242,19 @@
                     const data = doc.data();
                     const btn = document.createElement('button');
                     const isFull = data.booked >= data.capacity;
-                    btn.className = `w-full p-4 rounded text-left font-bold border transition ${isFull ? 'bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed' : 'bg-red-950/40 hover:bg-red-900/60 text-red-200 border-red-900/50 shadow-sm'}`;
+                    btn.className = `w-full p-4 rounded text-left font-bold border transition tracking-widest ${isFull ? 'bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed' : 'bg-red-950/40 hover:bg-red-900/60 text-red-200 border-red-900/50 shadow-sm'}`;
                     btn.innerHTML = `${data.time} (空き: ${data.capacity - data.booked}人)`;
                     btn.disabled = isFull;
                     btn.onclick = () => issueTicket(doc.id, data.time);
                     container.appendChild(btn);
                 });
-                if(snapshot.empty) {
-                    container.innerHTML = '<p class="text-gray-500">現在公開されている時間枠はありません。</p>';
-                }
+                if(snapshot.empty) container.innerHTML = '<p class="text-gray-500">現在公開されている時間枠はありません。</p>';
             });
         }
 
         async function issueTicket(slotId, timeLabel) {
             const lastBooked = localStorage.getItem('lastBookedTime');
-            if(lastBooked && (Date.now() - lastBooked < 60 * 60 * 1000)) {
-                alert("一定時間内に複数回の整理券取得はできません。");
-                return;
-            }
+            if(lastBooked && (Date.now() - lastBooked < 60 * 60 * 1000)) return alert("一定時間内に複数回の整理券取得はできません。");
 
             if (slotId !== 'walkin') {
                 const slotRef = db.collection('slots').doc(slotId);
@@ -183,14 +265,11 @@
                         if (newBooked > doc.data().capacity) throw "満員です";
                         transaction.update(slotRef, { booked: newBooked });
                     });
-                } catch (e) {
-                    alert(e); return;
-                }
+                } catch (e) { alert(e); return; }
             }
 
             localStorage.setItem('lastBookedTime', Date.now());
             const newTicketId = 'TK' + Date.now();
-            
             document.getElementById('ticket-section').style.display = 'none';
             document.getElementById('qr-section').style.display = 'block';
             
@@ -220,13 +299,9 @@
             const names = document.querySelectorAll('.member-name');
             const grades = document.querySelectorAll('.member-grade');
             const emails = document.querySelectorAll('.member-email');
-            
-            for(let i = 0; i < names.length; i++) {
-                members.push({ name: names[i].value, grade: grades[i].value, email: emails[i].value });
-            }
-
+            for(let i = 0; i < names.length; i++) members.push({ name: names[i].value, grade: grades[i].value, email: emails[i].value });
             await db.collection('teams').add({ ticketId, teamName, members, createdAt: new Date() });
-            alert("チーム登録が完了しました！時間になりましたらお越しください。");
+            alert("チーム登録が完了しました！");
             window.location.href = "index.html";
         }
     </script>
