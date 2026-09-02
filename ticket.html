@@ -51,7 +51,7 @@
 </head>
 <body class="relative">
 
-    <!-- 蜘蛛の巣が自動生成されるコンテナ -->
+    <!-- 蜘蛛の巣コンテナ -->
     <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
 
     <div class="max-w-2xl mx-auto p-6 relative z-20 mt-12 mb-12">
@@ -95,7 +95,6 @@
     </div>
 
     <script>
-        // 🕸️ 数学的・蜘蛛の巣ジェネレーター
         function buildSpiderWebs() {
             const container = document.getElementById("spider-web-container");
             const svgNs = "http://www.w3.org/2000/svg";
@@ -106,7 +105,6 @@
             const width = window.innerWidth;
             const height = window.innerHeight;
 
-            // --- 1. 右上の蜘蛛の巣 ---
             const cx = width; const cy = 0;
             const maxR = Math.min(width, height) * 0.9; 
             const rayCount = 12 + Math.floor(Math.random() * 4); 
@@ -123,14 +121,13 @@
                 const x = cx + Math.cos(a) * r;
                 const y = cy + Math.sin(a) * r;
                 
-                // 通常の糸
                 const line = document.createElementNS(svgNs, "line");
                 line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
                 line.setAttribute("stroke", "rgba(160, 160, 160, 0.4)"); line.setAttribute("stroke-width", "1.2");
                 svg.appendChild(line);
 
-                // 🩸 糸にべっとりとまとわりつく血（破線で重ねる）
-                if (Math.random() < 0.6) {
+                // 【修正】縦糸の血を激減 (0.6 -> 0.25)
+                if (Math.random() < 0.25) {
                     const bLine = document.createElementNS(svgNs, "line");
                     bLine.setAttribute("x1", cx); bLine.setAttribute("y1", cy); bLine.setAttribute("x2", x); bLine.setAttribute("y2", y);
                     bLine.setAttribute("stroke", "#940303"); 
@@ -157,18 +154,17 @@
                     const x2 = cx + Math.cos(rays[i+1].angle) * r2; const y2 = cy + Math.sin(rays[i+1].angle) * r2;
 
                     const midAngle = (rays[i].angle + rays[i+1].angle) / 2;
-                    const midR = (r1 + r2) / 2 * 0.94; // 糸のたわみ
+                    const midR = (r1 + r2) / 2 * 0.94; 
                     const mx = cx + Math.cos(midAngle) * midR; const my = cy + Math.sin(midAngle) * midR;
 
-                    // 通常の横糸
                     const path = document.createElementNS(svgNs, "path");
                     path.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`);
                     path.setAttribute("fill", "none");
                     path.setAttribute("stroke", "rgba(160, 160, 160, 0.5)"); path.setAttribute("stroke-width", "0.8");
                     svg.appendChild(path);
 
-                    // 🩸 横糸にべっとりとまとわりつく血
-                    if (Math.random() < 0.4) {
+                    // 【修正】横糸の血を激減 (0.4 -> 0.15)
+                    if (Math.random() < 0.15) {
                         const bPath = document.createElementNS(svgNs, "path");
                         bPath.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`);
                         bPath.setAttribute("fill", "none");
@@ -182,10 +178,8 @@
                 }
             }
 
-            // 🕷️ リアルな蜘蛛のシルエットパス
             const spiderPath = "M 0,-5 C 3,-5 6,-1 6,5 C 6,11 3,15 0,15 C -3,15 -6,11 -6,5 C -6,-1 -3,-5 0,-5 Z M 0,-7.5 A 2.5 2.5 0 1 1 0,-7.49 Z M 3,-4 L 11,-9 L 15,-4 M 5,1 L 13,-2 L 19,2 M 5,6 L 15,7 L 19,14 M 4,10 L 11,15 L 13,22 M -3,-4 L -11,-9 L -15,-4 M -5,1 L -13,-2 L -19,2 M -5,6 L -15,7 L -19,14 M -4,10 L -11,15 L -13,22";
 
-            // 巣の主（巨大蜘蛛：見やすいように白の細い輪郭を追加）
             const masterSpider = document.createElementNS(svgNs, "g");
             masterSpider.setAttribute("class", "spider-shadow");
             masterSpider.innerHTML = `
@@ -193,10 +187,10 @@
                 <path d="${spiderPath}" stroke="#000" stroke-width="1.5" fill="#000" stroke-linejoin="round" stroke-linecap="round" />
             `;
             const masterR = maxR * 0.35; const masterA = Math.PI / 2 + Math.PI / 4.5;
-            masterSpider.setAttribute("transform", `translate(${cx + Math.cos(masterA) * masterR}, ${cy + Math.sin(masterA) * masterR}) rotate(-50) scale(1.8)`);
+            // 【修正】主の巨大蜘蛛のサイズを縮小 (1.8 -> 1.0)
+            masterSpider.setAttribute("transform", `translate(${cx + Math.cos(masterA) * masterR}, ${cy + Math.sin(masterA) * masterR}) rotate(-50) scale(1.0)`);
             svg.appendChild(masterSpider);
 
-            // --- 2. 上から垂れる糸と蜘蛛 ---
             const dropCount = 6 + Math.floor(Math.random() * 4); 
             for (let i = 0; i < dropCount; i++) {
                 const lx = 20 + Math.random() * (width - 40);
@@ -206,14 +200,13 @@
                 g.style.transformOrigin = `${lx}px 0px`;
                 g.style.animation = `swing ${3 + Math.random() * 4}s ease-in-out ${Math.random() * -5}s infinite alternate`;
 
-                // 通常の垂れる糸
                 const line = document.createElementNS(svgNs, "line");
                 line.setAttribute("x1", lx); line.setAttribute("y1", 0); line.setAttribute("x2", lx); line.setAttribute("y2", ly);
                 line.setAttribute("stroke", "rgba(180, 180, 180, 0.6)"); line.setAttribute("stroke-width", "1.2");
                 g.appendChild(line);
 
-                // 🩸 垂れる糸にまとわりつく血
-                if (Math.random() < 0.7) {
+                // 【修正】垂れる糸の血を激減 (0.7 -> 0.3)
+                if (Math.random() < 0.3) {
                     const bLine = document.createElementNS(svgNs, "line");
                     bLine.setAttribute("x1", lx); bLine.setAttribute("y1", 0); bLine.setAttribute("x2", lx); bLine.setAttribute("y2", ly);
                     bLine.setAttribute("stroke", "#940303"); 
@@ -224,10 +217,10 @@
                     g.appendChild(bLine);
                 }
 
-                // 蜘蛛（白輪郭付き）
                 const spider = document.createElementNS(svgNs, "g");
                 spider.setAttribute("class", "spider-shadow");
-                spider.setAttribute("transform", `translate(${lx}, ${ly}) scale(${0.8 + Math.random() * 0.5})`);
+                // 【修正】垂れる小蜘蛛のサイズを縮小 (0.8~1.3 -> 0.4~0.7)
+                spider.setAttribute("transform", `translate(${lx}, ${ly}) scale(${0.4 + Math.random() * 0.3})`);
                 spider.innerHTML = `
                     <path d="${spiderPath}" stroke="rgba(255,255,255,0.7)" stroke-width="2.5" fill="rgba(255,255,255,0.7)" stroke-linejoin="round" stroke-linecap="round" />
                     <path d="${spiderPath}" stroke="#000" stroke-width="1.5" fill="#000" stroke-linejoin="round" stroke-linecap="round" />
@@ -240,7 +233,7 @@
 
         window.addEventListener('DOMContentLoaded', buildSpiderWebs);
 
-        // --- 以下、既存のFirebase機能処理 ---
+        // --- 以下Firebase関連処理 ---
         const urlParams = new URLSearchParams(window.location.search);
         const action = urlParams.get('action');
         const ticketId = urlParams.get('ticketId');
