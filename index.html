@@ -87,7 +87,7 @@
 <body class="relative">
 
     <!-- ========================================================
-         🩸 【修正】自然で不規則にドロリと垂れる「血のカーテン」
+         🩸 上部：自然で不規則にドロリと垂れる血のカーテン
          ======================================================== -->
     <svg class="fixed top-0 left-0 w-full pointer-events-none z-10 h-36 sm:h-56 opacity-70" viewBox="0 0 1000 220" preserveAspectRatio="none">
         <defs>
@@ -98,7 +98,6 @@
             </linearGradient>
         </defs>
 
-        <!-- 滑らかで有機的な血の垂れ下がり本体 -->
         <path d="M0,0 L1000,0 L1000,20 
                  C970,20 960,95 945,95 C930,95 925,35 910,25 
                  C890,20 880,150 865,150 C855,150 850,40 835,20 
@@ -112,19 +111,14 @@
                  C145,15 135,175 120,175 C110,175 105,40 80,20 
                  C55,15 45,90 35,90 C25,90 15,25 0,20 Z" fill="url(#naturalBloodGrad)" />
 
-        <!-- 滴り落ちる細い雫の先っぽ -->
         <g stroke="#730101" stroke-linecap="round">
             <path d="M120,170 C121,185 119,195 120,205" stroke-width="2.5" />
             <circle cx="120" cy="210" r="2.5" fill="#730101" stroke="none" />
-
             <path d="M315,150 C316,165 314,175 315,185" stroke-width="2" />
             <circle cx="315" cy="190" r="2" fill="#730101" stroke="none" />
-
             <path d="M510,180 C511,195 509,205 510,215" stroke-width="2.5" />
             <circle cx="510" cy="220" r="2.5" fill="#730101" stroke="none" />
-
             <path d="M705,160 C706,175 704,185 705,195" stroke-width="2" />
-            
             <path d="M865,145 C866,160 864,170 865,180" stroke-width="2" />
             <circle cx="865" cy="185" r="2" fill="#730101" stroke="none" />
         </g>
@@ -133,18 +127,7 @@
     <!-- ========================================================
          🩸 四隅の自然なスプラッター血飛沫
          ======================================================== -->
-    <!-- 左上スプラッター -->
     <svg class="fixed top-0 left-0 w-56 h-56 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200">
-        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
-        <g fill="#7a0202">
-            <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="150" cy="25" r="1.5" />
-            <circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" /><circle cx="130" cy="120" r="1.8" />
-            <circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" /><circle cx="25" cy="160" r="3" />
-        </g>
-    </svg>
-
-    <!-- 右上スプラッター -->
-    <svg class="fixed top-0 right-0 w-56 h-56 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scaleX(-1);">
         <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
         <g fill="#7a0202">
             <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" />
@@ -153,23 +136,27 @@
         </g>
     </svg>
 
-    <!-- 左下スプラッター -->
+    <svg class="fixed top-0 right-0 w-56 h-56 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scaleX(-1);">
+        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
+        <g fill="#7a0202">
+            <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" />
+            <circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" />
+        </g>
+    </svg>
+
     <svg class="fixed bottom-0 left-0 w-60 h-60 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scaleY(-1);">
         <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
         <g fill="#7a0202">
             <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
             <circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" />
-            <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
         </g>
     </svg>
 
-    <!-- 右下スプラッター -->
     <svg class="fixed bottom-0 right-0 w-60 h-60 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scale(-1, -1);">
         <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
         <g fill="#7a0202">
             <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
             <circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" />
-            <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
         </g>
     </svg>
 
@@ -211,7 +198,7 @@
             </svg>
             
             <p id="story-text" class="text-xl text-gray-300 leading-loose px-4 font-bold">
-                読込中...
+                怨念渦巻く廃校に迷い込んでしまったあなた達...。<br>制限時間内に謎を解き、最速タイムで脱出せよ！
             </p>
             
             <svg class="w-full h-5 text-red-950 mt-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none">
@@ -246,28 +233,36 @@
     </div>
 
     <script>
+        // Firebase通信（アニメーションとは完全分離）
         try {
-            db.collection('settings').doc('config').onSnapshot(doc => {
-                if(doc.exists) {
-                    const data = doc.data();
-                    if (data.storyText) {
-                        document.getElementById('story-text').innerHTML = data.storyText.replace(/\n/g, '<br>');
+            if (typeof db !== 'undefined') {
+                db.collection('settings').doc('config').onSnapshot(doc => {
+                    if(doc && doc.exists) {
+                        const data = doc.data();
+                        if (data.storyText) {
+                            document.getElementById('story-text').innerHTML = data.storyText.replace(/\n/g, '<br>');
+                        }
                     }
-                }
-            });
+                });
+            }
         } catch (e) {}
 
         function toggleMenu() {
             const menu = document.getElementById('nav-menu');
-            menu.classList.toggle('hidden');
-            menu.classList.toggle('flex');
+            if(menu) {
+                menu.classList.toggle('hidden');
+                menu.classList.toggle('flex');
+            }
         }
 
-        // 🩸 拍子木リズム・オープニング
-        window.onload = () => {
+        // ========================================================
+        // 🩸 即時起動・拍子木リズムオープニング
+        // ========================================================
+        function initHorrorOpening() {
             const opening = document.getElementById('opening');
             const bloodScreen = document.getElementById('blood-screen');
             const mainContent = document.getElementById('main-content');
+            if(!opening || !bloodScreen || !mainContent) return;
             
             let count = 0;
             const maxCount = 220; 
@@ -287,4 +282,70 @@
                     x = 22 + (Math.random() * 32); 
                     y = 22 + (Math.random() * 32); 
                 } else {
-                    x = -2 + (Mat
+                    x = -2 + (Math.random() * 84); 
+                    y = -2 + (Math.random() * 84); 
+                }
+                
+                wrapper.style.left = `${x}%`;
+                wrapper.style.top = `${y}%`;
+                wrapper.style.transform = `rotate(${rotate}deg) scaleX(${flip})`;
+                
+                const img = document.createElement('img');
+                img.src = 'home/hand.png'; 
+                img.className = 'hand-img';
+                
+                wrapper.appendChild(img);
+                opening.appendChild(wrapper);
+            }
+
+            function runLoop() {
+                let batchSize = 1;
+                let nextDelay = 850;
+
+                if (count < 15) {
+                    nextDelay = Math.max(70, Math.floor(850 * Math.pow(0.85, count)));
+                    batchSize = 1;
+                } else if (count < 50) {
+                    const p = (count - 15) / (50 - 15);
+                    nextDelay = Math.max(15, Math.floor(65 - (p * 45)));
+                    batchSize = Math.floor(1 + (p * 2));
+                } else {
+                    const p = (count - 50) / (maxCount - 50);
+                    nextDelay = 12;
+                    batchSize = Math.min(maxCount - count, Math.floor(4 + (p * 12)));
+                }
+
+                for (let i = 0; i < batchSize; i++) {
+                    if (count >= maxCount) break;
+                    stampOne(count < 7);
+                    count++;
+                }
+
+                if (count < maxCount) {
+                    setTimeout(runLoop, nextDelay);
+                } else {
+                    bloodScreen.style.opacity = '1';
+                    setTimeout(() => {
+                        opening.style.transition = "transform 2.0s cubic-bezier(0.4, 0, 0.8, 0.3), border-radius 2.0s";
+                        opening.style.transform = "translateY(100%)";
+                        opening.style.borderTopLeftRadius = "50% 15%";
+                        opening.style.borderTopRightRadius = "50% 15%";
+                        
+                        mainContent.style.opacity = '1';
+                        setTimeout(() => { opening.style.display = 'none'; }, 2000);
+                    }, 250);
+                }
+            }
+
+            setTimeout(runLoop, 100);
+        }
+
+        // 外部読み込み待ちをせず即座に起動
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHorrorOpening);
+        } else {
+            initHorrorOpening();
+        }
+    </script>
+</body>
+</html>
