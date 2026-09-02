@@ -87,94 +87,105 @@
 <body class="relative">
 
     <!-- ========================================================
-         🩸 【ご提示画像完全再現】リアル血のドリップカーテン
+         🩸 多層レイヤー＆高透過・リアル血のドリップカーテン
          ======================================================== -->
-    <svg class="fixed top-0 left-0 w-full pointer-events-none z-20 h-44 sm:h-64 opacity-85" viewBox="0 0 1000 270" preserveAspectRatio="none">
+    <!-- 透過度を上げ(opacity-60)、奥が透けるように調整 -->
+    <svg class="fixed top-0 left-0 w-full pointer-events-none z-20 h-48 sm:h-72 opacity-60" viewBox="0 0 1000 270" preserveAspectRatio="none">
         <defs>
-            <linearGradient id="realBloodGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#450000" />
-                <stop offset="45%" stop-color="#780202" />
-                <stop offset="90%" stop-color="#940303" />
+            <!-- 3層のグラデーション定義 -->
+            <linearGradient id="gradBack" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2a0000" />
+                <stop offset="100%" stop-color="#0a0000" stop-opacity="0" />
             </linearGradient>
-            <filter id="bloodGlow" x="-5%" y="-5%" width="110%" height="110%">
-                <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.8"/>
+            <linearGradient id="gradMid" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#550000" />
+                <stop offset="100%" stop-color="#220000" stop-opacity="0" />
+            </linearGradient>
+            <linearGradient id="gradFront" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#880000" />
+                <stop offset="70%" stop-color="#550000" />
+                <stop offset="100%" stop-color="#330000" stop-opacity="0.2" />
+            </linearGradient>
+            <!-- 厚みを出すための強いドロップシャドウ -->
+            <filter id="bloodThickness" x="-5%" y="-5%" width="110%" height="110%">
+                <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#000" flood-opacity="0.8"/>
+                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#330000" flood-opacity="0.9"/>
             </filter>
         </defs>
 
-        <g filter="url(#bloodGlow)">
-            <!-- 画像に忠実なくびれ・雫付きのドリップパス -->
-            <path d="M0,0 L1000,0 L1000,25 
-                     C985,25 980,125 970,125 C960,125 955,35 945,35
-                     C935,35 930,200 920,200 C910,200 905,55 895,55
-                     C885,55 880,110 870,110 C860,110 855,40 845,40
-                     C835,40 830,230 818,230 C808,230 802,45 790,45
-                     C775,45 770,150 760,150 C750,150 745,30 730,30
-                     C715,30 710,180 700,180 C690,180 685,50 670,50
-                     C655,50 650,120 640,120 C630,120 625,35 610,35
-                     C595,35 590,255 575,255 C562,255 558,65 540,65
-                     C525,65 520,160 510,160 C500,160 495,40 480,40
-                     C465,40 460,220 445,220 C435,220 430,55 415,55
-                     C400,55 395,140 385,140 C375,140 370,30 355,30
-                     C340,30 335,190 325,190 C315,190 310,45 295,45
-                     C280,45 275,110 265,110 C255,110 250,35 235,35
-                     C220,35 215,240 200,240 C190,240 185,60 170,60
-                     C155,60 150,150 140,150 C130,150 125,30 110,30
-                     C95,30 90,200 80,200 C70,200 65,50 50,50
-                     C35,50 30,120 20,120 C10,120 5,25 0,25 Z" 
-                  fill="url(#realBloodGrad)" />
+        <g filter="url(#bloodThickness)">
+            <!-- 【第1層：奥の滲み】一番大きく、透明度が高い -->
+            <path d="M0,0 L1000,0 L1000,25 C985,25 980,125 970,125 C960,125 955,35 945,35 C935,35 930,200 920,200 C910,200 905,55 895,55 C885,55 880,110 870,110 C860,110 855,40 845,40 C835,40 830,230 818,230 C808,230 802,45 790,45 C775,45 770,150 760,150 C750,150 745,30 730,30 C715,30 710,180 700,180 C690,180 685,50 670,50 C655,50 650,120 640,120 C630,120 625,35 610,35 C595,35 590,255 575,255 C562,255 558,65 540,65 C525,65 520,160 510,160 C500,160 495,40 480,40 C465,40 460,220 445,220 C435,220 430,55 415,55 C400,55 395,140 385,140 C375,140 370,30 355,30 C340,30 335,190 325,190 C315,190 310,45 295,45 C280,45 275,110 265,110 C255,110 250,35 235,35 C220,35 215,240 200,240 C190,240 185,60 170,60 C155,60 150,150 140,150 C130,150 125,30 110,30 C95,30 90,200 80,200 C70,200 65,50 50,50 C35,50 30,120 20,120 C10,120 5,25 0,25 Z" 
+                  fill="url(#gradBack)" transform="scale(1, 1.15)" opacity="0.4" />
+                  
+            <!-- 【第2層：中間の塊】少しずらして厚みを強調 -->
+            <path d="M0,0 L1000,0 L1000,25 C985,25 980,125 970,125 C960,125 955,35 945,35 C935,35 930,200 920,200 C910,200 905,55 895,55 C885,55 880,110 870,110 C860,110 855,40 845,40 C835,40 830,230 818,230 C808,230 802,45 790,45 C775,45 770,150 760,150 C750,150 745,30 730,30 C715,30 710,180 700,180 C690,180 685,50 670,50 C655,50 650,120 640,120 C630,120 625,35 610,35 C595,35 590,255 575,255 C562,255 558,65 540,65 C525,65 520,160 510,160 C500,160 495,40 480,40 C465,40 460,220 445,220 C435,220 430,55 415,55 C400,55 395,140 385,140 C375,140 370,30 355,30 C340,30 335,190 325,190 C315,190 310,45 295,45 C280,45 275,110 265,110 C255,110 250,35 235,35 C220,35 215,240 200,240 C190,240 185,60 170,60 C155,60 150,150 140,150 C130,150 125,30 110,30 C95,30 90,200 80,200 C70,200 65,50 50,50 C35,50 30,120 20,120 C10,120 5,25 0,25 Z" 
+                  fill="url(#gradMid)" transform="translate(-10, 5) scale(1.02, 1.05)" opacity="0.5" />
 
-            <!-- 滴り落ちる独立したリアルな雫（ティアドロップ） -->
-            <circle cx="818" cy="245" r="4.5" fill="#940303" />
-            <circle cx="818" cy="258" r="2.5" fill="#940303" />
-            
-            <circle cx="575" cy="268" r="4.0" fill="#940303" />
-            
-            <circle cx="200" cy="252" r="4.5" fill="#940303" />
-            <circle cx="200" cy="264" r="2.5" fill="#940303" />
-            
-            <circle cx="920" cy="212" r="3.5" fill="#940303" />
-            <circle cx="445" cy="232" r="3.5" fill="#940303" />
-            <circle cx="325" cy="202" r="3.0" fill="#940303" />
+            <!-- 【第3層：手前のシャープな血筋】 -->
+            <path d="M0,0 L1000,0 L1000,25 C985,25 980,125 970,125 C960,125 955,35 945,35 C935,35 930,200 920,200 C910,200 905,55 895,55 C885,55 880,110 870,110 C860,110 855,40 845,40 C835,40 830,230 818,230 C808,230 802,45 790,45 C775,45 770,150 760,150 C750,150 745,30 730,30 C715,30 710,180 700,180 C690,180 685,50 670,50 C655,50 650,120 640,120 C630,120 625,35 610,35 C595,35 590,255 575,255 C562,255 558,65 540,65 C525,65 520,160 510,160 C500,160 495,40 480,40 C465,40 460,220 445,220 C435,220 430,55 415,55 C400,55 395,140 385,140 C375,140 370,30 355,30 C340,30 335,190 325,190 C315,190 310,45 295,45 C280,45 275,110 265,110 C255,110 250,35 235,35 C220,35 215,240 200,240 C190,240 185,60 170,60 C155,60 150,150 140,150 C130,150 125,30 110,30 C95,30 90,200 80,200 C70,200 65,50 50,50 C35,50 30,120 20,120 C10,120 5,25 0,25 Z" 
+                  fill="url(#gradFront)" opacity="0.75" />
+
+            <!-- 滴り落ちる独立したリアルな雫 -->
+            <circle cx="818" cy="245" r="4.5" fill="#880000" opacity="0.8" />
+            <circle cx="818" cy="258" r="2.5" fill="#880000" opacity="0.8" />
+            <circle cx="575" cy="268" r="4.0" fill="#880000" opacity="0.8" />
+            <circle cx="200" cy="252" r="4.5" fill="#880000" opacity="0.8" />
+            <circle cx="200" cy="264" r="2.5" fill="#880000" opacity="0.8" />
+            <circle cx="920" cy="212" r="3.5" fill="#880000" opacity="0.8" />
+            <circle cx="445" cy="232" r="3.5" fill="#880000" opacity="0.8" />
+            <circle cx="325" cy="202" r="3.0" fill="#880000" opacity="0.8" />
         </g>
     </svg>
 
     <!-- ========================================================
-         🩸 四隅のリアル細密スプラッター血飛沫
+         🩸 多層レイヤー・四隅のリアルスプラッター血飛沫
          ======================================================== -->
-    <!-- 左上スプラッター -->
-    <svg class="fixed top-0 left-0 w-56 h-56 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200">
-        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
-        <g fill="#7a0202">
+    <!-- 左上 -->
+    <svg class="fixed top-0 left-0 w-56 h-56 pointer-events-none z-10 opacity-35" viewBox="0 0 200 200">
+        <!-- 奥 -->
+        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#220000" transform="scale(1.2)" opacity="0.4" />
+        <!-- 中間 -->
+        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#440000" transform="translate(5, 5) scale(1.05)" opacity="0.5" />
+        <!-- 手前 -->
+        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" opacity="0.7" />
+        <g fill="#7a0202" opacity="0.85">
             <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="150" cy="25" r="1.5" />
             <circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" /><circle cx="130" cy="120" r="1.8" />
             <circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" /><circle cx="25" cy="160" r="3" />
         </g>
     </svg>
 
-    <!-- 右上スプラッター -->
-    <svg class="fixed top-0 right-0 w-56 h-56 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scaleX(-1);">
-        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" />
-        <g fill="#7a0202">
+    <!-- 右上 -->
+    <svg class="fixed top-0 right-0 w-56 h-56 pointer-events-none z-10 opacity-35" viewBox="0 0 200 200" style="transform: scaleX(-1);">
+        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#220000" transform="scale(1.2)" opacity="0.4" />
+        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#440000" transform="translate(5, 5) scale(1.05)" opacity="0.5" />
+        <path d="M0,0 L90,0 C75,25 100,50 75,65 C55,80 45,110 20,90 C5,80 0,100 0,100 Z" fill="#660101" opacity="0.7" />
+        <g fill="#7a0202" opacity="0.85">
             <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" />
             <circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" />
             <circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" />
         </g>
     </svg>
 
-    <!-- 左下スプラッター -->
-    <svg class="fixed bottom-0 left-0 w-60 h-60 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scaleY(-1);">
-        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
-        <g fill="#7a0202">
+    <!-- 左下 -->
+    <svg class="fixed bottom-0 left-0 w-60 h-60 pointer-events-none z-10 opacity-35" viewBox="0 0 200 200" style="transform: scaleY(-1);">
+        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#220000" transform="scale(1.2)" opacity="0.4" />
+        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#440000" transform="translate(5, 5) scale(1.05)" opacity="0.5" />
+        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" opacity="0.7" />
+        <g fill="#7a0202" opacity="0.85">
             <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
             <circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" />
             <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
         </g>
     </svg>
 
-    <!-- 右下スプラッター -->
-    <svg class="fixed bottom-0 right-0 w-60 h-60 pointer-events-none z-10 opacity-45" viewBox="0 0 200 200" style="transform: scale(-1, -1);">
-        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" />
-        <g fill="#7a0202">
+    <!-- 右下 -->
+    <svg class="fixed bottom-0 right-0 w-60 h-60 pointer-events-none z-10 opacity-35" viewBox="0 0 200 200" style="transform: scale(-1, -1);">
+        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#220000" transform="scale(1.2)" opacity="0.4" />
+        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#440000" transform="translate(5, 5) scale(1.05)" opacity="0.5" />
+        <path d="M0,0 L100,0 C80,30 110,55 85,75 C60,95 50,125 25,105 C5,95 0,115 0,115 Z" fill="#5c0101" opacity="0.7" />
+        <g fill="#7a0202" opacity="0.85">
             <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
             <circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" />
             <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
@@ -201,31 +212,31 @@
             <a href="admin.html" class="text-red-400 hover:text-red-200">✝ 管理者設定</a>
         </div>
 
-        <!-- タイトルエリア（ルビ付き・ドス黒い赤） -->
+        <!-- タイトルエリア -->
         <div class="text-center mb-10 mt-20 relative">
             <h1 class="text-4xl sm:text-5xl font-black tracking-widest text-blood-dark mb-2 leading-relaxed relative z-10" id="story-title">
                 <ruby>恐怖<rt class="text-xs sm:text-sm sub-blood-dark tracking-widest">おののき</rt></ruby>の<ruby>廃校<rt class="text-xs sm:text-sm sub-blood-dark tracking-widest">エコールデザフェクテ</rt></ruby>
             </h1>
         </div>
 
-        <!-- あらすじエリア -->
+        <!-- あらすじエリア（多層レイヤーの装飾） -->
         <div class="mb-10 text-center flex-1 relative">
             <p class="text-blood-dark mb-4 text-2xl tracking-widest">〜 あらすじ 〜</p>
             
-            <svg class="w-full h-5 text-red-950 mb-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none">
-                <path d="M0,7 Q25,0 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path>
-                <circle cx="75" cy="11" r="1.2" fill="currentColor" stroke="none" />
-                <circle cx="140" cy="12" r="1.5" fill="currentColor" stroke="none" />
+            <svg class="w-full h-5 mb-4 opacity-50" fill="none" viewBox="0 0 200 15" preserveAspectRatio="none">
+                <path d="M0,7 Q25,0 50,7 T100,7 T150,7 T200,7" stroke="#2a0000" stroke-width="2.5" transform="translate(0, 2)"></path>
+                <path d="M0,7 Q25,0 50,7 T100,7 T150,7 T200,7" stroke="#550000" stroke-width="1.5"></path>
+                <circle cx="75" cy="11" r="1.5" fill="#550000" />
             </svg>
             
-            <p id="story-text" class="text-xl text-gray-300 leading-loose px-4 font-bold">
+            <p id="story-text" class="text-xl text-gray-300 leading-loose px-4 font-bold relative z-10" style="text-shadow: 0 2px 4px #000;">
                 怨念渦巻く廃校に迷い込んでしまったあなた達...。<br>制限時間内に謎を解き、最速タイムで脱出せよ！
             </p>
             
-            <svg class="w-full h-5 text-red-950 mt-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none">
-                <path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path>
-                <circle cx="45" cy="12" r="1.5" fill="currentColor" stroke="none" />
-                <circle cx="165" cy="11" r="1.2" fill="currentColor" stroke="none" />
+            <svg class="w-full h-5 mt-4 opacity-50" fill="none" viewBox="0 0 200 15" preserveAspectRatio="none">
+                <path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke="#2a0000" stroke-width="2.5" transform="translate(0, 2)"></path>
+                <path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke="#550000" stroke-width="1.5"></path>
+                <circle cx="165" cy="11" r="1.5" fill="#550000" />
             </svg>
         </div>
 
@@ -254,6 +265,7 @@
     </div>
 
     <script>
+        // Firebase通信
         try {
             if (typeof db !== 'undefined') {
                 db.collection('settings').doc('config').onSnapshot(doc => {
@@ -275,9 +287,23 @@
             }
         }
 
-        // ========================================================
-        // 🩸 即時起動・拍子木リズムオープニング
-        // ========================================================
+        // 🩸 フェイルセーフ付き・超確実オープニング
+        function createFallbackHandSvg() {
+            return `<svg viewBox="0 0 145 240" style="width:100%; height:100%; filter: drop-shadow(0 0 8px rgba(180,0,0,0.85));">
+                <path d="M42,80 C32,100 32,125 46,140 C62,155 98,155 114,140 C124,122 122,95 108,80 Z" fill="#660000" opacity="0.9" />
+                <ellipse cx="35" cy="46" rx="6.5" ry="18" fill="#7a0202" transform="rotate(-18 35 46)" />
+                <ellipse cx="54" cy="38" rx="6.8" ry="25" fill="#7a0202" transform="rotate(-6 54 38)" />
+                <ellipse cx="72" cy="32" rx="7.2" ry="28" fill="#7a0202" />
+                <ellipse cx="90" cy="36" rx="6.8" ry="26" fill="#7a0202" transform="rotate(6 90 36)" />
+                <ellipse cx="108" cy="46" rx="6.2" ry="20" fill="#7a0202" transform="rotate(18 108 46)" />
+                <line x1="35" y1="50" x2="33" y2="180" stroke="#7a0202" stroke-width="2.5" stroke-linecap="round" opacity="0.8" />
+                <line x1="54" y1="50" x2="55" y2="210" stroke="#7a0202" stroke-width="3" stroke-linecap="round" opacity="0.8" />
+                <line x1="72" y1="50" x2="71" y2="235" stroke="#7a0202" stroke-width="3.5" stroke-linecap="round" opacity="0.8" />
+                <line x1="90" y1="50" x2="89" y2="215" stroke="#7a0202" stroke-width="3" stroke-linecap="round" opacity="0.8" />
+                <line x1="108" y1="50" x2="110" y2="175" stroke="#7a0202" stroke-width="2.5" stroke-linecap="round" opacity="0.8" />
+            </svg>`;
+        }
+
         function initHorrorOpening() {
             const opening = document.getElementById('opening');
             const bloodScreen = document.getElementById('blood-screen');
@@ -313,6 +339,10 @@
                 const img = document.createElement('img');
                 img.src = 'home/hand.png'; 
                 img.className = 'hand-img';
+                
+                img.onerror = function() {
+                    wrapper.innerHTML = createFallbackHandSvg();
+                };
                 
                 wrapper.appendChild(img);
                 opening.appendChild(wrapper);
@@ -360,11 +390,20 @@
             setTimeout(runLoop, 100);
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initHorrorOpening);
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            setTimeout(initHorrorOpening, 10);
         } else {
-            initHorrorOpening();
+            document.addEventListener('DOMContentLoaded', initHorrorOpening);
         }
+
+        setTimeout(() => {
+            const op = document.getElementById('opening');
+            const mc = document.getElementById('main-content');
+            if (op && op.style.display !== 'none' && mc && mc.style.opacity === '0') {
+                op.style.display = 'none';
+                mc.style.opacity = '1';
+            }
+        }, 8000);
     </script>
 </body>
 </html>
