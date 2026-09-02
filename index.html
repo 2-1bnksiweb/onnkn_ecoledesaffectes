@@ -37,7 +37,7 @@
             min-height: 100dvh; 
         }
 
-        /* 🩸 見やすく調整した血の文字（少し鮮血のハイライトを足し、黒い影でくっきり浮かばせる） */
+        /* 🩸 ドス黒い血の文字 */
         .text-blood-dark {
             background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%);
             -webkit-background-clip: text;
@@ -100,15 +100,13 @@
     </svg>
 
     <!-- ========================================================
-         🩸 血の装飾群（すべて z-index: 0 に配置して背景化）
+         🩸 血の装飾群（背景）
          ======================================================== -->
     
-    <!-- 細・光沢ありのリアル血筋カーテン -->
     <svg class="fixed top-0 left-0 w-full pointer-events-none z-0 h-56 sm:h-72 opacity-85" viewBox="0 0 1000 300" preserveAspectRatio="none">
         <g id="curtain-layers"></g>
     </svg>
 
-    <!-- 四隅スプラッター -->
     <svg class="fixed top-0 left-0 w-64 h-64 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" filter="url(#blood-shine)">
         <path d="M0,0 L110,0 C90,25 120,50 95,70 C70,85 60,115 30,95 C10,90 0,110 0,110 Z" fill="#4a0000" />
         <g fill="#7a0202">
@@ -150,13 +148,13 @@
 
 
     <!-- ========================================================
-         🩸 メインコンテンツ（z-20で血のレイヤーより上に配置）
+         🩸 メインコンテンツ
          ======================================================== -->
     <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center z-20">
         
-        <!-- ヘッダー -->
+        <!-- ヘッダー（「2-1」を「弐ノ壱」に変更） -->
         <header class="flex justify-between items-center border-b border-red-950 pb-3 mb-8 text-gray-300 absolute top-8 left-6 right-6 z-30" style="text-shadow: 0 2px 4px #000;">
-            <span class="tracking-widest text-lg">2-1 教室発表</span>
+            <span class="tracking-widest text-lg">弐ノ壱 教室発表</span>
             <button onclick="toggleMenu()" class="text-4xl hover:text-white drop-shadow-md">☰</button>
         </header>
 
@@ -166,15 +164,13 @@
             <a href="admin.html" class="text-red-500 hover:text-red-300">✝ 管理者設定</a>
         </div>
 
-        <!-- タイトルエリア（ルビ分離・文字間隔短縮） -->
+        <!-- タイトルエリア -->
         <div class="text-center mb-10 mt-20 relative flex flex-col items-center">
-            <!-- ルビを独立した要素として配置 -->
             <span class="text-[10px] sm:text-xs sub-blood-dark tracking-[0.4em] mb-1 pl-2">おののきのエコールデザフェクテ</span>
-            <!-- 親文字は間隔を詰めてホラー感アップ -->
             <h1 class="text-5xl sm:text-6xl font-black tracking-widest text-blood-dark leading-none" id="story-title">恐怖の廃校</h1>
         </div>
 
-        <!-- あらすじエリア（初期テキスト空） -->
+        <!-- あらすじエリア（ご指定の文章を追加） -->
         <div class="mb-10 text-center flex-1 relative">
             <p class="text-blood-dark mb-4 text-2xl tracking-widest">〜 あらすじ 〜</p>
             
@@ -184,8 +180,11 @@
                 <circle cx="140" cy="12" r="1.5" fill="currentColor" stroke="none" />
             </svg>
             
-            <!-- 初期状態は何も表示しない -->
-            <p id="story-text" class="text-xl text-gray-200 leading-loose px-4 font-bold relative z-10" style="text-shadow: 0 2px 4px #000, 0 0 10px #000; min-height: 2rem;"></p>
+            <p id="story-text" class="text-lg sm:text-xl text-gray-200 leading-loose px-4 font-bold relative z-10" style="text-shadow: 0 2px 4px #000, 0 0 10px #000; min-height: 2rem;">
+                XXXX年 とあるいわく付きの学校が廃校になった。<br>
+                ある時から、その廃校の｢噂｣を聞いた人が肝試しに行くようになり、親友も行ったらしい。<br>
+                だがその親友は数日経っても帰ってこなかった…
+            </p>
             
             <svg class="w-full h-5 text-red-950 mt-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none">
                 <path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path>
@@ -279,7 +278,7 @@
             }
         }
 
-        // Firebase通信
+        // Firebase通信（管理者設定でテキストが変更された場合のみ上書き）
         try {
             if (typeof db !== 'undefined') {
                 db.collection('settings').doc('config').onSnapshot(doc => {
@@ -334,9 +333,11 @@
                 
                 let x, y;
                 if (isCenter) {
-                    x = 22 + (Math.random() * 32); y = 22 + (Math.random() * 32); 
+                    x = 22 + (Math.random() * 32); 
+                    y = 22 + (Math.random() * 32); 
                 } else {
-                    x = -2 + (Math.random() * 84); y = -2 + (Math.random() * 84); 
+                    x = -2 + (Math.random() * 84); 
+                    y = -2 + (Math.random() * 84); 
                 }
                 
                 wrapper.style.left = `${x}%`;
