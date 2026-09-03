@@ -18,76 +18,36 @@
     <style>
         @font-face {
             font-family: 'OnryouFont';
-            src: url('home/onryu.ttf') format('truetype'),
-                 url('./home/onryu.ttf') format('truetype'),
-                 url('home/onryou.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
+            src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype');
+            font-weight: normal; font-style: normal; font-display: swap;
         }
 
         *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby { 
             font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
         }
 
-        body { 
-            background-color: #030303; 
-            color: #e0e0e0; 
-            overflow-x: hidden; 
-            min-height: 100dvh; 
-        }
+        body { background-color: #030303; color: #e0e0e0; overflow-x: hidden; min-height: 100dvh; }
 
-        /* 🩸 ドス黒い血の文字 */
         .text-blood-dark {
             background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9));
         }
-        
-        .sub-blood-dark {
-            color: #d90000;
-            text-shadow: 1px 1px 2px #000000, 0 0 8px rgba(0,0,0,0.8);
-        }
+        .sub-blood-dark { color: #d90000; text-shadow: 1px 1px 2px #000000, 0 0 8px rgba(0,0,0,0.8); }
 
-        /* オープニングコンテナ */
-        #opening { 
-            position: fixed; inset: 0; background: #000; z-index: 9999; 
-            overflow: hidden; display: flex; flex-direction: column; 
-        }
-        
-        .hand-wrapper { 
-            position: absolute; 
-            pointer-events: none;
-            z-index: 9999;
-        }
-        
+        #opening { position: fixed; inset: 0; background: #000; z-index: 9999; overflow: hidden; display: flex; flex-direction: column; }
+        .hand-wrapper { position: absolute; pointer-events: none; z-index: 9999; }
         .hand-img { 
-            width: 100%; 
-            height: auto;
-            opacity: 0; 
-            transform: scale(0.6); 
-            animation: stampIn 0.08s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; 
-            filter: drop-shadow(0px 0px 8px rgba(180, 0, 0, 0.8));
+            width: 100%; height: auto; opacity: 0; transform: scale(0.6); 
+            animation: stampIn 0.08s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; filter: drop-shadow(0px 0px 8px rgba(180, 0, 0, 0.8));
         }
-        @keyframes stampIn { 
-            to { opacity: 0.95; transform: scale(1); } 
-        }
+        @keyframes stampIn { to { opacity: 0.95; transform: scale(1); } }
         
-        /* 🩸 滑り落ちるリアル血の膜 */
-        #blood-screen { 
-            position: absolute; inset: 0; 
-            opacity: 0; transition: opacity 0.2s; z-index: 10000; 
-            pointer-events: none;
-            background: linear-gradient(to bottom, #3d0000 0%, #660000 30%, #4a0000 100%);
-        }
-
+        #blood-screen { position: absolute; inset: 0; background: #500000; opacity: 0; transition: opacity 0.2s; z-index: 10000; pointer-events: none; }
         .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
     </style>
 </head>
 <body class="relative">
-
-    <!-- 光沢フィルター -->
     <svg style="position:absolute; width:0; height:0; pointer-events:none;">
         <defs>
             <filter id="blood-shine">
@@ -101,71 +61,37 @@
         </defs>
     </svg>
 
-    <!-- ========================================================
-         🩸 血の装飾群（背景レイヤー z-index: 0）
-         ======================================================== -->
-    <svg class="fixed top-0 left-0 w-full pointer-events-none z-0 h-56 sm:h-72 opacity-85" viewBox="0 0 1000 300" preserveAspectRatio="none">
-        <g id="curtain-layers"></g>
-    </svg>
-
+    <svg class="fixed top-0 left-0 w-full pointer-events-none z-0 h-56 sm:h-72 opacity-85" viewBox="0 0 1000 300" preserveAspectRatio="none"><g id="curtain-layers"></g></svg>
     <svg class="fixed top-0 left-0 w-64 h-64 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" filter="url(#blood-shine)">
         <path d="M0,0 L110,0 C90,25 120,50 95,70 C70,85 60,115 30,95 C10,90 0,110 0,110 Z" fill="#4a0000" />
-        <g fill="#7a0202">
-            <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="150" cy="25" r="1.5" />
-            <circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" /><circle cx="130" cy="120" r="1.8" />
-            <circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" /><circle cx="25" cy="160" r="3" />
-        </g>
+        <g fill="#7a0202"><circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="150" cy="25" r="1.5" /><circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" /><circle cx="130" cy="120" r="1.8" /><circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" /><circle cx="25" cy="160" r="3" /></g>
     </svg>
     <svg class="fixed top-0 right-0 w-64 h-64 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" style="transform: scaleX(-1);" filter="url(#blood-shine)">
         <path d="M0,0 L110,0 C90,25 120,50 95,70 C70,85 60,115 30,95 C10,90 0,110 0,110 Z" fill="#4a0000" />
-        <g fill="#7a0202">
-            <circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" />
-            <circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" />
-            <circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" />
-        </g>
+        <g fill="#7a0202"><circle cx="110" cy="25" r="4.5" /><circle cx="130" cy="38" r="2.5" /><circle cx="95" cy="85" r="5" /><circle cx="115" cy="105" r="3" /><circle cx="45" cy="120" r="4.5" /><circle cx="60" cy="145" r="2.5" /></g>
     </svg>
     <svg class="fixed bottom-0 left-0 w-72 h-72 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" style="transform: scaleY(-1);" filter="url(#blood-shine)">
         <path d="M0,0 L120,0 C100,35 130,60 100,80 C75,100 65,130 35,115 C10,105 0,125 0,125 Z" fill="#3d0000" />
-        <g fill="#7a0202">
-            <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
-            <circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" />
-            <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
-        </g>
+        <g fill="#7a0202"><circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" /><circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" /><circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" /></g>
     </svg>
     <svg class="fixed bottom-0 right-0 w-72 h-72 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" style="transform: scale(-1, -1);" filter="url(#blood-shine)">
         <path d="M0,0 L120,0 C100,35 130,60 100,80 C75,100 65,130 35,115 C10,105 0,125 0,125 Z" fill="#3d0000" />
-        <g fill="#7a0202">
-            <circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" />
-            <circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" />
-            <circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" />
-        </g>
+        <g fill="#7a0202"><circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" /><circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" /><circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" /></g>
     </svg>
 
-    <!-- ========================================================
-         🩸 オープニングレイヤー（ドロっと落ちる本物の血膜仕様）
-         ======================================================== -->
-    <div id="opening">
-        <div id="blood-screen">
-            <!-- スライドして落ちる時の「上端のちぎれた血の膜」 -->
-            <svg class="w-full h-16 sm:h-24 absolute left-0" style="top: 0; transform: translateY(-98%); fill: #3d0000;" viewBox="0 0 1000 150" preserveAspectRatio="none">
-                <path d="M0,150 L1000,150 L1000,0 C980,80 960,100 940,20 C920,120 900,110 880,10 C860,90 840,130 820,30 C800,80 780,100 760,10 C740,110 720,140 700,40 C680,100 660,120 640,0 C620,80 600,130 580,20 C560,90 540,110 520,10 C500,140 480,120 460,30 C440,100 420,90 400,0 C380,120 360,140 340,40 C320,80 300,110 280,10 C260,130 240,120 220,20 C200,90 180,100 160,0 C140,110 120,140 100,30 C80,80 60,120 40,10 C20,100 10,90 0,0 Z" />
-            </svg>
-        </div>
-    </div>
+    <div id="opening"><div id="blood-screen"></div></div>
 
-    <!-- ========================================================
-         🩸 メインコンテンツ
-         ======================================================== -->
     <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center z-20">
         
         <header class="flex justify-between items-center border-b border-red-950 pb-3 mb-8 text-gray-300 absolute top-8 left-6 right-6 z-30" style="text-shadow: 0 2px 4px #000;">
             <span class="tracking-widest text-lg">弐ノ壱 教室発表</span>
-            <button onclick="toggleMenu()" class="text-4xl hover:text-white drop-shadow-md">☰</button>
+            <button id="menu-btn" onclick="toggleMenu()" class="text-4xl hover:text-red-500 drop-shadow-md transition-transform duration-300 w-10 h-10 flex items-center justify-center">☰</button>
         </header>
 
-        <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-3 text-base absolute top-20 right-6 z-50 shadow-2xl">
-            <a href="timeattack.html" class="text-red-500 hover:text-red-300">✝ スタッフ用: タイム計測＆謎発動</a>
-            <a href="admin.html" class="text-red-500 hover:text-red-300">✝ 管理者設定</a>
+        <!-- 【修正】運営システムへのリンクを削除 -->
+        <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-24 right-6 z-50 shadow-2xl">
+            <a href="ticket.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">🩸 整理券の予約</a>
+            <a href="ranking.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">🏆 ランキングを見る</a>
         </div>
 
         <div class="text-center mb-10 mt-20 relative flex flex-col items-center">
@@ -175,43 +101,21 @@
 
         <div class="mb-10 text-center flex-1 relative">
             <p class="text-blood-dark mb-4 text-2xl tracking-widest">〜 あらすじ 〜</p>
-            
-            <svg class="w-full h-5 text-red-950 mb-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none">
-                <path d="M0,7 Q25,0 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path>
-                <circle cx="75" cy="11" r="1.2" fill="currentColor" stroke="none" />
-                <circle cx="140" cy="12" r="1.5" fill="currentColor" stroke="none" />
-            </svg>
-            
-            <!-- 【修正】文字を小さくし、改行をなくしてスッキリ配置 -->
+            <svg class="w-full h-5 text-red-950 mb-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none"><path d="M0,7 Q25,0 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path><circle cx="75" cy="11" r="1.2" fill="currentColor" stroke="none" /><circle cx="140" cy="12" r="1.5" fill="currentColor" stroke="none" /></svg>
             <p id="story-text" class="text-sm sm:text-base text-gray-300 leading-relaxed px-4 font-bold relative z-10" style="text-shadow: 0 2px 4px #000, 0 0 10px #000; min-height: 2rem;">
                 XXXX年 とあるいわく付きの学校が廃校になった。ある時から、その廃校の｢噂｣を聞いた人が肝試しに行くようになり、親友も行ったらしい。だがその親友は数日経っても帰ってこなかった…
             </p>
-            
-            <svg class="w-full h-5 text-red-950 mt-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none">
-                <path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path>
-                <circle cx="45" cy="12" r="1.5" fill="currentColor" stroke="none" />
-                <circle cx="165" cy="11" r="1.2" fill="currentColor" stroke="none" />
-            </svg>
+            <svg class="w-full h-5 text-red-950 mt-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none"><path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path><circle cx="45" cy="12" r="1.5" fill="currentColor" stroke="none" /><circle cx="165" cy="11" r="1.2" fill="currentColor" stroke="none" /></svg>
         </div>
 
         <div class="mb-8 text-center px-2 relative">
-            <h2 class="text-2xl text-blood-dark mb-4 tracking-widest font-bold">予約</h2>
-            <p class="text-base text-gray-300 mb-1" style="text-shadow: 0 2px 4px #000;">下のボタンから予約をすることができます。</p>
-            <p class="text-base text-gray-300 mb-3" style="text-shadow: 0 2px 4px #000;">前日でも当日でも予約可能です。</p>
-            <a href="#" class="inline-block mb-4 text-base text-red-500 hover:text-red-300 underline decoration-red-800" style="text-shadow: 0 2px 4px #000;">詳しいやり方、注意点はこちらから</a>
-            
-            <div class="relative">
-                <a href="ticket.html" class="block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark text-2xl hover:bg-black transition tracking-widest shadow-btn relative z-10">
-                    予約 はこちらから
-                </a>
-            </div>
+            <a href="ticket.html" class="block w-full py-5 bg-[#260101] border border-[#520202] text-blood-dark text-2xl hover:bg-black transition tracking-widest shadow-btn relative z-10 font-bold">
+                予約 はこちらから
+            </a>
         </div>
-
         <div class="mb-4 text-center px-2">
-            <h2 class="text-2xl text-blood-dark mb-4 tracking-widest font-bold">ランキング</h2>
-            <p class="text-base text-gray-300 mb-4" style="text-shadow: 0 2px 4px #000;">上位TOP3まで表示されます</p>
-            <a href="ranking.html" class="block w-full py-4 bg-gray-950 border border-gray-800 text-gray-300 text-xl hover:bg-gray-900 transition tracking-widest shadow-lg">
-                ランキングはこちらから
+            <a href="ranking.html" class="block w-full py-5 bg-gray-950 border border-gray-800 text-gray-400 text-xl hover:bg-gray-900 transition tracking-widest shadow-lg font-bold">
+                ランキングを見る
             </a>
         </div>
     </div>
@@ -220,7 +124,6 @@
         function buildRealBloodCurtain() {
             const svg = document.getElementById('curtain-layers');
             if(!svg) return;
-
             function genDripPath(maxLen, density, widthBase) {
                 let path = "M0,0 L1000,0 L1000,5 ";
                 let x = 1000;
@@ -228,187 +131,97 @@
                     let w = (widthBase + Math.random() * 10) * density;
                     let nx = Math.max(0, x - w);
                     let h = 15 + Math.pow(Math.random(), 3.5) * maxLen;
-                    
                     if (h > 40) {
                         let bot = 0.5 + Math.random() * 1.5;
                         path += `C${x-w*0.1},5 ${x-w/2+bot},${h*0.4} ${x-w/2+bot},${h} `;
                         path += `A${bot},${bot} 0 0 1 ${x-w/2-bot},${h} `;
                         path += `C${x-w/2-bot},${h*0.4} ${nx+w*0.1},5 ${nx},5 `;
-                    } else {
-                        path += `Q${x-w/2},${5+h} ${nx},5 `;
-                    }
+                    } else { path += `Q${x-w/2},${5+h} ${nx},5 `; }
                     x = nx;
                 }
                 return path + "Z";
             }
-
-            const p1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            p1.setAttribute("d", genDripPath(150, 2.0, 15));
-            p1.setAttribute("fill", "#2a0000");
-            p1.setAttribute("opacity", "0.8");
-            
-            const p2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            p2.setAttribute("d", genDripPath(220, 1.2, 8));
-            p2.setAttribute("fill", "#4a0000");
-            p2.setAttribute("opacity", "0.9");
-            p2.setAttribute("filter", "drop-shadow(0 3px 5px rgba(0,0,0,0.6))");
-
-            const p3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            p3.setAttribute("d", genDripPath(290, 0.7, 4)); 
-            p3.setAttribute("fill", "#8a0303");
-            p3.setAttribute("filter", "url(#blood-shine) drop-shadow(0 2px 2px rgba(40,0,0,0.8))");
-
-            svg.appendChild(p1);
-            svg.appendChild(p2);
-            svg.appendChild(p3);
-
+            const p1 = document.createElementNS("http://www.w3.org/2000/svg", "path"); p1.setAttribute("d", genDripPath(150, 2.0, 15)); p1.setAttribute("fill", "#2a0000"); p1.setAttribute("opacity", "0.8");
+            const p2 = document.createElementNS("http://www.w3.org/2000/svg", "path"); p2.setAttribute("d", genDripPath(220, 1.2, 8)); p2.setAttribute("fill", "#4a0000"); p2.setAttribute("opacity", "0.9"); p2.setAttribute("filter", "drop-shadow(0 3px 5px rgba(0,0,0,0.6))");
+            const p3 = document.createElementNS("http://www.w3.org/2000/svg", "path"); p3.setAttribute("d", genDripPath(290, 0.7, 4)); p3.setAttribute("fill", "#8a0303"); p3.setAttribute("filter", "url(#blood-shine) drop-shadow(0 2px 2px rgba(40,0,0,0.8))");
+            svg.appendChild(p1); svg.appendChild(p2); svg.appendChild(p3);
             for(let i=0; i<45; i++) {
-                let dx = Math.random() * 1000;
-                let dy = 30 + Math.pow(Math.random(), 3) * 260;
-                let r = 0.8 + Math.random() * 2.5;
                 let c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                c.setAttribute("cx", dx);
-                c.setAttribute("cy", dy);
-                c.setAttribute("r", r);
-                c.setAttribute("fill", "#8a0303");
-                c.setAttribute("filter", "url(#blood-shine)");
-                svg.appendChild(c);
+                c.setAttribute("cx", Math.random() * 1000); c.setAttribute("cy", 30 + Math.pow(Math.random(), 3) * 260); c.setAttribute("r", 0.8 + Math.random() * 2.5);
+                c.setAttribute("fill", "#8a0303"); c.setAttribute("filter", "url(#blood-shine)"); svg.appendChild(c);
             }
         }
 
         try {
             if (typeof db !== 'undefined') {
                 db.collection('settings').doc('config').onSnapshot(doc => {
-                    if(doc && doc.exists && doc.data().storyText) {
-                        document.getElementById('story-text').innerHTML = doc.data().storyText.replace(/\n/g, '<br>');
-                    }
+                    if(doc && doc.exists && doc.data().storyText) document.getElementById('story-text').innerHTML = doc.data().storyText.replace(/\n/g, '<br>');
                 });
             }
         } catch (e) {}
 
         function toggleMenu() {
             const menu = document.getElementById('nav-menu');
-            if(menu) { menu.classList.toggle('hidden'); menu.classList.toggle('flex'); }
+            const btn = document.getElementById('menu-btn');
+            if(menu) { 
+                if(menu.classList.contains('hidden')) {
+                    menu.classList.remove('hidden'); menu.classList.add('flex');
+                    btn.innerText = '✕'; btn.style.transform = 'rotate(90deg)';
+                } else {
+                    menu.classList.add('hidden'); menu.classList.remove('flex');
+                    btn.innerText = '☰'; btn.style.transform = 'rotate(0deg)';
+                }
+            }
         }
 
         function createFallbackHandSvg() {
-            return `<svg viewBox="0 0 145 240" style="width:100%; height:100%; filter: url(#blood-shine) drop-shadow(0 0 8px rgba(180,0,0,0.85));">
-                <path d="M42,80 C32,100 32,125 46,140 C62,155 98,155 114,140 C124,122 122,95 108,80 Z" fill="#660000" opacity="0.9" />
-                <ellipse cx="35" cy="46" rx="6.5" ry="18" fill="#7a0202" transform="rotate(-18 35 46)" />
-                <ellipse cx="54" cy="38" rx="6.8" ry="25" fill="#7a0202" transform="rotate(-6 54 38)" />
-                <ellipse cx="72" cy="32" rx="7.2" ry="28" fill="#7a0202" />
-                <ellipse cx="90" cy="36" rx="6.8" ry="26" fill="#7a0202" transform="rotate(6 90 36)" />
-                <ellipse cx="108" cy="46" rx="6.2" ry="20" fill="#7a0202" transform="rotate(18 108 46)" />
-                <line x1="35" y1="50" x2="33" y2="180" stroke="#7a0202" stroke-width="2.5" stroke-linecap="round" opacity="0.8" />
-                <line x1="54" y1="50" x2="55" y2="210" stroke="#7a0202" stroke-width="3" stroke-linecap="round" opacity="0.8" />
-                <line x1="72" y1="50" x2="71" y2="235" stroke="#7a0202" stroke-width="3.5" stroke-linecap="round" opacity="0.8" />
-                <line x1="90" y1="50" x2="89" y2="215" stroke="#7a0202" stroke-width="3" stroke-linecap="round" opacity="0.8" />
-                <line x1="108" y1="50" x2="110" y2="175" stroke="#7a0202" stroke-width="2.5" stroke-linecap="round" opacity="0.8" />
-            </svg>`;
+            return `<svg viewBox="0 0 145 240" style="width:100%; height:100%; filter: url(#blood-shine) drop-shadow(0 0 8px rgba(180,0,0,0.85));"><path d="M42,80 C32,100 32,125 46,140 C62,155 98,155 114,140 C124,122 122,95 108,80 Z" fill="#660000" opacity="0.9" /><ellipse cx="35" cy="46" rx="6.5" ry="18" fill="#7a0202" transform="rotate(-18 35 46)" /><ellipse cx="54" cy="38" rx="6.8" ry="25" fill="#7a0202" transform="rotate(-6 54 38)" /><ellipse cx="72" cy="32" rx="7.2" ry="28" fill="#7a0202" /><ellipse cx="90" cy="36" rx="6.8" ry="26" fill="#7a0202" transform="rotate(6 90 36)" /><ellipse cx="108" cy="46" rx="6.2" ry="20" fill="#7a0202" transform="rotate(18 108 46)" /><line x1="35" y1="50" x2="33" y2="180" stroke="#7a0202" stroke-width="2.5" stroke-linecap="round" opacity="0.8" /><line x1="54" y1="50" x2="55" y2="210" stroke="#7a0202" stroke-width="3" stroke-linecap="round" opacity="0.8" /><line x1="72" y1="50" x2="71" y2="235" stroke="#7a0202" stroke-width="3.5" stroke-linecap="round" opacity="0.8" /><line x1="90" y1="50" x2="89" y2="215" stroke="#7a0202" stroke-width="3" stroke-linecap="round" opacity="0.8" /><line x1="108" y1="50" x2="110" y2="175" stroke="#7a0202" stroke-width="2.5" stroke-linecap="round" opacity="0.8" /></svg>`;
         }
 
         function initHorrorOpening() {
             buildRealBloodCurtain();
-
-            const opening = document.getElementById('opening');
-            const bloodScreen = document.getElementById('blood-screen');
-            const mainContent = document.getElementById('main-content');
+            const opening = document.getElementById('opening'); const bloodScreen = document.getElementById('blood-screen'); const mainContent = document.getElementById('main-content');
             if(!opening || !bloodScreen || !mainContent) return;
-            
-            let count = 0;
-            const maxCount = 220; 
+            let count = 0; const maxCount = 220; 
 
             function stampOne(isCenter = false) {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'hand-wrapper';
-                
-                const size = 160 + (Math.random() * 220); 
-                wrapper.style.width = `${size}px`;
-                
-                const rotate = Math.floor(Math.random() * 360); 
-                const flip = Math.random() > 0.5 ? -1 : 1; 
-                
-                let x, y;
-                if (isCenter) {
-                    x = 22 + (Math.random() * 32); y = 22 + (Math.random() * 32); 
-                } else {
-                    x = -2 + (Math.random() * 84); y = -2 + (Math.random() * 84); 
-                }
-                
-                wrapper.style.left = `${x}%`;
-                wrapper.style.top = `${y}%`;
-                wrapper.style.transform = `rotate(${rotate}deg) scaleX(${flip})`;
-                
-                const img = document.createElement('img');
-                img.src = 'home/hand.png'; 
-                img.className = 'hand-img';
-                
+                const wrapper = document.createElement('div'); wrapper.className = 'hand-wrapper';
+                const size = 160 + (Math.random() * 220); wrapper.style.width = `${size}px`;
+                const rotate = Math.floor(Math.random() * 360); const flip = Math.random() > 0.5 ? -1 : 1; 
+                let x = isCenter ? 22 + (Math.random() * 32) : -2 + (Math.random() * 84); 
+                let y = isCenter ? 22 + (Math.random() * 32) : -2 + (Math.random() * 84); 
+                wrapper.style.left = `${x}%`; wrapper.style.top = `${y}%`; wrapper.style.transform = `rotate(${rotate}deg) scaleX(${flip})`;
+                const img = document.createElement('img'); img.src = 'home/hand.png'; img.className = 'hand-img';
                 img.onerror = function() { wrapper.innerHTML = createFallbackHandSvg(); };
-                
-                wrapper.appendChild(img);
-                opening.appendChild(wrapper);
+                wrapper.appendChild(img); opening.appendChild(wrapper);
             }
 
             function runLoop() {
-                let batchSize = 1;
-                let nextDelay = 850;
+                let batchSize = 1; let nextDelay = 850;
+                if (count < 15) { nextDelay = Math.max(70, Math.floor(850 * Math.pow(0.85, count))); } 
+                else if (count < 50) { const p = (count - 15) / (50 - 15); nextDelay = Math.max(15, Math.floor(65 - (p * 45))); batchSize = Math.floor(1 + (p * 2)); } 
+                else { const p = (count - 50) / (maxCount - 50); nextDelay = 12; batchSize = Math.min(maxCount - count, Math.floor(4 + (p * 12))); }
 
-                if (count < 15) {
-                    nextDelay = Math.max(70, Math.floor(850 * Math.pow(0.85, count)));
-                    batchSize = 1;
-                } else if (count < 50) {
-                    const p = (count - 15) / (50 - 15);
-                    nextDelay = Math.max(15, Math.floor(65 - (p * 45)));
-                    batchSize = Math.floor(1 + (p * 2));
-                } else {
-                    const p = (count - 50) / (maxCount - 50);
-                    nextDelay = 12;
-                    batchSize = Math.min(maxCount - count, Math.floor(4 + (p * 12)));
-                }
+                for (let i = 0; i < batchSize; i++) { if (count >= maxCount) break; stampOne(count < 7); count++; }
 
-                for (let i = 0; i < batchSize; i++) {
-                    if (count >= maxCount) break;
-                    stampOne(count < 7);
-                    count++;
-                }
-
-                if (count < maxCount) {
-                    setTimeout(runLoop, nextDelay);
-                } else {
+                if (count < maxCount) { setTimeout(runLoop, nextDelay); } 
+                else {
                     bloodScreen.style.opacity = '1';
-                    
-                    // 【修正】ただの箱ではなく「血の膜がズルッと滑り落ちる」超リアル演出！
                     setTimeout(() => {
-                        // 黒背景と手形を消す（血の幕だけにする）
-                        opening.style.background = 'transparent';
-                        document.querySelectorAll('.hand-wrapper').forEach(el => el.style.opacity = '0');
-                        
-                        // 血の幕が重力でズルっと滑り落ちる
-                        bloodScreen.style.transition = "transform 1.8s cubic-bezier(0.6, 0.05, 0.9, 0.3)";
-                        bloodScreen.style.transform = "translateY(100vh)";
-                        
-                        mainContent.style.opacity = '1';
-                        setTimeout(() => { opening.style.display = 'none'; }, 1800);
+                        opening.style.background = 'transparent'; document.querySelectorAll('.hand-wrapper').forEach(el => el.style.opacity = '0');
+                        bloodScreen.style.transition = "transform 1.8s cubic-bezier(0.6, 0.05, 0.9, 0.3)"; bloodScreen.style.transform = "translateY(100vh)";
+                        mainContent.style.opacity = '1'; setTimeout(() => { opening.style.display = 'none'; }, 1800);
                     }, 300);
                 }
             }
-
             setTimeout(runLoop, 100);
         }
 
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-            setTimeout(initHorrorOpening, 10);
-        } else {
-            document.addEventListener('DOMContentLoaded', initHorrorOpening);
-        }
-
+        if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(initHorrorOpening, 10);
+        else document.addEventListener('DOMContentLoaded', initHorrorOpening);
         setTimeout(() => {
-            const op = document.getElementById('opening');
-            const mc = document.getElementById('main-content');
-            if (op && op.style.display !== 'none' && mc && mc.style.opacity === '0') {
-                op.style.display = 'none';
-                mc.style.opacity = '1';
-            }
+            const op = document.getElementById('opening'); const mc = document.getElementById('main-content');
+            if (op && op.style.display !== 'none' && mc && mc.style.opacity === '0') { op.style.display = 'none'; mc.style.opacity = '1'; }
         }, 8000);
     </script>
 </body>
