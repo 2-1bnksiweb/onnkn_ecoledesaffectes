@@ -4,324 +4,165 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#020403">
-    
     <title>救出記録 - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    
     <style>
-        @font-face {
-            font-family: 'OnryouFont';
-            src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype');
-            font-weight: normal; font-style: normal; font-display: swap;
-        }
-
-        body, h1, h2, h3, p, span, a, button, div, header, li { 
-            font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif; 
-        }
-
-        .font-mono-tech {
-            font-family: 'Share Tech Mono', monospace !important;
-        }
-
-        body { 
-            background-color: #030504; 
-            color: #d1d5db; 
-            overflow-x: hidden; 
-            min-height: 100dvh; 
-        }
-
-        /* 救出記録発光タイトル */
-        .text-rescue-glow {
-            background: linear-gradient(180deg, #ff4d4d 0%, #b30000 50%, #3d0000 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 15px rgba(255, 30, 30, 0.6)) drop-shadow(2px 2px 4px #000);
-        }
-
-        /* 浮遊する不穏な粒子 */
-        @keyframes floatDust {
-            0% { transform: translateY(105vh) scale(0.6); opacity: 0; }
-            20% { opacity: 0.3; }
-            80% { opacity: 0.3; }
-            100% { transform: translateY(-10vh) scale(1.1); opacity: 0; }
-        }
-
-        .dust-dot {
-            position: absolute;
-            pointer-events: none;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255, 40, 40, 0.6) 0%, rgba(0, 0, 0, 0) 70%);
-            animation: floatDust linear infinite;
-        }
-
-        .blink-alert {
-            animation: blinkAnim 2s infinite;
-        }
-        @keyframes blinkAnim {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
+        @font-face { font-family: 'OnryouFont'; src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+        body, h1, h2, h3, p, span, a, button, div, header, li { font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif; }
+        .font-mono-tech { font-family: 'Share Tech Mono', monospace !important; }
+        body { background-color: #030504; color: #d1d5db; overflow-x: hidden; min-height: 100dvh; }
+        .text-rescue-glow { background: linear-gradient(180deg, #ff4d4d 0%, #b30000 50%, #3d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(255, 30, 30, 0.6)) drop-shadow(2px 2px 4px #000); }
+        @keyframes floatDust { 0% { transform: translateY(105vh) scale(0.6); opacity: 0; } 20% { opacity: 0.3; } 80% { opacity: 0.3; } 100% { transform: translateY(-10vh) scale(1.1); opacity: 0; } }
+        .dust-dot { position: absolute; pointer-events: none; border-radius: 50%; background: radial-gradient(circle, rgba(255, 40, 40, 0.6) 0%, rgba(0, 0, 0, 0) 70%); animation: floatDust linear infinite; }
+        .blink-alert { animation: blinkAnim 2s infinite; }
+        @keyframes blinkAnim { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
 </head>
 <body class="relative">
-
-    <!-- ========================================================
-         🏚️ 背景：写真再現・リアル廃校舎（時計の針修正済み）
-         ======================================================== -->
     <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        
-        <!-- 背景の赤い月明かり -->
         <div class="absolute top-20 left-1/2 -translate-x-1/2 w-64 h-64 sm:w-96 sm:h-96 rounded-full bg-gradient-to-b from-red-950/30 via-red-950/10 to-transparent blur-3xl opacity-50"></div>
-
-        <!-- 📸 廃校舎SVG -->
         <svg class="absolute bottom-0 left-0 w-full h-80 sm:h-96 opacity-45" viewBox="0 0 1000 450" preserveAspectRatio="none">
             <defs>
-                <linearGradient id="realSchoolGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#1a241e" />
-                    <stop offset="50%" stop-color="#0f1511" />
-                    <stop offset="100%" stop-color="#040605" />
-                </linearGradient>
-                <linearGradient id="woodBoardGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#241912" />
-                    <stop offset="100%" stop-color="#0d0906" />
-                </linearGradient>
+                <linearGradient id="realSchoolGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a241e" /><stop offset="50%" stop-color="#0f1511" /><stop offset="100%" stop-color="#040605" /></linearGradient>
+                <linearGradient id="woodBoardGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#241912" /><stop offset="100%" stop-color="#0d0906" /></linearGradient>
             </defs>
-
-            <!-- ① 右手前：階段塔屋・給水塔 -->
             <polygon points="560,65 780,135 780,450 560,450" fill="url(#realSchoolGrad)" stroke="#1e2b23" stroke-width="1.2" />
             <polygon points="560,65 780,135 765,135 560,65" fill="#293b30" />
             <rect x="745" y="220" width="15" height="30" fill="#080c0a" stroke="#1e2b23" stroke-width="1" />
-
-            <!-- 🕒 【修正】大時計（針は2本だけ） -->
             <g class="school-clock">
-                <!-- 時計の外枠フレーム -->
                 <ellipse cx="660" cy="175" rx="24" ry="28" fill="#0b100d" stroke="#2e3f35" stroke-width="2.5" />
-                <!-- 文字盤 -->
                 <ellipse cx="660" cy="175" rx="20" ry="24" fill="#050806" stroke="#16201a" stroke-width="1" />
-                
-                <!-- 控えめな目盛り（薄いグレーの小線） -->
-                <line x1="660" y1="153" x2="660" y2="157" stroke="#3a4d42" stroke-width="1.2" />
-                <line x1="660" y1="193" x2="660" y2="197" stroke="#3a4d42" stroke-width="1.2" />
-                <line x1="642" y1="175" x2="646" y2="175" stroke="#3a4d42" stroke-width="1.2" />
-                <line x1="674" y1="175" x2="678" y2="175" stroke="#3a4d42" stroke-width="1.2" />
-
-                <!-- 🩸 針は「2本だけ」（短針と長針） -->
-                <!-- 短針（太く短い） -->
+                <line x1="660" y1="153" x2="660" y2="157" stroke="#3a4d42" stroke-width="1.2" /><line x1="660" y1="193" x2="660" y2="197" stroke="#3a4d42" stroke-width="1.2" /><line x1="642" y1="175" x2="646" y2="175" stroke="#3a4d42" stroke-width="1.2" /><line x1="674" y1="175" x2="678" y2="175" stroke="#3a4d42" stroke-width="1.2" />
                 <line x1="660" y1="175" x2="670" y2="186" stroke="#cc2222" stroke-width="2.6" stroke-linecap="round" />
-                <!-- 長針（細く長い） -->
                 <line x1="660" y1="175" x2="653" y2="158" stroke="#ff3333" stroke-width="1.6" stroke-linecap="round" />
-                
-                <!-- 中心ピン -->
                 <circle cx="660" cy="175" r="2.2" fill="#ff4d4d" />
-
-                <!-- ガラスの薄いヒビ（針と混ざらない極薄の白線） -->
                 <path d="M648,160 L656,168 L665,165 M656,168 L654,185" stroke="rgba(255,255,255,0.25)" stroke-width="0.7" fill="none" />
             </g>
-
-            <!-- ② 左奥へ伸びる3階建て本校舎 -->
             <polygon points="25,270 560,145 560,450 25,450" fill="url(#realSchoolGrad)" stroke="#1e2b23" stroke-width="1.2" />
-            
-            <!-- 屋上のアンテナ群・避雷針・手すり -->
-            <line x1="210" y1="190" x2="210" y2="135" stroke="#1f2c24" stroke-width="1.8" />
-            <line x1="270" y1="175" x2="270" y2="120" stroke="#1f2c24" stroke-width="1.8" />
-            <line x1="290" y1="170" x2="290" y2="120" stroke="#1f2c24" stroke-width="1.8" />
+            <line x1="210" y1="190" x2="210" y2="135" stroke="#1f2c24" stroke-width="1.8" /><line x1="270" y1="175" x2="270" y2="120" stroke="#1f2c24" stroke-width="1.8" /><line x1="290" y1="170" x2="290" y2="120" stroke="#1f2c24" stroke-width="1.8" />
             <line x1="25" y1="270" x2="560" y2="145" stroke="#25352c" stroke-width="2.5" />
             <rect x="50" y="235" width="22" height="40" fill="#141c17" stroke="#1e2b23" stroke-width="1" />
-
-            <!-- ③ 丸穴付きバルコニー/ベランダ -->
-            <!-- 3階 手前ベランダ -->
-            <polygon points="365,215 470,190 470,240 365,265" fill="#121a15" stroke="#24332a" stroke-width="1.2" />
-            <circle cx="420" cy="225" r="4.5" fill="#060907" stroke="#1a241e" stroke-width="1" />
-            
-            <!-- 2階 手前ベランダ -->
-            <polygon points="355,295 470,270 470,320 355,345" fill="#121a15" stroke="#24332a" stroke-width="1.2" />
-            <circle cx="415" cy="305" r="4.5" fill="#060907" stroke="#1a241e" stroke-width="1" />
-            
-            <!-- 3階 奥のベランダ -->
-            <polygon points="110,290 160,280 160,310 110,320" fill="#121a15" stroke="#24332a" stroke-width="1.2" />
-            <circle cx="135" cy="300" r="3" fill="#060907" />
-
-            <!-- ④ 横長連窓（格子窓） -->
+            <polygon points="365,215 470,190 470,240 365,265" fill="#121a15" stroke="#24332a" stroke-width="1.2" /><circle cx="420" cy="225" r="4.5" fill="#060907" stroke="#1a241e" stroke-width="1" />
+            <polygon points="355,295 470,270 470,320 355,345" fill="#121a15" stroke="#24332a" stroke-width="1.2" /><circle cx="415" cy="305" r="4.5" fill="#060907" stroke="#1a241e" stroke-width="1" />
+            <polygon points="110,290 160,280 160,310 110,320" fill="#121a15" stroke="#24332a" stroke-width="1.2" /><circle cx="135" cy="300" r="3" fill="#060907" />
             <g stroke="#1a241e" stroke-width="1.2" fill="#0a0f0c" opacity="0.8">
-                <polygon points="45,285 360,205 360,245 45,320" />
-                <polygon points="475,185 550,170 550,210 475,225" />
-                <polygon points="45,345 350,280 350,320 45,380" />
-                <polygon points="475,265 550,250 550,290 475,305" />
+                <polygon points="45,285 360,205 360,245 45,320" /><polygon points="475,185 550,170 550,210 475,225" />
+                <polygon points="45,345 350,280 350,320 45,380" /><polygon points="475,265 550,250 550,290 475,305" />
             </g>
-
-            <!-- ⑤ 1階の木板で塞がれた窓 -->
             <polygon points="35,395 550,315 550,380 35,450" fill="url(#woodBoardGrad)" stroke="#110c08" stroke-width="1.5" />
-            <line x1="35" y1="415" x2="550" y2="335" stroke="#0a0705" stroke-width="1" stroke-dasharray="8,2" />
-            <line x1="35" y1="435" x2="550" y2="355" stroke="#0a0705" stroke-width="1" stroke-dasharray="8,2" />
-
-            <!-- ⑥ 右手の体育館/渡り廊下棟 -->
+            <line x1="35" y1="415" x2="550" y2="335" stroke="#0a0705" stroke-width="1" stroke-dasharray="8,2" /><line x1="35" y1="435" x2="550" y2="355" stroke="#0a0705" stroke-width="1" stroke-dasharray="8,2" />
             <polygon points="780,240 1000,200 1000,450 780,450" fill="#0a0f0c" stroke="#16201a" stroke-width="1.2" />
             <polygon points="860,250 985,230 985,310 860,330" fill="url(#woodBoardGrad)" opacity="0.75" />
-            <line x1="860" y1="270" x2="985" y2="250" stroke="#080604" stroke-width="2" />
-            <line x1="860" y1="290" x2="985" y2="270" stroke="#080604" stroke-width="2" />
-
-            <!-- 地面 -->
+            <line x1="860" y1="270" x2="985" y2="250" stroke="#080604" stroke-width="2" /><line x1="860" y1="290" x2="985" y2="270" stroke="#080604" stroke-width="2" />
             <rect x="0" y="430" width="1000" height="20" fill="#030504" />
         </svg>
-
-        <!-- 地面付近の黒煙・霧フェード -->
         <div class="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black via-[#030504]/70 to-transparent"></div>
     </div>
-
-    <!-- 浮遊する不穏な粒子コンテナ -->
     <div id="dust-particles" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
 
-    <!-- ========================================================
-         🧪 メインコンテンツ
-         ======================================================== -->
-    <div class="max-w-4xl mx-auto p-6 relative z-10 mt-6 mb-12">
-        
-        <!-- ヘッダー・ステータスバー -->
-        <div class="flex justify-between items-center border-b border-red-950/80 pb-3 mb-8 text-xs font-mono-tech">
-            <a href="index.html" class="text-gray-400 hover:text-white transition flex items-center gap-1">
-                &lt; ホームへ戻る
-            </a>
+    <div class="max-w-4xl mx-auto p-6 relative z-10 mt-4 mb-12">
+        <!-- ヘッダー（ハンバーガーメニュー改善） -->
+        <header class="flex justify-between items-center border-b border-red-950/80 pb-3 mb-8 text-xs font-mono-tech relative z-30">
             <div class="flex items-center gap-2 blink-alert text-red-500 font-bold tracking-wider">
                 <span class="w-2 h-2 rounded-full bg-red-600 inline-block shadow-[0_0_8px_#ff0000]"></span>
                 AREA: 弐ノ壱 廃校 // 救出作戦展開中
             </div>
+            <button id="menu-btn" onclick="toggleMenu()" class="text-4xl hover:text-red-500 drop-shadow-md transition-transform duration-300 w-10 h-10 flex items-center justify-center -mt-2">☰</button>
+        </header>
+
+        <!-- 【修正】運営システムへのリンクを削除 -->
+        <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-16 right-6 z-50 shadow-2xl">
+            <a href="index.html" class="text-gray-400 hover:text-white border-b border-red-900 pb-2">🏚️ ホームへ戻る</a>
+            <a href="ticket.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">🩸 整理券の予約</a>
         </div>
 
-        <!-- タイトルエリア（厳密に「救出記録」） -->
         <div class="text-center mb-10">
-            <h1 class="text-5xl sm:text-6xl font-black text-center text-rescue-glow tracking-widest" id="main-title">
-                救出記録
-            </h1>
+            <h1 class="text-5xl sm:text-6xl font-black text-center text-rescue-glow tracking-widest" id="main-title">救出記録</h1>
         </div>
         
-        <!-- ランキンググリッド -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-            
-            <!-- ① 初回ランキング -->
             <div class="bg-black/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.9)] border-t-4 border-red-800 border-x border-b border-red-950/80">
                 <div class="flex justify-between items-center border-b border-red-950 pb-2 mb-4">
-                    <h2 class="text-xl sm:text-2xl font-bold text-red-500 tracking-wider">
-                        【初回】救出記録
-                    </h2>
+                    <h2 class="text-xl sm:text-2xl font-bold text-red-500 tracking-wider">【初回】救出記録</h2>
                     <span class="text-[10px] font-mono-tech text-gray-400 bg-red-950/60 px-2 py-0.5 rounded border border-red-900/60">FIRST</span>
                 </div>
-                <ul id="first-timer-list" class="space-y-3">
-                    <p class="text-gray-600 text-sm font-mono-tech">SEARCHING RECORDS...</p>
-                </ul>
+                <ul id="first-timer-list" class="space-y-3"><p class="text-gray-600 text-sm font-mono-tech">SEARCHING RECORDS...</p></ul>
             </div>
-
-            <!-- ② リピーターランキング -->
             <div id="repeater-section" class="bg-black/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(255,0,0,0.15)] border-t-4 border-amber-600 border-x border-b border-red-950/80 hidden">
                 <div class="flex justify-between items-center border-b border-red-950 pb-2 mb-4">
-                    <h2 class="text-xl sm:text-2xl font-bold text-amber-500 tracking-wider">
-                        【2回目以降】救出記録
-                    </h2>
+                    <h2 class="text-xl sm:text-2xl font-bold text-amber-500 tracking-wider">【2回目以降】救出記録</h2>
                     <span class="text-[10px] font-mono-tech text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/60 animate-pulse">RETRY</span>
                 </div>
                 <ul id="repeater-list" class="space-y-3"></ul>
             </div>
-
         </div>
-
         <div class="mt-12 text-center text-xs font-mono-tech text-gray-700 border-t border-red-950/40 pt-4">
             CONFIDENTIAL // RESCUE MISSION LOG DATABASE #2-1
         </div>
     </div>
 
     <script>
-        // 浮遊する不穏な粒子
+        function toggleMenu() {
+            const menu = document.getElementById('nav-menu');
+            const btn = document.getElementById('menu-btn');
+            if(menu) { 
+                if(menu.classList.contains('hidden')) {
+                    menu.classList.remove('hidden'); menu.classList.add('flex');
+                    btn.innerText = '✕'; btn.style.transform = 'rotate(90deg)';
+                } else {
+                    menu.classList.add('hidden'); menu.classList.remove('flex');
+                    btn.innerText = '☰'; btn.style.transform = 'rotate(0deg)';
+                }
+            }
+        }
+
         function generateDustDots() {
             const container = document.getElementById("dust-particles");
-            const count = 15;
-            for (let i = 0; i < count; i++) {
-                const el = document.createElement("div");
-                el.className = "dust-dot";
-                const size = 8 + Math.random() * 18;
-                el.style.width = `${size}px`;
-                el.style.height = `${size}px`;
-                el.style.left = `${Math.random() * 100}%`;
-                el.style.animationDuration = `${10 + Math.random() * 14}s`;
-                el.style.animationDelay = `${Math.random() * -20}s`;
+            for (let i = 0; i < 15; i++) {
+                const el = document.createElement("div"); el.className = "dust-dot";
+                el.style.width = `${8 + Math.random() * 18}px`; el.style.height = `${8 + Math.random() * 18}px`;
+                el.style.left = `${Math.random() * 100}%`; el.style.animationDuration = `${10 + Math.random() * 14}s`; el.style.animationDelay = `${Math.random() * -20}s`;
                 container.appendChild(el);
             }
         }
         window.addEventListener('DOMContentLoaded', generateDustDots);
 
-        // Firebase ランキング機能
         db.collection('settings').doc('config').onSnapshot(doc => {
-            if(doc.exists && doc.data().showRepeaters) {
-                document.getElementById('repeater-section').style.display = 'block';
-            } else {
-                document.getElementById('repeater-section').style.display = 'none';
-            }
+            if(doc.exists && doc.data().showRepeaters) document.getElementById('repeater-section').style.display = 'block';
+            else document.getElementById('repeater-section').style.display = 'none';
         });
 
         db.collection('times').onSnapshot(snapshot => {
-            const firstTimers = {}; 
-            const repeaters = {};
-
+            const firstTimers = {}; const repeaters = {};
             snapshot.forEach(doc => {
                 const data = doc.data();
-                if(data.count === 1) { 
-                    if(!firstTimers[data.teamName] || firstTimers[data.teamName].time > data.time) {
-                        firstTimers[data.teamName] = data;
-                    }
-                } else { 
-                    if(!repeaters[data.teamName] || repeaters[data.teamName].time > data.time) {
-                        repeaters[data.teamName] = data;
-                    }
-                }
+                if(data.count === 1) { if(!firstTimers[data.teamName] || firstTimers[data.teamName].time > data.time) firstTimers[data.teamName] = data; } 
+                else { if(!repeaters[data.teamName] || repeaters[data.teamName].time > data.time) repeaters[data.teamName] = data; }
             });
             renderList('first-timer-list', Object.values(firstTimers), false);
             renderList('repeater-list', Object.values(repeaters), true);
         });
 
         function renderList(elementId, dataArray, isRepeater) {
-            const list = document.getElementById(elementId);
-            list.innerHTML = '';
-            
+            const list = document.getElementById(elementId); list.innerHTML = '';
             dataArray.sort((a, b) => a.time - b.time).slice(0, 10).forEach((data, index) => {
                 const li = document.createElement('li');
-                
-                if (isRepeater) {
-                    li.className = "flex justify-between items-center bg-zinc-950/90 border border-amber-900/40 p-3 rounded text-gray-200 shadow-sm hover:border-amber-600 transition";
-                } else {
-                    li.className = "flex justify-between items-center bg-zinc-950/90 border border-red-950/60 p-3 rounded text-gray-200 shadow-sm hover:border-red-600 transition";
-                }
-                
+                li.className = isRepeater ? "flex justify-between items-center bg-zinc-950/90 border border-amber-900/40 p-3 rounded text-gray-200 shadow-sm hover:border-amber-600 transition" : "flex justify-between items-center bg-zinc-950/90 border border-red-950/60 p-3 rounded text-gray-200 shadow-sm hover:border-red-600 transition";
                 let rankStyle = "text-xl font-bold font-mono-tech ";
                 if(index === 0) rankStyle += "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]";
                 else if(index === 1) rankStyle += "text-gray-300";
                 else if(index === 2) rankStyle += "text-amber-600";
                 else rankStyle += "text-gray-600";
-                
-                const countBadge = data.count > 1 
-                    ? `<span class="text-xs bg-amber-950/80 border border-amber-600 text-amber-200 px-2 py-0.5 rounded ml-2 font-mono-tech font-bold">${data.count}回目</span>` 
-                    : '';
-                
+                const countBadge = data.count > 1 ? `<span class="text-xs bg-amber-950/80 border border-amber-600 text-amber-200 px-2 py-0.5 rounded ml-2 font-mono-tech font-bold">${data.count}回目</span>` : '';
                 const timeColor = isRepeater ? "text-amber-400" : "text-red-400";
-                
-                li.innerHTML = `
-                    <div class="flex items-center">
-                        <span class="w-8 ${rankStyle}">#${(index + 1).toString().padStart(2, '0')}</span>
-                        <span class="font-bold text-base sm:text-lg text-white ml-1">${data.teamName}</span>
-                        ${countBadge}
-                    </div>
-                    <span class="font-mono-tech text-lg sm:text-xl ${timeColor} font-bold tracking-wider drop-shadow-[0_0_6px_currentColor]">
-                        ${formatTime(data.time)}
-                    </span>
-                `;
+                li.innerHTML = `<div class="flex items-center"><span class="w-8 ${rankStyle}">#${(index + 1).toString().padStart(2, '0')}</span><span class="font-bold text-base sm:text-lg text-white ml-1">${data.teamName}</span>${countBadge}</div><span class="font-mono-tech text-lg sm:text-xl ${timeColor} font-bold tracking-wider drop-shadow-[0_0_6px_currentColor]">${formatTime(data.time)}</span>`;
                 list.appendChild(li);
             });
-
-            if(dataArray.length === 0) {
-                list.innerHTML = '<p class="text-gray-700 text-sm font-mono-tech">記録がありません</p>';
-            }
+            if(dataArray.length === 0) list.innerHTML = '<p class="text-gray-700 text-sm font-mono-tech">記録がありません</p>';
         }
 
         function formatTime(ms) {
