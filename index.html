@@ -18,8 +18,12 @@
     <style>
         @font-face {
             font-family: 'OnryouFont';
-            src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype');
-            font-weight: normal; font-style: normal; font-display: swap;
+            src: url('home/onryu.ttf') format('truetype'),
+                 url('./home/onryu.ttf') format('truetype'),
+                 url('home/onryou.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
         }
 
         *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby { 
@@ -88,10 +92,10 @@
             <button id="menu-btn" onclick="toggleMenu()" class="text-4xl hover:text-red-500 drop-shadow-md transition-transform duration-300 w-10 h-10 flex items-center justify-center">☰</button>
         </header>
 
-        <!-- 【修正】運営システムへのリンクを削除 -->
+        <!-- メニュー（絵文字を削除） -->
         <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-24 right-6 z-50 shadow-2xl">
-            <a href="ticket.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">🩸 整理券の予約</a>
-            <a href="ranking.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">🏆 ランキングを見る</a>
+            <a href="ticket.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">整理券の予約</a>
+            <a href="ranking.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">ランキングを見る</a>
         </div>
 
         <div class="text-center mb-10 mt-20 relative flex flex-col items-center">
