@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <!-- QRコードリーダーライブラリ -->
+    <!-- 📷 QRコードリーダーライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="firebase-config.js"></script>
 
@@ -22,32 +22,29 @@
 <body>
 
     <div class="max-w-3xl mx-auto p-4">
-        <h1 class="text-2xl font-bold text-center text-red-500 mb-6">【スタッフ・管理者用】運営システム</h1>
+        <h1 class="text-2xl font-bold text-center text-red-500 mb-6">【運営】管理システム</h1>
 
-        <!-- タブナビゲーション -->
         <nav class="flex mb-6 bg-gray-900 rounded-t-lg overflow-hidden">
             <button id="btn-qr" onclick="switchTab('qr')" class="flex-1 py-4 text-center tab-active transition">📷 QR受付</button>
             <button id="btn-timer" onclick="switchTab('timer')" class="flex-1 py-4 text-center tab-inactive transition">⏱ タイマー</button>
             <button id="btn-admin" onclick="switchTab('admin')" class="flex-1 py-4 text-center tab-inactive transition">⚙️ 設定</button>
         </nav>
 
-        <!-- ==============================================
-             タブ1：QR受付（カメラリーダー）
-             ============================================== -->
+        <!-- 📷 タブ1：QR受付（カメラ起動ボタン付き） -->
         <div id="tab-qr">
-            <div id="reader-container" class="bg-gray-800 p-4 rounded-lg shadow">
-                <h2 class="text-xl font-bold mb-4 text-center">お客様のQRコードをスキャン</h2>
-                <div id="reader" class="w-full bg-black rounded overflow-hidden"></div>
+            <div id="reader-container" class="bg-gray-800 p-6 rounded-lg shadow text-center">
+                <h2 class="text-xl font-bold mb-6 text-white">お客様の受付QRをスキャン</h2>
+                <div id="reader" class="w-full bg-black rounded overflow-hidden hidden mb-4"></div>
+                <button id="btn-start-camera" onclick="startCamera()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 rounded-lg text-xl shadow-lg">📸 カメラを起動する</button>
             </div>
 
-            <!-- スキャン成功時の確認画面 -->
-            <div id="team-confirm-section" class="hidden bg-gray-800 p-6 rounded-lg shadow border border-red-500">
+            <div id="team-confirm-section" class="hidden bg-gray-800 p-6 rounded-lg shadow border border-red-500 mt-4">
                 <h2 class="text-2xl font-bold text-green-400 mb-4">チーム情報を確認しました</h2>
                 <h3 id="scanned-team-name" class="text-3xl font-bold text-white mb-2"></h3>
                 <ul id="scanned-members" class="mb-6 text-gray-300 list-disc list-inside pl-4"></ul>
                 
                 <label class="block font-bold mb-2 text-yellow-400">参加は何回目ですか？</label>
-                <select id="play-count-select" class="w-full p-3 rounded bg-gray-700 text-white mb-6 border border-gray-600">
+                <select id="play-count-select" class="w-full p-3 rounded bg-gray-700 text-white mb-6 border border-gray-600 focus:outline-none">
                     <option value="1">1回目（初回ランキングへ）</option>
                     <option value="2">2回目以上（リピーターランキングへ）</option>
                 </select>
@@ -59,9 +56,7 @@
             </div>
         </div>
 
-        <!-- ==============================================
-             タブ2：複数タイマー管理リスト
-             ============================================== -->
+        <!-- ⏱ タブ2：複数タイマー管理リスト -->
         <div id="tab-timer" class="hidden">
             <h2 class="text-xl font-bold mb-4 text-red-400 border-b border-red-900 pb-2">現在プレイ中のチーム</h2>
             <div id="timer-list" class="space-y-4">
@@ -69,9 +64,7 @@
             </div>
         </div>
 
-        <!-- ==============================================
-             タブ3：旧管理者設定（完全移植）
-             ============================================== -->
+        <!-- ⚙️ タブ3：設定 -->
         <div id="tab-admin" class="hidden space-y-8">
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-red-500">ホーム画面 あらすじ設定</h2>
@@ -102,48 +95,55 @@
                 <ul id="slots-admin-list" class="space-y-2"></ul>
             </div>
         </div>
-
     </div>
 
     <script>
-        // ================= タブ切り替え =================
         function switchTab(tabId) {
             ['qr', 'timer', 'admin'].forEach(id => {
                 document.getElementById(`tab-${id}`).style.display = (id === tabId) ? 'block' : 'none';
-                document.getElementById(`btn-${id}`).className = (id === tabId) 
-                    ? "flex-1 py-4 text-center tab-active transition" 
-                    : "flex-1 py-4 text-center tab-inactive hover:bg-gray-800 transition";
+                document.getElementById(`btn-${id}`).className = (id === tabId) ? "flex-1 py-4 text-center tab-active transition" : "flex-1 py-4 text-center tab-inactive hover:bg-gray-800 transition";
             });
-            
-            // QRタブが開かれたらカメラを起動
-            if(tabId === 'qr') initScanner();
         }
 
-        // ================= タブ1: QRスキャナー =================
-        let html5QrcodeScanner;
+        // ================= タブ1: QRスキャナー（iPad対応） =================
+        let html5QrCode;
         let currentTeamId = null;
 
-        function initScanner() {
-            if(!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
-                html5QrcodeScanner.render(onScanSuccess, () => {});
-            }
+        function startCamera() {
+            document.getElementById('btn-start-camera').style.display = 'none';
+            document.getElementById('reader').style.display = 'block';
+            
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" }, // 📱 背面カメラを指定
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                (err) => { /* パースエラーは無視 */ }
+            ).catch(err => {
+                alert("カメラの起動に失敗しました。Safariの設定でカメラアクセスを「許可」にしてください。");
+                document.getElementById('btn-start-camera').style.display = 'block';
+                document.getElementById('reader').style.display = 'none';
+            });
         }
 
         async function onScanSuccess(decodedText) {
             if (window.isScanning) return;
             window.isScanning = true;
             
+            if(html5QrCode) {
+                try { await html5QrCode.stop(); html5QrCode.clear(); } catch(e) {}
+            }
+            
             const doc = await db.collection('teams').doc(decodedText).get();
             if(!doc.exists) {
                 alert("無効なQRコードです。");
-                window.isScanning = false;
+                cancelScan();
                 return;
             }
             const data = doc.data();
             if(data.status !== 'registered') {
                 alert("このチームは既にタイマーに追加されているか、終了しています。");
-                window.isScanning = false;
+                cancelScan();
                 return;
             }
             
@@ -156,46 +156,34 @@
 
             document.getElementById('btn-start-team').onclick = async () => {
                 const playCount = parseInt(document.getElementById('play-count-select').value);
-                await db.collection('teams').doc(currentTeamId).update({
-                    status: 'playing',
-                    playCount: playCount
-                });
+                await db.collection('teams').doc(currentTeamId).update({ status: 'playing', playCount: playCount });
                 alert("タイマーリストに追加しました！");
                 cancelScan();
-                switchTab('timer'); // タイマー画面へ自動移動
+                switchTab('timer');
             };
         }
 
         function cancelScan() {
             currentTeamId = null;
             window.isScanning = false;
-            document.getElementById('reader-container').style.display = 'block';
             document.getElementById('team-confirm-section').style.display = 'none';
+            document.getElementById('reader-container').style.display = 'block';
+            document.getElementById('btn-start-camera').style.display = 'block';
+            document.getElementById('reader').style.display = 'none';
         }
 
         // ================= タブ2: タイマー同期機能 =================
-        // Firestoreを監視してリストをリアルタイム生成
         db.collection('teams').where('status', '==', 'playing').onSnapshot(snap => {
             const list = document.getElementById('timer-list');
             list.innerHTML = '';
-            
-            if(snap.empty) {
-                list.innerHTML = '<p class="text-gray-500">プレイ中のチームはありません。</p>';
-                return;
-            }
+            if(snap.empty) { list.innerHTML = '<p class="text-gray-500">プレイ中のチームはありません。</p>'; return; }
 
             snap.forEach(doc => {
-                const data = doc.data();
-                const id = doc.id;
-                
-                let btnText = "▶ 再生";
-                let btnColor = "bg-green-600 hover:bg-green-500";
-                let pulseClass = "";
+                const data = doc.data(); const id = doc.id;
+                let btnText = "▶ 再生"; let btnColor = "bg-green-600 hover:bg-green-500"; let pulseClass = "";
                 
                 if(data.timerState === 'running') {
-                    btnText = "⏸ 一時停止";
-                    btnColor = "bg-yellow-600 hover:bg-yellow-500";
-                    pulseClass = "text-red-400";
+                    btnText = "⏸ 一時停止"; btnColor = "bg-yellow-600 hover:bg-yellow-500"; pulseClass = "text-red-400";
                 }
                 
                 const card = document.createElement('div');
@@ -210,69 +198,37 @@
                         00:00.00
                     </div>
                     <div class="flex gap-2 w-full md:w-auto">
-                        <button onclick="toggleTimer('${id}')" class="flex-1 md:w-32 ${btnColor} text-white font-bold py-4 px-4 rounded transition shadow">
-                            ${btnText}
-                        </button>
-                        <button onclick="finishTimer('${id}')" class="flex-1 md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded transition shadow">
-                            決定
-                        </button>
+                        <button onclick="toggleTimer('${id}')" class="flex-1 md:w-32 ${btnColor} text-white font-bold py-4 px-4 rounded transition shadow">${btnText}</button>
+                        <button onclick="finishTimer('${id}')" class="flex-1 md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded transition shadow">決定</button>
                     </div>
                 `;
                 list.appendChild(card);
             });
         });
 
-        // 全端末で同じ時間になるように、画面の数値をループ更新
         setInterval(() => {
             document.querySelectorAll('.timer-display').forEach(el => {
                 if(el.dataset.state === 'running') {
-                    const start = parseInt(el.dataset.start);
-                    const acc = parseInt(el.dataset.acc);
-                    const elapsed = acc + (Date.now() - start);
+                    const elapsed = parseInt(el.dataset.acc) + (Date.now() - parseInt(el.dataset.start));
                     el.innerText = formatTime(elapsed);
-                } else if(el.dataset.state === 'ready') {
-                    el.innerText = "00:00.00";
-                } else {
-                    el.innerText = formatTime(parseInt(el.dataset.acc));
-                }
+                } else if(el.dataset.state === 'ready') { el.innerText = "00:00.00";
+                } else { el.innerText = formatTime(parseInt(el.dataset.acc)); }
             });
         }, 30);
 
-        // ボタンの操作ロジック
         async function toggleTimer(id) {
-            const docRef = db.collection('teams').doc(id);
-            const doc = await docRef.get();
-            const data = doc.data();
-
-            if (data.timerState === 'ready' || data.timerState === 'paused') {
-                await docRef.update({ timerState: 'running', startTime: Date.now() });
-            } else if (data.timerState === 'running') {
-                const elapsed = data.accumulatedTime + (Date.now() - data.startTime);
-                await docRef.update({ timerState: 'paused', accumulatedTime: elapsed });
-            }
+            const docRef = db.collection('teams').doc(id); const doc = await docRef.get(); const data = doc.data();
+            if (data.timerState === 'ready' || data.timerState === 'paused') { await docRef.update({ timerState: 'running', startTime: Date.now() });
+            } else if (data.timerState === 'running') { await docRef.update({ timerState: 'paused', accumulatedTime: data.accumulatedTime + (Date.now() - data.startTime) }); }
         }
 
         async function finishTimer(id) {
-            if(!confirm("タイムを決定してランキングに追加しますか？\n（この操作は取り消せません）")) return;
-            
-            const docRef = db.collection('teams').doc(id);
-            const doc = await docRef.get();
-            const data = doc.data();
-            
+            if(!confirm("タイムを決定してランキングに追加しますか？")) return;
+            const docRef = db.collection('teams').doc(id); const doc = await docRef.get(); const data = doc.data();
             let finalTime = data.accumulatedTime;
-            if (data.timerState === 'running') {
-                finalTime += (Date.now() - data.startTime);
-            }
+            if (data.timerState === 'running') finalTime += (Date.now() - data.startTime);
             
-            // ランキングに追加
-            await db.collection('times').add({
-                teamName: data.teamName,
-                time: finalTime,
-                count: data.playCount || 1,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // リストから除外
+            await db.collection('times').add({ teamName: data.teamName, time: finalTime, count: data.playCount || 1, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
             await docRef.update({ status: 'finished' });
             alert("ランキングに送信完了しました！");
         }
@@ -284,44 +240,31 @@
             return `${m}:${s}.${c}`;
         }
 
-        // ================= タブ3: 管理者設定（完全移植） =================
+        // ================= タブ3: 管理者設定 =================
         db.collection('settings').doc('config').onSnapshot(doc => {
             if(doc.exists) {
                 const data = doc.data();
                 document.getElementById('story-text-input').value = data.storyText || "";
-                
                 const btnW = document.getElementById('toggle-walkin');
                 btnW.innerText = data.walkInActive ? '発行中 (ON)' : '停止中 (OFF)';
                 btnW.className = data.walkInActive ? "px-4 py-2 rounded text-white font-bold bg-green-500" : "px-4 py-2 rounded text-white font-bold bg-red-500";
-                
                 const btnR = document.getElementById('toggle-repeater');
                 btnR.innerText = data.showRepeaters ? '公開中 (ON)' : '非公開 (OFF)';
                 btnR.className = data.showRepeaters ? "px-4 py-2 rounded text-white font-bold bg-green-500" : "px-4 py-2 rounded text-white font-bold bg-red-500";
             }
         });
 
-        async function saveStory() {
-            await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true});
-            alert("あらすじを更新しました！");
-        }
-
-        async function toggleSetting(field) {
-            const doc = await db.collection('settings').doc('config').get();
-            await db.collection('settings').doc('config').set({ [field]: !doc.data()[field] }, {merge: true});
-        }
-
+        async function saveStory() { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true}); alert("あらすじを更新しました！"); }
+        async function toggleSetting(field) { const doc = await db.collection('settings').doc('config').get(); await db.collection('settings').doc('config').set({ [field]: !doc.data()[field] }, {merge: true}); }
         async function addSlot() {
-            const time = document.getElementById('slot-time').value;
-            const capacity = parseInt(document.getElementById('slot-cap').value);
+            const time = document.getElementById('slot-time').value; const capacity = parseInt(document.getElementById('slot-cap').value);
             if(!time || !capacity) return alert("入力が不完全です");
             await db.collection('slots').add({ time, capacity, booked: 0 });
-            document.getElementById('slot-time').value = '';
-            document.getElementById('slot-cap').value = '';
+            document.getElementById('slot-time').value = ''; document.getElementById('slot-cap').value = '';
         }
 
         db.collection('slots').orderBy('time').onSnapshot(snap => {
-            const list = document.getElementById('slots-admin-list');
-            list.innerHTML = '';
+            const list = document.getElementById('slots-admin-list'); list.innerHTML = '';
             snap.forEach(doc => {
                 const d = doc.data();
                 list.innerHTML += `<li class="flex justify-between bg-gray-700 p-3 rounded">
