@@ -4,49 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#050505">
-    
     <title>整理券発行＆チーム登録 - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="firebase-config.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&display=swap" rel="stylesheet">
-    
     <style>
-        @font-face {
-            font-family: 'OnryouFont';
-            src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype');
-            font-weight: normal; font-style: normal; font-display: swap;
-        }
-
-        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby, select { 
-            font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
-        }
-
-        body { 
-            background-color: #030303; 
-            color: #d1d1d1; 
-            overflow-x: hidden; 
-            min-height: 100dvh; 
-        }
-
-        .text-blood-dark {
-            background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9));
-        }
-        
+        @font-face { font-family: 'OnryouFont'; src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby, select { font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; }
+        body { background-color: #030303; color: #d1d1d1; overflow-x: hidden; min-height: 100dvh; }
+        .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
         .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
+        @keyframes swing { 0% { transform: rotate(-2.5deg); } 100% { transform: rotate(2.5deg); } }
+        .spider-shadow { filter: drop-shadow(0 3px 5px rgba(0,0,0,0.9)); }
     </style>
 </head>
 <body class="relative">
+    <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
 
-    <div class="max-w-2xl mx-auto p-6 relative z-20 mt-12 mb-12">
-        <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm">
-            <a href="index.html" class="text-xs text-red-500 hover:text-red-300 mb-4 inline-block">&lt; ホームへ戻る</a>
+    <div class="max-w-2xl mx-auto p-6 relative z-20 mt-4 mb-12">
+        <header class="flex justify-between items-center border-b border-red-950 pb-3 mb-8 text-gray-300 relative z-30" style="text-shadow: 0 2px 4px #000;">
+            <span class="tracking-widest text-lg">弐ノ壱 教室発表</span>
+            <button id="menu-btn" onclick="toggleMenu()" class="text-4xl hover:text-red-500 drop-shadow-md transition-transform duration-300 w-10 h-10 flex items-center justify-center">☰</button>
+        </header>
+
+        <!-- 【修正】運営システムへのリンクを削除 -->
+        <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-20 right-6 z-50 shadow-2xl">
+            <a href="index.html" class="text-gray-400 hover:text-white border-b border-red-900 pb-2">🏚️ ホームへ戻る</a>
+            <a href="ranking.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">🏆 ランキングを見る</a>
+        </div>
+
+        <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm mt-6">
             <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">整理券発行・チーム登録</h1>
             
             <div id="ticket-section">
@@ -58,7 +48,6 @@
                 </div>
             </div>
 
-            <!-- ① メンバー登録への誘導QR -->
             <div id="qr-section" class="hidden text-center">
                 <h2 class="text-2xl font-bold text-red-500 mb-4" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">整理券の枠を確保しました</h2>
                 <p class="mb-4 text-gray-300">以下のQRコードを読み取り、各自スマホからチーム登録を完了させてください。</p>
@@ -66,7 +55,6 @@
                 <p class="text-sm text-gray-500 break-all mb-4" id="qr-url"></p>
             </div>
 
-            <!-- ② チーム登録フォーム -->
             <div id="register-section" class="hidden">
                 <h2 class="text-2xl font-bold mb-4 text-blood-dark">チーム登録</h2>
                 <form id="team-form" onsubmit="submitTeam(event)">
@@ -80,47 +68,113 @@
                 </form>
             </div>
 
-            <!-- ③ 受付に提示する最終QRコード -->
             <div id="final-qr-section" class="hidden text-center">
                 <h2 class="text-3xl font-bold text-red-600 mb-4" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">登録完了！</h2>
                 <p class="mb-4 text-gray-300">受付時にスタッフに以下の<span class="text-red-500 font-bold">「受付用QRコード」</span>を提示してください。</p>
                 <div id="final-qrcode" class="flex justify-center mb-4 p-4 bg-white rounded-lg inline-block shadow-lg"></div>
                 <p class="text-sm text-gray-400 mb-6">※スクリーンショットを撮って保存してください。</p>
-                <a href="index.html" class="inline-block px-8 py-3 bg-red-900 hover:bg-red-800 text-white font-bold rounded transition">ホームに戻る</a>
+                <a href="index.html" class="inline-block px-8 py-3 bg-red-900 hover:bg-red-800 text-white font-bold rounded transition tracking-widest">ホームに戻る</a>
             </div>
-
         </div>
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const action = urlParams.get('action');
-        const ticketId = urlParams.get('ticketId');
-
-        if (action === 'register') {
-            document.getElementById('ticket-section').style.display = 'none';
-            document.getElementById('register-section').style.display = 'block';
-            addMemberField();
-        } else {
-            loadSlots();
+        function toggleMenu() {
+            const menu = document.getElementById('nav-menu');
+            const btn = document.getElementById('menu-btn');
+            if(menu) { 
+                if(menu.classList.contains('hidden')) {
+                    menu.classList.remove('hidden'); menu.classList.add('flex');
+                    btn.innerText = '✕'; btn.style.transform = 'rotate(90deg)';
+                } else {
+                    menu.classList.add('hidden'); menu.classList.remove('flex');
+                    btn.innerText = '☰'; btn.style.transform = 'rotate(0deg)';
+                }
+            }
         }
 
+        function buildSpiderWebs() {
+            const container = document.getElementById("spider-web-container");
+            const svgNs = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNs, "svg");
+            svg.setAttribute("width", "100%"); svg.setAttribute("height", "100%");
+            container.appendChild(svg);
+            const width = window.innerWidth; const height = window.innerHeight;
+            const cx = width; const cy = 0; const maxR = Math.min(width, height) * 0.9; 
+            const rayCount = 12 + Math.floor(Math.random() * 4); 
+            const angles = [];
+            for (let i = 0; i < rayCount; i++) { angles.push(Math.PI / 2 + (Math.PI / 2) * (i / (rayCount - 1)) + (Math.random() * 0.06 - 0.03)); }
+            const rays = [];
+            angles.forEach(a => {
+                const r = maxR * (0.6 + Math.random() * 0.4); const x = cx + Math.cos(a) * r; const y = cy + Math.sin(a) * r;
+                const line = document.createElementNS(svgNs, "line");
+                line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
+                line.setAttribute("stroke", "rgba(160, 160, 160, 0.4)"); line.setAttribute("stroke-width", "1.2");
+                svg.appendChild(line);
+                if (Math.random() < 0.15) {
+                    const bLine = document.createElementNS(svgNs, "line");
+                    bLine.setAttribute("x1", cx); bLine.setAttribute("y1", cy); bLine.setAttribute("x2", x); bLine.setAttribute("y2", y);
+                    bLine.setAttribute("stroke", "#8a0303"); bLine.setAttribute("stroke-width", "1.6"); bLine.setAttribute("stroke-dasharray", `${Math.random()*10+5} ${Math.random()*40+20}`); bLine.setAttribute("stroke-dashoffset", `${Math.random()*50}`); bLine.setAttribute("opacity", "0.75");
+                    svg.appendChild(bLine);
+                }
+                rays.push({ angle: a, r: r });
+            });
+            const rings = 12 + Math.floor(Math.random() * 6);
+            for (let rIdx = 1; rIdx <= rings; rIdx++) {
+                const rBase = (maxR / rings) * rIdx;
+                for (let i = 0; i < rayCount - 1; i++) {
+                    if (Math.random() < 0.1) continue; 
+                    const r1 = rBase * (0.95 + Math.random() * 0.1); const r2 = rBase * (0.95 + Math.random() * 0.1);
+                    if (r1 > rays[i].r || r2 > rays[i+1].r) continue;
+                    const x1 = cx + Math.cos(rays[i].angle) * r1; const y1 = cy + Math.sin(rays[i].angle) * r1;
+                    const x2 = cx + Math.cos(rays[i+1].angle) * r2; const y2 = cy + Math.sin(rays[i+1].angle) * r2;
+                    const midAngle = (rays[i].angle + rays[i+1].angle) / 2; const midR = (r1 + r2) / 2 * 0.94; 
+                    const mx = cx + Math.cos(midAngle) * midR; const my = cy + Math.sin(midAngle) * midR;
+                    const path = document.createElementNS(svgNs, "path");
+                    path.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`); path.setAttribute("fill", "none"); path.setAttribute("stroke", "rgba(160, 160, 160, 0.5)"); path.setAttribute("stroke-width", "0.8");
+                    svg.appendChild(path);
+                    if (Math.random() < 0.1) {
+                        const bPath = document.createElementNS(svgNs, "path");
+                        bPath.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`); bPath.setAttribute("fill", "none"); bPath.setAttribute("stroke", "#8a0303"); bPath.setAttribute("stroke-width", "1.3"); bPath.setAttribute("stroke-dasharray", `${Math.random()*8+4} ${Math.random()*30+15}`); bPath.setAttribute("opacity", "0.75");
+                        svg.appendChild(bPath);
+                    }
+                }
+            }
+            const spiderPath = "M 0,-5 C 3,-5 6,-1 6,5 C 6,11 3,15 0,15 C -3,15 -6,11 -6,5 C -6,-1 -3,-5 0,-5 Z M 0,-7.5 A 2.5 2.5 0 1 1 0,-7.49 Z M 3,-4 L 11,-9 L 15,-4 M 5,1 L 13,-2 L 19,2 M 5,6 L 15,7 L 19,14 M 4,10 L 11,15 L 13,22 M -3,-4 L -11,-9 L -15,-4 M -5,1 L -13,-2 L -19,2 M -5,6 L -15,7 L -19,14 M -4,10 L -11,15 L -13,22";
+            const masterSpider = document.createElementNS(svgNs, "g"); masterSpider.setAttribute("class", "spider-shadow");
+            masterSpider.innerHTML = `<path d="${spiderPath}" stroke="rgba(255,255,255,0.75)" stroke-width="1.2" fill="rgba(255,255,255,0.75)" stroke-linejoin="round" stroke-linecap="round" /><path d="${spiderPath}" stroke="#000" stroke-width="0.8" fill="#000" stroke-linejoin="round" stroke-linecap="round" />`;
+            const masterR = maxR * 0.35; const masterA = Math.PI / 2 + Math.PI / 4.5;
+            masterSpider.setAttribute("transform", `translate(${cx + Math.cos(masterA) * masterR}, ${cy + Math.sin(masterA) * masterR}) rotate(-50) scale(0.75)`);
+            svg.appendChild(masterSpider);
+            const dropCount = 6 + Math.floor(Math.random() * 4); 
+            for (let i = 0; i < dropCount; i++) {
+                const lx = 20 + Math.random() * (width - 40); const ly = 60 + Math.random() * (height * 0.85);
+                const g = document.createElementNS(svgNs, "g"); g.style.transformOrigin = `${lx}px 0px`; g.style.animation = `swing ${3 + Math.random() * 4}s ease-in-out ${Math.random() * -5}s infinite alternate`;
+                const line = document.createElementNS(svgNs, "line"); line.setAttribute("x1", lx); line.setAttribute("y1", 0); line.setAttribute("x2", lx); line.setAttribute("y2", ly); line.setAttribute("stroke", "rgba(180, 180, 180, 0.6)"); line.setAttribute("stroke-width", "1.0"); g.appendChild(line);
+                if (Math.random() < 0.2) {
+                    const bLine = document.createElementNS(svgNs, "line"); bLine.setAttribute("x1", lx); bLine.setAttribute("y1", 0); bLine.setAttribute("x2", lx); bLine.setAttribute("y2", ly); bLine.setAttribute("stroke", "#8a0303"); bLine.setAttribute("stroke-width", "1.5"); bLine.setAttribute("stroke-dasharray", `${Math.random()*15+5} ${Math.random()*50+20}`); bLine.setAttribute("opacity", "0.75"); g.appendChild(bLine);
+                }
+                const spider = document.createElementNS(svgNs, "g"); spider.setAttribute("class", "spider-shadow"); spider.setAttribute("transform", `translate(${lx}, ${ly}) scale(${0.35 + Math.random() * 0.2})`);
+                spider.innerHTML = `<path d="${spiderPath}" stroke="rgba(255,255,255,0.75)" stroke-width="1.0" fill="rgba(255,255,255,0.75)" stroke-linejoin="round" stroke-linecap="round" /><path d="${spiderPath}" stroke="#000" stroke-width="0.6" fill="#000" stroke-linejoin="round" stroke-linecap="round" />`;
+                g.appendChild(spider); svg.appendChild(g);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', buildSpiderWebs);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get('action'); const ticketId = urlParams.get('ticketId');
+        if (action === 'register') { document.getElementById('ticket-section').style.display = 'none'; document.getElementById('register-section').style.display = 'block'; addMemberField(); } else { loadSlots(); }
+
         async function loadSlots() {
-            const container = document.getElementById('slots-container');
-            container.innerHTML = '';
+            const container = document.getElementById('slots-container'); container.innerHTML = '';
             const settingsDoc = await db.collection('settings').doc('config').get();
             if(settingsDoc.exists && settingsDoc.data().walkInActive) document.getElementById('walkin-container').style.display = 'block';
-
             db.collection('slots').orderBy('time').onSnapshot(snapshot => {
                 container.innerHTML = '';
                 snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const btn = document.createElement('button');
-                    const isFull = data.booked >= data.capacity;
+                    const data = doc.data(); const btn = document.createElement('button'); const isFull = data.booked >= data.capacity;
                     btn.className = `w-full p-4 rounded text-left font-bold border transition tracking-widest ${isFull ? 'bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed' : 'bg-red-950/40 hover:bg-red-900/60 text-red-200 border-red-900/50 shadow-sm'}`;
-                    btn.innerHTML = `${data.time} (空き: ${data.capacity - data.booked}人)`;
-                    btn.disabled = isFull;
-                    btn.onclick = () => issueTicket(doc.id, data.time);
+                    btn.innerHTML = `${data.time} (空き: ${data.capacity - data.booked}人)`; btn.disabled = isFull; btn.onclick = () => issueTicket(doc.id, data.time);
                     container.appendChild(btn);
                 });
                 if(snapshot.empty) container.innerHTML = '<p class="text-gray-500">現在公開されている時間枠はありません。</p>';
@@ -130,24 +184,17 @@
         async function issueTicket(slotId, timeLabel) {
             const lastBooked = localStorage.getItem('lastBookedTime');
             if(lastBooked && (Date.now() - lastBooked < 60 * 60 * 1000)) return alert("一定時間内に複数回の整理券取得はできません。");
-
             if (slotId !== 'walkin') {
                 const slotRef = db.collection('slots').doc(slotId);
                 try {
-                    await db.runTransaction(async (transaction) => {
-                        const doc = await transaction.get(slotRef);
-                        const newBooked = doc.data().booked + 1;
-                        if (newBooked > doc.data().capacity) throw "満員です";
-                        transaction.update(slotRef, { booked: newBooked });
+                    await db.runTransaction(async (t) => {
+                        const doc = await t.get(slotRef); const newBooked = doc.data().booked + 1;
+                        if (newBooked > doc.data().capacity) throw "満員です"; t.update(slotRef, { booked: newBooked });
                     });
                 } catch (e) { alert(e); return; }
             }
-
-            localStorage.setItem('lastBookedTime', Date.now());
-            const newTicketId = 'TK' + Date.now();
-            document.getElementById('ticket-section').style.display = 'none';
-            document.getElementById('qr-section').style.display = 'block';
-            
+            localStorage.setItem('lastBookedTime', Date.now()); const newTicketId = 'TK' + Date.now();
+            document.getElementById('ticket-section').style.display = 'none'; document.getElementById('qr-section').style.display = 'block';
             const registerUrl = `${window.location.origin}${window.location.pathname}?action=register&ticketId=${newTicketId}`;
             new QRCode(document.getElementById("qrcode"), { text: registerUrl, width: 180, height: 180 });
             document.getElementById('qr-url').innerText = registerUrl;
@@ -155,43 +202,17 @@
 
         let memberCount = 0;
         function addMemberField() {
-            memberCount++;
-            const div = document.createElement('div');
-            div.className = "p-3 border border-red-950 bg-gray-900/50 rounded";
-            div.innerHTML = `
-                <p class="font-bold text-sm mb-2 text-red-400">メンバー ${memberCount}</p>
-                <input type="text" placeholder="名前" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded mb-2 member-name focus:outline-none focus:border-red-700" required>
-                <input type="text" placeholder="学年" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded mb-2 member-grade focus:outline-none focus:border-red-700" required>
-                <input type="email" placeholder="メールアドレス" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded member-email focus:outline-none focus:border-red-700" required>
-            `;
+            memberCount++; const div = document.createElement('div'); div.className = "p-3 border border-red-950 bg-gray-900/50 rounded";
+            div.innerHTML = `<p class="font-bold text-sm mb-2 text-red-400">メンバー ${memberCount}</p><input type="text" placeholder="名前" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded mb-2 member-name focus:outline-none focus:border-red-700" required><input type="text" placeholder="学年" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded mb-2 member-grade focus:outline-none focus:border-red-700" required><input type="email" placeholder="メールアドレス" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded member-email focus:outline-none focus:border-red-700" required>`;
             document.getElementById('members-container').appendChild(div);
         }
 
         async function submitTeam(e) {
-            e.preventDefault();
-            const teamName = document.getElementById('team-name').value;
-            const members = [];
-            const names = document.querySelectorAll('.member-name');
-            const grades = document.querySelectorAll('.member-grade');
-            const emails = document.querySelectorAll('.member-email');
+            e.preventDefault(); const teamName = document.getElementById('team-name').value; const members = [];
+            const names = document.querySelectorAll('.member-name'); const grades = document.querySelectorAll('.member-grade'); const emails = document.querySelectorAll('.member-email');
             for(let i = 0; i < names.length; i++) members.push({ name: names[i].value, grade: grades[i].value, email: emails[i].value });
-            
-            // 【変更】タイマー用の初期ステータスを持たせて保存
-            const docRef = await db.collection('teams').add({ 
-                ticketId, 
-                teamName, 
-                members, 
-                createdAt: new Date(),
-                status: 'registered', // まだゲーム開始前
-                timerState: 'ready',  // タイマー状態
-                accumulatedTime: 0    // 経過時間
-            });
-            
-            // チーム固有のQRコードを表示する画面に切り替え
-            document.getElementById('register-section').style.display = 'none';
-            document.getElementById('final-qr-section').style.display = 'block';
-            
-            // スタッフ用QRコードを生成（ドキュメントIDを埋め込む）
+            const docRef = await db.collection('teams').add({ ticketId, teamName, members, createdAt: new Date(), status: 'registered', timerState: 'ready', accumulatedTime: 0 });
+            document.getElementById('register-section').style.display = 'none'; document.getElementById('final-qr-section').style.display = 'block';
             new QRCode(document.getElementById("final-qrcode"), { text: docRef.id, width: 220, height: 220 });
         }
     </script>
