@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#050505">
-    <title>整理券発行＆チーム登録 - 恐怖の廃校</title>
+    <title>整理券発行 - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -21,7 +21,6 @@
 </head>
 <body class="relative">
 
-    <!-- クモの巣背景コンテナ -->
     <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
 
     <div class="max-w-2xl mx-auto p-6 relative z-20 mt-4 mb-12">
@@ -36,47 +35,36 @@
         </div>
 
         <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm mt-6">
-            <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">整理券発行・チーム登録</h1>
+            <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">整理券発行 (代表者)</h1>
             
-            <!-- 整理券選択 -->
             <div id="ticket-section">
+                <!-- 【変更点】代表者がチーム名と人数だけ入力する -->
+                <div class="mb-4">
+                    <label class="block font-bold mb-1 text-gray-300">チーム名</label>
+                    <input type="text" id="team-name" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700" placeholder="例: 恐怖の2年生" required>
+                </div>
+                <div class="mb-8">
+                    <label class="block font-bold mb-1 text-gray-300">参加人数</label>
+                    <input type="number" id="member-count" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700" value="1" min="1" required>
+                </div>
+
                 <h2 class="text-xl font-semibold mb-4 text-blood-dark border-b border-red-950 pb-2">ご希望の時間帯を選択</h2>
                 <div id="slots-container" class="space-y-3"><p class="text-gray-500">読込中...</p></div>
                 <div id="walkin-container" class="mt-6 hidden border-t border-red-950 pt-4">
-                    <h2 class="text-xl font-semibold mb-2 text-red-600">急に来た方用 (当日枠)</h2>
-                    <button onclick="issueTicket('walkin')" class="w-full bg-red-900 border border-red-700 text-white py-3 rounded hover:bg-red-800 font-bold shadow-btn tracking-widest">当日枠の整理券を発行する</button>
+                    <button onclick="issueTicket('walkin', '当日枠', 99)" class="w-full bg-red-900 border border-red-700 text-white py-3 rounded hover:bg-red-800 font-bold shadow-btn tracking-widest">当日枠の整理券を発行する</button>
                 </div>
             </div>
 
-            <!-- スマホ登録誘導用QR -->
+            <!-- 【変更点】確保後にメンバー各自に登録させるためのQRコードを表示 -->
             <div id="qr-section" class="hidden text-center">
                 <h2 class="text-2xl font-bold text-red-500 mb-4" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">整理券の枠を確保しました</h2>
-                <p class="mb-4 text-gray-300">以下のQRコードを読み取り、各自スマホからチーム登録を完了させてください。</p>
-                <div id="qrcode" class="flex justify-center mb-4 p-4 bg-white rounded-lg inline-block shadow-lg"></div>
-                <p class="text-sm text-gray-500 break-all mb-4" id="qr-url"></p>
-            </div>
-
-            <!-- チーム情報登録フォーム -->
-            <div id="register-section" class="hidden">
-                <h2 class="text-2xl font-bold mb-4 text-blood-dark">チーム登録</h2>
-                <form id="team-form" onsubmit="submitTeam(event)">
-                    <div class="mb-4">
-                        <label class="block font-bold mb-1 text-gray-300">チーム名</label>
-                        <input type="text" id="team-name" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded focus:outline-none focus:border-red-700">
-                    </div>
-                    <div id="members-container" class="space-y-3 mb-4"></div>
-                    <button type="button" onclick="addMemberField()" class="text-red-400 hover:text-red-300 text-sm mb-6 block">+ メンバーを追加</button>
-                    <button type="submit" class="w-full bg-[#260101] border border-[#520202] text-blood-dark py-3 rounded font-bold hover:bg-black transition shadow-btn text-lg tracking-widest">登録完了する</button>
-                </form>
-            </div>
-
-            <!-- 最終受付用QR -->
-            <div id="final-qr-section" class="hidden text-center">
-                <h2 class="text-3xl font-bold text-red-600 mb-4" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">登録完了！</h2>
-                <p class="mb-4 text-gray-300">受付時にスタッフに以下の<span class="text-red-500 font-bold">「受付用QRコード」</span>を提示してください。</p>
-                <div id="final-qrcode" class="flex justify-center mb-4 p-4 bg-white rounded-lg inline-block shadow-lg"></div>
-                <p class="text-sm text-gray-400 mb-6">※スクリーンショットを撮って保存してください。</p>
-                <a href="index.html" class="inline-block px-8 py-3 bg-red-900 hover:bg-red-800 text-white font-bold rounded transition tracking-widest">ホームに戻る</a>
+                <p class="mb-4 text-white font-bold text-lg border-b border-red-900 pb-2">※まだ予約は完了していません！</p>
+                <p class="mb-6 text-gray-300 text-sm leading-relaxed">
+                    このQRコードを<span class="text-red-400 font-bold">メンバー全員</span>に読み取ってもらい、各自のスマホから個人情報を登録させてください。<br>
+                    全員の登録が完了した時点で受付可能となります。
+                </p>
+                <div id="qrcode" class="flex justify-center mb-6 p-4 bg-white rounded-lg inline-block shadow-lg"></div>
+                <a href="index.html" class="inline-block px-8 py-4 bg-[#260101] border border-[#520202] text-blood-dark font-bold text-xl rounded shadow-btn hover:bg-black transition tracking-widest">ホームに戻る</a>
             </div>
         </div>
     </div>
@@ -86,16 +74,12 @@
             const menu = document.getElementById('nav-menu');
             const btn = document.getElementById('menu-btn');
             if(menu) { 
-                if(menu.classList.contains('hidden')) {
-                    menu.classList.remove('hidden'); menu.classList.add('flex');
-                    btn.innerText = '✕'; btn.style.transform = 'rotate(90deg)';
-                } else {
-                    menu.classList.add('hidden'); menu.classList.remove('flex');
-                    btn.innerText = '☰'; btn.style.transform = 'rotate(0deg)';
-                }
+                if(menu.classList.contains('hidden')) { menu.classList.remove('hidden'); menu.classList.add('flex'); btn.innerText = '✕'; btn.style.transform = 'rotate(90deg)'; } 
+                else { menu.classList.add('hidden'); menu.classList.remove('flex'); btn.innerText = '☰'; btn.style.transform = 'rotate(0deg)'; }
             }
         }
 
+        // 蜘蛛の巣ジェネレーター
         function buildSpiderWebs() {
             const container = document.getElementById("spider-web-container");
             const svgNs = "http://www.w3.org/2000/svg";
@@ -114,12 +98,6 @@
                 line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
                 line.setAttribute("stroke", "rgba(160, 160, 160, 0.4)"); line.setAttribute("stroke-width", "1.2");
                 svg.appendChild(line);
-                if (Math.random() < 0.15) {
-                    const bLine = document.createElementNS(svgNs, "line");
-                    bLine.setAttribute("x1", cx); bLine.setAttribute("y1", cy); bLine.setAttribute("x2", x); bLine.setAttribute("y2", y);
-                    bLine.setAttribute("stroke", "#8a0303"); bLine.setAttribute("stroke-width", "1.6"); bLine.setAttribute("stroke-dasharray", `${Math.random()*10+5} ${Math.random()*40+20}`); bLine.setAttribute("stroke-dashoffset", `${Math.random()*50}`); bLine.setAttribute("opacity", "0.75");
-                    svg.appendChild(bLine);
-                }
                 rays.push({ angle: a, r: r });
             });
             const rings = 12 + Math.floor(Math.random() * 6);
@@ -136,19 +114,10 @@
                     const path = document.createElementNS(svgNs, "path");
                     path.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`); path.setAttribute("fill", "none"); path.setAttribute("stroke", "rgba(160, 160, 160, 0.5)"); path.setAttribute("stroke-width", "0.8");
                     svg.appendChild(path);
-                    if (Math.random() < 0.1) {
-                        const bPath = document.createElementNS(svgNs, "path");
-                        bPath.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`); bPath.setAttribute("fill", "none"); bPath.setAttribute("stroke", "#8a0303"); bPath.setAttribute("stroke-width", "1.3"); bPath.setAttribute("stroke-dasharray", `${Math.random()*8+4} ${Math.random()*30+15}`); bPath.setAttribute("opacity", "0.75");
-                        svg.appendChild(bPath);
-                    }
                 }
             }
         }
         window.addEventListener('DOMContentLoaded', buildSpiderWebs);
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const action = urlParams.get('action'); const ticketId = urlParams.get('ticketId');
-        if (action === 'register') { document.getElementById('ticket-section').style.display = 'none'; document.getElementById('register-section').style.display = 'block'; addMemberField(); } else { loadSlots(); }
 
         async function loadSlots() {
             const container = document.getElementById('slots-container'); container.innerHTML = '';
@@ -163,62 +132,66 @@
                 slots.sort((a, b) => {
                     const dayA = a.day || 1; const dayB = b.day || 1;
                     if (dayA !== dayB) return dayA - dayB;
-                    const timeA = a.time || ""; const timeB = b.time || "";
-                    return timeA.localeCompare(timeB);
+                    return (a.time || "").localeCompare(b.time || "");
                 });
 
                 slots.forEach(data => {
                     const btn = document.createElement('button'); 
-                    // 【修正】定員オーバー判定を確実に数値で行う
                     const isFull = Number(data.booked) >= Number(data.capacity);
+                    const available = Number(data.capacity) - Number(data.booked);
                     
                     btn.className = `w-full p-4 rounded text-left font-bold border transition tracking-widest ${isFull ? 'bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed' : 'bg-red-950/40 hover:bg-red-900/60 text-red-200 border-red-900/50 shadow-sm'}`;
                     
                     const dayLabel = data.day ? `<span class="bg-red-900 text-red-200 px-2 py-0.5 rounded text-xs mr-2 font-bold">${data.day}日目</span>` : "";
-                    btn.innerHTML = `${dayLabel}${data.time} (空き: ${data.capacity - data.booked}人)`; 
+                    btn.innerHTML = `${dayLabel}${data.time} (空き: ${available}人)`; 
                     
                     btn.disabled = isFull; 
-                    btn.onclick = () => issueTicket(data.id, `${data.day ? data.day+'日目 ' : ''}${data.time}`);
+                    btn.onclick = () => issueTicket(data.id, `${data.day ? data.day+'日目 ' : ''}${data.time}`, available);
                     container.appendChild(btn);
                 });
                 if(slots.length === 0) container.innerHTML = '<p class="text-gray-500">現在公開されている時間枠はありません。</p>';
             });
         }
 
-        async function issueTicket(slotId, timeLabel) {
-            // 【修正】1時間の再予約禁止制限を完全に削除しました！（いつでも何回でも取れます）
+        async function issueTicket(slotId, timeLabel, available = 99) {
+            const teamName = document.getElementById('team-name').value;
+            const count = parseInt(document.getElementById('member-count').value);
+            
+            if(!teamName) return alert("チーム名を入力してください");
+            if(count > available) return alert("この枠の空き人数が足りません");
 
             if (slotId !== 'walkin') {
                 const slotRef = db.collection('slots').doc(slotId);
                 try {
                     await db.runTransaction(async (t) => {
-                        const doc = await t.get(slotRef); const newBooked = Number(doc.data().booked) + 1;
-                        if (newBooked > Number(doc.data().capacity)) throw "満員です"; t.update(slotRef, { booked: newBooked });
+                        const doc = await t.get(slotRef); 
+                        const newBooked = Number(doc.data().booked) + count;
+                        if (newBooked > Number(doc.data().capacity)) throw "他の人が先に枠を取り満員になりました"; 
+                        t.update(slotRef, { booked: newBooked });
                     });
                 } catch (e) { alert(e); return; }
             }
-            const newTicketId = 'TK' + Date.now();
-            document.getElementById('ticket-section').style.display = 'none'; document.getElementById('qr-section').style.display = 'block';
-            const registerUrl = `${window.location.origin}${window.location.pathname}?action=register&ticketId=${newTicketId}`;
-            new QRCode(document.getElementById("qrcode"), { text: registerUrl, width: 180, height: 180 });
-            document.getElementById('qr-url').innerText = registerUrl;
+            
+            // チーム情報を枠の数だけFirestoreに確保
+            const teamDoc = await db.collection('teams').add({
+                teamName: teamName,
+                timeLabel: timeLabel,
+                expectedCount: count,
+                status: 'registered',
+                timerState: 'ready',
+                accumulatedTime: 0,
+                createdAt: new Date()
+            });
+
+            document.getElementById('ticket-section').style.display = 'none'; 
+            document.getElementById('qr-section').style.display = 'block';
+            
+            // メンバーが各々登録するページ (register.html) へのQRを生成
+            const registerUrl = `${window.location.origin}${window.location.pathname.replace('ticket.html', 'register.html')}?teamId=${teamDoc.id}`;
+            new QRCode(document.getElementById("qrcode"), { text: registerUrl, width: 200, height: 200 });
         }
 
-        let memberCount = 0;
-        function addMemberField() {
-            memberCount++; const div = document.createElement('div'); div.className = "p-3 border border-red-950 bg-gray-900/50 rounded";
-            div.innerHTML = `<p class="font-bold text-sm mb-2 text-red-400">メンバー ${memberCount}</p><input type="text" placeholder="名前" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded mb-2 member-name focus:outline-none focus:border-red-700" required><input type="text" placeholder="学年" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded mb-2 member-grade focus:outline-none focus:border-red-700" required><input type="email" placeholder="メールアドレス" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-2 rounded member-email focus:outline-none focus:border-red-700" required>`;
-            document.getElementById('members-container').appendChild(div);
-        }
-
-        async function submitTeam(e) {
-            e.preventDefault(); const teamName = document.getElementById('team-name').value; const members = [];
-            const names = document.querySelectorAll('.member-name'); const grades = document.querySelectorAll('.member-grade'); const emails = document.querySelectorAll('.member-email');
-            for(let i = 0; i < names.length; i++) members.push({ name: names[i].value, grade: grades[i].value, email: emails[i].value });
-            const docRef = await db.collection('teams').add({ ticketId, teamName, members, createdAt: new Date(), status: 'registered', timerState: 'ready', accumulatedTime: 0 });
-            document.getElementById('register-section').style.display = 'none'; document.getElementById('final-qr-section').style.display = 'block';
-            new QRCode(document.getElementById("final-qrcode"), { text: docRef.id, width: 220, height: 220 });
-        }
+        loadSlots();
     </script>
 </body>
 </html>
