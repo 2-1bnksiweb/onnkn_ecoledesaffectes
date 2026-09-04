@@ -17,11 +17,13 @@
         .font-mono { font-family: 'Courier New', Courier, monospace; }
         .tab-active { border-bottom: 4px solid #ef4444; color: #ef4444; font-weight: bold; }
         .tab-inactive { border-bottom: 1px solid #333; color: #888; }
+        /* 時間入力のアイコンを見やすく */
+        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="max-w-3xl mx-auto p-4">
+    <div class="max-w-4xl mx-auto p-4">
         <h1 class="text-2xl font-bold text-center text-red-500 mb-6">【運営】管理システム</h1>
 
         <nav class="flex mb-6 bg-gray-900 rounded-t-lg overflow-hidden">
@@ -30,7 +32,7 @@
             <button id="btn-admin" onclick="switchTab('admin')" class="flex-1 py-4 text-center tab-inactive transition">⚙️ 設定</button>
         </nav>
 
-        <!-- 📷 タブ1：QR受付（カメラ起動ボタン付き） -->
+        <!-- 📷 タブ1：QR受付 -->
         <div id="tab-qr">
             <div id="reader-container" class="bg-gray-800 p-6 rounded-lg shadow text-center">
                 <h2 class="text-xl font-bold mb-6 text-white">お客様の受付QRをスキャン</h2>
@@ -56,7 +58,7 @@
             </div>
         </div>
 
-        <!-- ⏱ タブ2：複数タイマー管理リスト -->
+        <!-- ⏱ タブ2：タイマーリスト -->
         <div id="tab-timer" class="hidden">
             <h2 class="text-xl font-bold mb-4 text-red-400 border-b border-red-900 pb-2">現在プレイ中のチーム</h2>
             <div id="timer-list" class="space-y-4">
@@ -84,15 +86,33 @@
                 </div>
             </div>
 
+            <!-- 【修正】視覚的に選べる整理券枠の追加 -->
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-red-500">整理券 枠の追加</h2>
-                <div class="flex gap-2 mb-6">
-                    <input type="text" id="slot-time" placeholder="例: 10:00〜10:30" class="border border-gray-600 bg-gray-900 text-white p-3 flex-1 rounded">
-                    <input type="number" id="slot-cap" placeholder="定員" class="border border-gray-600 bg-gray-900 text-white p-3 w-24 rounded">
-                    <button onclick="addSlot()" class="bg-green-600 hover:bg-green-500 text-white px-6 rounded font-bold">追加</button>
+                
+                <div class="flex flex-col md:flex-row gap-3 mb-6 bg-gray-900 p-4 rounded border border-gray-600">
+                    <!-- 日数選択 -->
+                    <select id="slot-day" class="border border-gray-600 bg-gray-800 text-white p-3 rounded focus:outline-none focus:border-red-500">
+                        <option value="1">1日目</option>
+                        <option value="2">2日目</option>
+                    </select>
+                    
+                    <!-- 時間選択（ドラムロール等） -->
+                    <div class="flex items-center gap-2 flex-1">
+                        <input type="time" id="slot-time-start" class="border border-gray-600 bg-gray-800 text-white p-3 flex-1 rounded focus:outline-none focus:border-red-500">
+                        <span class="text-gray-400 font-bold">〜</span>
+                        <input type="time" id="slot-time-end" class="border border-gray-600 bg-gray-800 text-white p-3 flex-1 rounded focus:outline-none focus:border-red-500">
+                    </div>
+                    
+                    <!-- 定員と追加ボタン -->
+                    <div class="flex gap-2">
+                        <input type="number" id="slot-cap" placeholder="定員" class="border border-gray-600 bg-gray-800 text-white p-3 w-20 md:w-24 rounded focus:outline-none focus:border-red-500">
+                        <button onclick="addSlot()" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded font-bold shadow flex-1 md:flex-none">追加</button>
+                    </div>
                 </div>
-                <h3 class="font-bold text-gray-400 mb-2">現在の枠一覧</h3>
-                <ul id="slots-admin-list" class="space-y-2"></ul>
+
+                <h3 class="font-bold text-gray-400 mb-2 border-b border-gray-700 pb-2">現在の枠一覧</h3>
+                <ul id="slots-admin-list" class="space-y-2 mt-4"></ul>
             </div>
         </div>
     </div>
@@ -105,7 +125,7 @@
             });
         }
 
-        // ================= タブ1: QRスキャナー（iPad対応） =================
+        // ================= タブ1: QRスキャナー =================
         let html5QrCode;
         let currentTeamId = null;
 
@@ -115,10 +135,10 @@
             
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start(
-                { facingMode: "environment" }, // 📱 背面カメラを指定
+                { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 onScanSuccess,
-                (err) => { /* パースエラーは無視 */ }
+                (err) => {}
             ).catch(err => {
                 alert("カメラの起動に失敗しました。Safariの設定でカメラアクセスを「許可」にしてください。");
                 document.getElementById('btn-start-camera').style.display = 'block';
@@ -172,7 +192,7 @@
             document.getElementById('reader').style.display = 'none';
         }
 
-        // ================= タブ2: タイマー同期機能 =================
+        // ================= タブ2: タイマー機能 =================
         db.collection('teams').where('status', '==', 'playing').onSnapshot(snap => {
             const list = document.getElementById('timer-list');
             list.innerHTML = '';
@@ -256,20 +276,51 @@
 
         async function saveStory() { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true}); alert("あらすじを更新しました！"); }
         async function toggleSetting(field) { const doc = await db.collection('settings').doc('config').get(); await db.collection('settings').doc('config').set({ [field]: !doc.data()[field] }, {merge: true}); }
+        
+        // 【修正】視覚的に選んだ時間をFirestoreに保存
         async function addSlot() {
-            const time = document.getElementById('slot-time').value; const capacity = parseInt(document.getElementById('slot-cap').value);
-            if(!time || !capacity) return alert("入力が不完全です");
-            await db.collection('slots').add({ time, capacity, booked: 0 });
-            document.getElementById('slot-time').value = ''; document.getElementById('slot-cap').value = '';
+            const day = document.getElementById('slot-day').value;
+            const start = document.getElementById('slot-time-start').value;
+            const end = document.getElementById('slot-time-end').value;
+            const capacity = parseInt(document.getElementById('slot-cap').value);
+            
+            if(!start || !end || !capacity) return alert("時間が入力されていません");
+            
+            const timeLabel = `${start}〜${end}`;
+            
+            await db.collection('slots').add({ 
+                day: parseInt(day), 
+                time: timeLabel, 
+                capacity: capacity, 
+                booked: 0 
+            });
+            
+            document.getElementById('slot-time-start').value = ''; 
+            document.getElementById('slot-time-end').value = ''; 
+            document.getElementById('slot-cap').value = '';
         }
 
-        db.collection('slots').orderBy('time').onSnapshot(snap => {
-            const list = document.getElementById('slots-admin-list'); list.innerHTML = '';
-            snap.forEach(doc => {
-                const d = doc.data();
-                list.innerHTML += `<li class="flex justify-between bg-gray-700 p-3 rounded">
-                    <span>${d.time} (定員: ${d.capacity} / 予約済: ${d.booked})</span>
-                    <button onclick="if(confirm('削除しますか？')) db.collection('slots').doc('${doc.id}').delete()" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded text-sm font-bold">削除</button>
+        // 【修正】リストを「1日目/2日目」＋「時間の早い順」に綺麗にソートして表示
+        db.collection('slots').onSnapshot(snap => {
+            const list = document.getElementById('slots-admin-list'); 
+            list.innerHTML = '';
+            
+            let slots = [];
+            snap.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
+            
+            // クライアント側で 日付 -> 時間 の順にソート
+            slots.sort((a, b) => {
+                const dayA = a.day || 1; const dayB = b.day || 1;
+                if (dayA !== dayB) return dayA - dayB;
+                const timeA = a.time || ""; const timeB = b.time || "";
+                return timeA.localeCompare(timeB);
+            });
+
+            slots.forEach(d => {
+                const dayLabel = d.day ? `<span class="bg-blue-900 text-blue-200 px-2 py-1 rounded text-xs mr-2 font-bold">${d.day}日目</span>` : "";
+                list.innerHTML += `<li class="flex justify-between items-center bg-gray-800 border border-gray-700 p-3 rounded">
+                    <span class="text-white font-bold">${dayLabel}${d.time} <span class="text-gray-400 text-sm font-normal ml-2">(定員: ${d.capacity} / 予約済: ${d.booked})</span></span>
+                    <button onclick="if(confirm('削除しますか？')) db.collection('slots').doc('${d.id}').delete()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-sm font-bold shadow text-white">削除</button>
                 </li>`;
             });
         });
