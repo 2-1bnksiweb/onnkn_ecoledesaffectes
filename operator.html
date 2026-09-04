@@ -8,7 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <!-- 📷 QRコードリーダーライブラリ -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="firebase-config.js"></script>
 
@@ -17,8 +16,7 @@
         .font-mono { font-family: 'Courier New', Courier, monospace; }
         .tab-active { border-bottom: 4px solid #ef4444; color: #ef4444; font-weight: bold; }
         .tab-inactive { border-bottom: 1px solid #333; color: #888; }
-        /* 時間入力のアイコンを見やすく */
-        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        /* 【修正】iOSのタップ無反応バグを防ぐため、特殊なCSSフィルターを完全に削除しました */
     </style>
 </head>
 <body>
@@ -86,27 +84,25 @@
                 </div>
             </div>
 
-            <!-- 【修正】視覚的に選べる整理券枠の追加 -->
+            <!-- 整理券枠の追加 -->
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-red-500">整理券 枠の追加</h2>
                 
                 <div class="flex flex-col md:flex-row gap-3 mb-6 bg-gray-900 p-4 rounded border border-gray-600">
-                    <!-- 日数選択 -->
-                    <select id="slot-day" class="border border-gray-600 bg-gray-800 text-white p-3 rounded focus:outline-none focus:border-red-500">
+                    <select id="slot-day" class="border border-gray-600 bg-gray-800 text-white p-3 rounded focus:outline-none focus:border-red-500 font-bold">
                         <option value="1">1日目</option>
                         <option value="2">2日目</option>
                     </select>
                     
-                    <!-- 時間選択（ドラムロール等） -->
+                    <!-- 【修正】iPadでも絶対に確実にタップしてドラムロールが出るよう、明るい色に変更 -->
                     <div class="flex items-center gap-2 flex-1">
-                        <input type="time" id="slot-time-start" class="border border-gray-600 bg-gray-800 text-white p-3 flex-1 rounded focus:outline-none focus:border-red-500">
+                        <input type="time" id="slot-time-start" class="border border-gray-600 bg-gray-200 text-black p-3 flex-1 rounded font-bold appearance-none">
                         <span class="text-gray-400 font-bold">〜</span>
-                        <input type="time" id="slot-time-end" class="border border-gray-600 bg-gray-800 text-white p-3 flex-1 rounded focus:outline-none focus:border-red-500">
+                        <input type="time" id="slot-time-end" class="border border-gray-600 bg-gray-200 text-black p-3 flex-1 rounded font-bold appearance-none">
                     </div>
                     
-                    <!-- 定員と追加ボタン -->
                     <div class="flex gap-2">
-                        <input type="number" id="slot-cap" placeholder="定員" class="border border-gray-600 bg-gray-800 text-white p-3 w-20 md:w-24 rounded focus:outline-none focus:border-red-500">
+                        <input type="number" id="slot-cap" placeholder="定員" class="border border-gray-600 bg-gray-800 text-white p-3 w-20 md:w-24 rounded focus:outline-none focus:border-red-500 font-bold">
                         <button onclick="addSlot()" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded font-bold shadow flex-1 md:flex-none">追加</button>
                     </div>
                 </div>
@@ -125,7 +121,6 @@
             });
         }
 
-        // ================= タブ1: QRスキャナー =================
         let html5QrCode;
         let currentTeamId = null;
 
@@ -150,22 +145,12 @@
             if (window.isScanning) return;
             window.isScanning = true;
             
-            if(html5QrCode) {
-                try { await html5QrCode.stop(); html5QrCode.clear(); } catch(e) {}
-            }
+            if(html5QrCode) { try { await html5QrCode.stop(); html5QrCode.clear(); } catch(e) {} }
             
             const doc = await db.collection('teams').doc(decodedText).get();
-            if(!doc.exists) {
-                alert("無効なQRコードです。");
-                cancelScan();
-                return;
-            }
+            if(!doc.exists) { alert("無効なQRコードです。"); cancelScan(); return; }
             const data = doc.data();
-            if(data.status !== 'registered') {
-                alert("このチームは既にタイマーに追加されているか、終了しています。");
-                cancelScan();
-                return;
-            }
+            if(data.status !== 'registered') { alert("このチームは既にタイマーに追加されているか、終了しています。"); cancelScan(); return; }
             
             currentTeamId = decodedText;
             document.getElementById('reader-container').style.display = 'none';
@@ -184,15 +169,14 @@
         }
 
         function cancelScan() {
-            currentTeamId = null;
-            window.isScanning = false;
+            currentTeamId = null; window.isScanning = false;
             document.getElementById('team-confirm-section').style.display = 'none';
             document.getElementById('reader-container').style.display = 'block';
             document.getElementById('btn-start-camera').style.display = 'block';
             document.getElementById('reader').style.display = 'none';
         }
 
-        // ================= タブ2: タイマー機能 =================
+        // ================= タブ2: タイマー同期機能 =================
         db.collection('teams').where('status', '==', 'playing').onSnapshot(snap => {
             const list = document.getElementById('timer-list');
             list.innerHTML = '';
@@ -277,7 +261,6 @@
         async function saveStory() { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true}); alert("あらすじを更新しました！"); }
         async function toggleSetting(field) { const doc = await db.collection('settings').doc('config').get(); await db.collection('settings').doc('config').set({ [field]: !doc.data()[field] }, {merge: true}); }
         
-        // 【修正】視覚的に選んだ時間をFirestoreに保存
         async function addSlot() {
             const day = document.getElementById('slot-day').value;
             const start = document.getElementById('slot-time-start').value;
@@ -285,22 +268,15 @@
             const capacity = parseInt(document.getElementById('slot-cap').value);
             
             if(!start || !end || !capacity) return alert("時間が入力されていません");
-            
             const timeLabel = `${start}〜${end}`;
             
-            await db.collection('slots').add({ 
-                day: parseInt(day), 
-                time: timeLabel, 
-                capacity: capacity, 
-                booked: 0 
-            });
+            await db.collection('slots').add({ day: parseInt(day), time: timeLabel, capacity: capacity, booked: 0 });
             
             document.getElementById('slot-time-start').value = ''; 
             document.getElementById('slot-time-end').value = ''; 
             document.getElementById('slot-cap').value = '';
         }
 
-        // 【修正】リストを「1日目/2日目」＋「時間の早い順」に綺麗にソートして表示
         db.collection('slots').onSnapshot(snap => {
             const list = document.getElementById('slots-admin-list'); 
             list.innerHTML = '';
@@ -308,7 +284,6 @@
             let slots = [];
             snap.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
             
-            // クライアント側で 日付 -> 時間 の順にソート
             slots.sort((a, b) => {
                 const dayA = a.day || 1; const dayB = b.day || 1;
                 if (dayA !== dayB) return dayA - dayB;
