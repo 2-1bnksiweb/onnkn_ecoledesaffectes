@@ -16,7 +16,6 @@
         .font-mono { font-family: 'Courier New', Courier, monospace; }
         .tab-active { border-bottom: 4px solid #ef4444; color: #ef4444; font-weight: bold; }
         .tab-inactive { border-bottom: 1px solid #333; color: #888; }
-        /* 【修正】iOSのタップ無反応バグを防ぐため、特殊なCSSフィルターを完全に削除しました */
     </style>
 </head>
 <body>
@@ -84,7 +83,6 @@
                 </div>
             </div>
 
-            <!-- 整理券枠の追加 -->
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-red-500">整理券 枠の追加</h2>
                 
@@ -94,15 +92,16 @@
                         <option value="2">2日目</option>
                     </select>
                     
-                    <!-- 【修正】iPadでも絶対に確実にタップしてドラムロールが出るよう、明るい色に変更 -->
+                    <!-- 【修正】ドラムロールが絶対に見えるように白背景＆ライトモード強制にしました -->
                     <div class="flex items-center gap-2 flex-1">
-                        <input type="time" id="slot-time-start" class="border border-gray-600 bg-gray-200 text-black p-3 flex-1 rounded font-bold appearance-none">
+                        <input type="time" id="slot-time-start" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold shadow-inner" style="color-scheme: light;">
                         <span class="text-gray-400 font-bold">〜</span>
-                        <input type="time" id="slot-time-end" class="border border-gray-600 bg-gray-200 text-black p-3 flex-1 rounded font-bold appearance-none">
+                        <input type="time" id="slot-time-end" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold shadow-inner" style="color-scheme: light;">
                     </div>
                     
-                    <div class="flex gap-2">
-                        <input type="number" id="slot-cap" placeholder="定員" class="border border-gray-600 bg-gray-800 text-white p-3 w-20 md:w-24 rounded focus:outline-none focus:border-red-500 font-bold">
+                    <div class="flex gap-2 mt-2 md:mt-0">
+                        <!-- 定員入力も統一して見やすく -->
+                        <input type="number" id="slot-cap" placeholder="定員" class="border border-gray-400 bg-white text-black p-3 w-20 md:w-24 rounded font-bold shadow-inner" style="color-scheme: light;">
                         <button onclick="addSlot()" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded font-bold shadow flex-1 md:flex-none">追加</button>
                     </div>
                 </div>
@@ -121,6 +120,7 @@
             });
         }
 
+        // ================= タブ1: QRスキャナー =================
         let html5QrCode;
         let currentTeamId = null;
 
@@ -147,25 +147,30 @@
             
             if(html5QrCode) { try { await html5QrCode.stop(); html5QrCode.clear(); } catch(e) {} }
             
-            const doc = await db.collection('teams').doc(decodedText).get();
-            if(!doc.exists) { alert("無効なQRコードです。"); cancelScan(); return; }
-            const data = doc.data();
-            if(data.status !== 'registered') { alert("このチームは既にタイマーに追加されているか、終了しています。"); cancelScan(); return; }
-            
-            currentTeamId = decodedText;
-            document.getElementById('reader-container').style.display = 'none';
-            document.getElementById('team-confirm-section').style.display = 'block';
-            
-            document.getElementById('scanned-team-name').innerText = data.teamName;
-            document.getElementById('scanned-members').innerHTML = data.members.map(m => `<li>${m.grade} ${m.name}</li>`).join('');
+            try {
+                const doc = await db.collection('teams').doc(decodedText).get();
+                if(!doc.exists) { alert("無効なQRコードです。"); cancelScan(); return; }
+                const data = doc.data();
+                if(data.status !== 'registered') { alert("このチームは既にタイマーに追加されているか、終了しています。"); cancelScan(); return; }
+                
+                currentTeamId = decodedText;
+                document.getElementById('reader-container').style.display = 'none';
+                document.getElementById('team-confirm-section').style.display = 'block';
+                
+                document.getElementById('scanned-team-name').innerText = data.teamName;
+                document.getElementById('scanned-members').innerHTML = data.members.map(m => `<li>${m.grade} ${m.name}</li>`).join('');
 
-            document.getElementById('btn-start-team').onclick = async () => {
-                const playCount = parseInt(document.getElementById('play-count-select').value);
-                await db.collection('teams').doc(currentTeamId).update({ status: 'playing', playCount: playCount });
-                alert("タイマーリストに追加しました！");
+                document.getElementById('btn-start-team').onclick = async () => {
+                    const playCount = parseInt(document.getElementById('play-count-select').value);
+                    await db.collection('teams').doc(currentTeamId).update({ status: 'playing', playCount: playCount });
+                    alert("タイマーリストに追加しました！");
+                    cancelScan();
+                    switchTab('timer');
+                };
+            } catch (err) {
+                alert("通信エラーが発生しました。Firebaseのルール設定を確認してください。\n" + err.message);
                 cancelScan();
-                switchTab('timer');
-            };
+            }
         }
 
         function cancelScan() {
@@ -208,6 +213,8 @@
                 `;
                 list.appendChild(card);
             });
+        }, err => {
+            console.error("Firebase読み込みエラー:", err);
         });
 
         setInterval(() => {
@@ -232,9 +239,13 @@
             let finalTime = data.accumulatedTime;
             if (data.timerState === 'running') finalTime += (Date.now() - data.startTime);
             
-            await db.collection('times').add({ teamName: data.teamName, time: finalTime, count: data.playCount || 1, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-            await docRef.update({ status: 'finished' });
-            alert("ランキングに送信完了しました！");
+            try {
+                await db.collection('times').add({ teamName: data.teamName, time: finalTime, count: data.playCount || 1, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                await docRef.update({ status: 'finished' });
+                alert("ランキングに送信完了しました！");
+            } catch (err) {
+                alert("保存に失敗しました。Firebaseのルール設定を確認してください。");
+            }
         }
 
         function formatTime(ms) {
@@ -258,8 +269,18 @@
             }
         });
 
-        async function saveStory() { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true}); alert("あらすじを更新しました！"); }
-        async function toggleSetting(field) { const doc = await db.collection('settings').doc('config').get(); await db.collection('settings').doc('config').set({ [field]: !doc.data()[field] }, {merge: true}); }
+        async function saveStory() { 
+            try {
+                await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true}); 
+                alert("あらすじを更新しました！"); 
+            } catch (err) { alert("保存失敗: Firebaseルールの有効期限が切れています。"); }
+        }
+        async function toggleSetting(field) { 
+            try {
+                const doc = await db.collection('settings').doc('config').get(); 
+                await db.collection('settings').doc('config').set({ [field]: !doc.data()[field] }, {merge: true}); 
+            } catch (err) { alert("設定変更失敗: Firebaseルールの有効期限が切れています。"); }
+        }
         
         async function addSlot() {
             const day = document.getElementById('slot-day').value;
@@ -267,14 +288,25 @@
             const end = document.getElementById('slot-time-end').value;
             const capacity = parseInt(document.getElementById('slot-cap').value);
             
-            if(!start || !end || !capacity) return alert("時間が入力されていません");
+            if(!start || !end || !capacity) return alert("時間と定員をすべて入力してください");
+            
             const timeLabel = `${start}〜${end}`;
             
-            await db.collection('slots').add({ day: parseInt(day), time: timeLabel, capacity: capacity, booked: 0 });
-            
-            document.getElementById('slot-time-start').value = ''; 
-            document.getElementById('slot-time-end').value = ''; 
-            document.getElementById('slot-cap').value = '';
+            try {
+                // ここでエラーになる場合はFirebaseのルール期限切れが原因
+                await db.collection('slots').add({ 
+                    day: parseInt(day), 
+                    time: timeLabel, 
+                    capacity: capacity, 
+                    booked: 0 
+                });
+                
+                document.getElementById('slot-time-start').value = ''; 
+                document.getElementById('slot-time-end').value = ''; 
+                document.getElementById('slot-cap').value = '';
+            } catch (err) {
+                alert("枠の追加に失敗しました。Firebaseのルール有効期限が切れています。\n詳細: " + err.message);
+            }
         }
 
         db.collection('slots').onSnapshot(snap => {
