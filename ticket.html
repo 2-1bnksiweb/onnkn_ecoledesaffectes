@@ -17,14 +17,11 @@
         body { background-color: #030303; color: #d1d1d1; overflow-x: hidden; min-height: 100dvh; }
         .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
         .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
-        @keyframes swing { 0% { transform: rotate(-2.5deg); } 100% { transform: rotate(2.5deg); } }
-        .spider-shadow { filter: drop-shadow(0 3px 5px rgba(0,0,0,0.9)); }
     </style>
 </head>
 <body class="relative">
 
-    <!-- 【修正】真っ黒になる原因だったオープニング幕を完全に削除 -->
-
+    <!-- クモの巣背景コンテナ -->
     <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
 
     <div class="max-w-2xl mx-auto p-6 relative z-20 mt-4 mb-12">
@@ -41,6 +38,7 @@
         <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm mt-6">
             <h1 class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">整理券発行・チーム登録</h1>
             
+            <!-- 整理券選択 -->
             <div id="ticket-section">
                 <h2 class="text-xl font-semibold mb-4 text-blood-dark border-b border-red-950 pb-2">ご希望の時間帯を選択</h2>
                 <div id="slots-container" class="space-y-3"><p class="text-gray-500">読込中...</p></div>
@@ -50,6 +48,7 @@
                 </div>
             </div>
 
+            <!-- スマホ登録誘導用QR -->
             <div id="qr-section" class="hidden text-center">
                 <h2 class="text-2xl font-bold text-red-500 mb-4" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">整理券の枠を確保しました</h2>
                 <p class="mb-4 text-gray-300">以下のQRコードを読み取り、各自スマホからチーム登録を完了させてください。</p>
@@ -57,6 +56,7 @@
                 <p class="text-sm text-gray-500 break-all mb-4" id="qr-url"></p>
             </div>
 
+            <!-- チーム情報登録フォーム -->
             <div id="register-section" class="hidden">
                 <h2 class="text-2xl font-bold mb-4 text-blood-dark">チーム登録</h2>
                 <form id="team-form" onsubmit="submitTeam(event)">
@@ -70,6 +70,7 @@
                 </form>
             </div>
 
+            <!-- 最終受付用QR -->
             <div id="final-qr-section" class="hidden text-center">
                 <h2 class="text-3xl font-bold text-red-600 mb-4" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">登録完了！</h2>
                 <p class="mb-4 text-gray-300">受付時にスタッフに以下の<span class="text-red-500 font-bold">「受付用QRコード」</span>を提示してください。</p>
@@ -142,24 +143,6 @@
                     }
                 }
             }
-            const spiderPath = "M 0,-5 C 3,-5 6,-1 6,5 C 6,11 3,15 0,15 C -3,15 -6,11 -6,5 C -6,-1 -3,-5 0,-5 Z M 0,-7.5 A 2.5 2.5 0 1 1 0,-7.49 Z M 3,-4 L 11,-9 L 15,-4 M 5,1 L 13,-2 L 19,2 M 5,6 L 15,7 L 19,14 M 4,10 L 11,15 L 13,22 M -3,-4 L -11,-9 L -15,-4 M -5,1 L -13,-2 L -19,2 M -5,6 L -15,7 L -19,14 M -4,10 L -11,15 L -13,22";
-            const masterSpider = document.createElementNS(svgNs, "g"); masterSpider.setAttribute("class", "spider-shadow");
-            masterSpider.innerHTML = `<path d="${spiderPath}" stroke="rgba(255,255,255,0.75)" stroke-width="1.2" fill="rgba(255,255,255,0.75)" stroke-linejoin="round" stroke-linecap="round" /><path d="${spiderPath}" stroke="#000" stroke-width="0.8" fill="#000" stroke-linejoin="round" stroke-linecap="round" />`;
-            const masterR = maxR * 0.35; const masterA = Math.PI / 2 + Math.PI / 4.5;
-            masterSpider.setAttribute("transform", `translate(${cx + Math.cos(masterA) * masterR}, ${cy + Math.sin(masterA) * masterR}) rotate(-50) scale(0.75)`);
-            svg.appendChild(masterSpider);
-            const dropCount = 6 + Math.floor(Math.random() * 4); 
-            for (let i = 0; i < dropCount; i++) {
-                const lx = 20 + Math.random() * (width - 40); const ly = 60 + Math.random() * (height * 0.85);
-                const g = document.createElementNS(svgNs, "g"); g.style.transformOrigin = `${lx}px 0px`; g.style.animation = `swing ${3 + Math.random() * 4}s ease-in-out ${Math.random() * -5}s infinite alternate`;
-                const line = document.createElementNS(svgNs, "line"); line.setAttribute("x1", lx); line.setAttribute("y1", 0); line.setAttribute("x2", lx); line.setAttribute("y2", ly); line.setAttribute("stroke", "rgba(180, 180, 180, 0.6)"); line.setAttribute("stroke-width", "1.0"); g.appendChild(line);
-                if (Math.random() < 0.2) {
-                    const bLine = document.createElementNS(svgNs, "line"); bLine.setAttribute("x1", lx); bLine.setAttribute("y1", 0); bLine.setAttribute("x2", lx); bLine.setAttribute("y2", ly); bLine.setAttribute("stroke", "#8a0303"); bLine.setAttribute("stroke-width", "1.5"); bLine.setAttribute("stroke-dasharray", `${Math.random()*15+5} ${Math.random()*50+20}`); bLine.setAttribute("opacity", "0.75"); g.appendChild(bLine);
-                }
-                const spider = document.createElementNS(svgNs, "g"); spider.setAttribute("class", "spider-shadow"); spider.setAttribute("transform", `translate(${lx}, ${ly}) scale(${0.35 + Math.random() * 0.2})`);
-                spider.innerHTML = `<path d="${spiderPath}" stroke="rgba(255,255,255,0.75)" stroke-width="1.0" fill="rgba(255,255,255,0.75)" stroke-linejoin="round" stroke-linecap="round" /><path d="${spiderPath}" stroke="#000" stroke-width="0.6" fill="#000" stroke-linejoin="round" stroke-linecap="round" />`;
-                g.appendChild(spider); svg.appendChild(g);
-            }
         }
         window.addEventListener('DOMContentLoaded', buildSpiderWebs);
 
@@ -185,7 +168,10 @@
                 });
 
                 slots.forEach(data => {
-                    const btn = document.createElement('button'); const isFull = data.booked >= data.capacity;
+                    const btn = document.createElement('button'); 
+                    // 【修正】定員オーバー判定を確実に数値で行う
+                    const isFull = Number(data.booked) >= Number(data.capacity);
+                    
                     btn.className = `w-full p-4 rounded text-left font-bold border transition tracking-widest ${isFull ? 'bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed' : 'bg-red-950/40 hover:bg-red-900/60 text-red-200 border-red-900/50 shadow-sm'}`;
                     
                     const dayLabel = data.day ? `<span class="bg-red-900 text-red-200 px-2 py-0.5 rounded text-xs mr-2 font-bold">${data.day}日目</span>` : "";
@@ -200,18 +186,18 @@
         }
 
         async function issueTicket(slotId, timeLabel) {
-            const lastBooked = localStorage.getItem('lastBookedTime');
-            if(lastBooked && (Date.now() - lastBooked < 60 * 60 * 1000)) return alert("一定時間内に複数回の整理券取得はできません。");
+            // 【修正】1時間の再予約禁止制限を完全に削除しました！（いつでも何回でも取れます）
+
             if (slotId !== 'walkin') {
                 const slotRef = db.collection('slots').doc(slotId);
                 try {
                     await db.runTransaction(async (t) => {
-                        const doc = await t.get(slotRef); const newBooked = doc.data().booked + 1;
-                        if (newBooked > doc.data().capacity) throw "満員です"; t.update(slotRef, { booked: newBooked });
+                        const doc = await t.get(slotRef); const newBooked = Number(doc.data().booked) + 1;
+                        if (newBooked > Number(doc.data().capacity)) throw "満員です"; t.update(slotRef, { booked: newBooked });
                     });
                 } catch (e) { alert(e); return; }
             }
-            localStorage.setItem('lastBookedTime', Date.now()); const newTicketId = 'TK' + Date.now();
+            const newTicketId = 'TK' + Date.now();
             document.getElementById('ticket-section').style.display = 'none'; document.getElementById('qr-section').style.display = 'block';
             const registerUrl = `${window.location.origin}${window.location.pathname}?action=register&ticketId=${newTicketId}`;
             new QRCode(document.getElementById("qrcode"), { text: registerUrl, width: 180, height: 180 });
