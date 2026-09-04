@@ -22,6 +22,9 @@
     </style>
 </head>
 <body class="relative">
+
+    <!-- 【修正】真っ黒になる原因だったオープニング幕を完全に削除 -->
+
     <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
 
     <div class="max-w-2xl mx-auto p-6 relative z-20 mt-4 mb-12">
@@ -164,7 +167,6 @@
         const action = urlParams.get('action'); const ticketId = urlParams.get('ticketId');
         if (action === 'register') { document.getElementById('ticket-section').style.display = 'none'; document.getElementById('register-section').style.display = 'block'; addMemberField(); } else { loadSlots(); }
 
-        // 【修正】枠の表示時に「1日目/2日目」を反映してソート
         async function loadSlots() {
             const container = document.getElementById('slots-container'); container.innerHTML = '';
             const settingsDoc = await db.collection('settings').doc('config').get();
@@ -175,7 +177,6 @@
                 let slots = [];
                 snapshot.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
                 
-                // 日付 -> 時間の順に綺麗にソート
                 slots.sort((a, b) => {
                     const dayA = a.day || 1; const dayB = b.day || 1;
                     if (dayA !== dayB) return dayA - dayB;
