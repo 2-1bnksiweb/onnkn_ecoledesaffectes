@@ -30,7 +30,6 @@
             <button id="menu-btn" onclick="toggleMenu()" class="text-4xl hover:text-red-500 drop-shadow-md transition-transform duration-300 w-10 h-10 flex items-center justify-center">☰</button>
         </header>
 
-        <!-- メニュー（絵文字を削除） -->
         <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-20 right-6 z-50 shadow-2xl">
             <a href="index.html" class="text-gray-400 hover:text-white border-b border-red-900 pb-2">ホームへ戻る</a>
             <a href="ranking.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">ランキングを見る</a>
@@ -165,19 +164,37 @@
         const action = urlParams.get('action'); const ticketId = urlParams.get('ticketId');
         if (action === 'register') { document.getElementById('ticket-section').style.display = 'none'; document.getElementById('register-section').style.display = 'block'; addMemberField(); } else { loadSlots(); }
 
+        // 【修正】枠の表示時に「1日目/2日目」を反映してソート
         async function loadSlots() {
             const container = document.getElementById('slots-container'); container.innerHTML = '';
             const settingsDoc = await db.collection('settings').doc('config').get();
             if(settingsDoc.exists && settingsDoc.data().walkInActive) document.getElementById('walkin-container').style.display = 'block';
-            db.collection('slots').orderBy('time').onSnapshot(snapshot => {
+
+            db.collection('slots').onSnapshot(snapshot => {
                 container.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const data = doc.data(); const btn = document.createElement('button'); const isFull = data.booked >= data.capacity;
+                let slots = [];
+                snapshot.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
+                
+                // 日付 -> 時間の順に綺麗にソート
+                slots.sort((a, b) => {
+                    const dayA = a.day || 1; const dayB = b.day || 1;
+                    if (dayA !== dayB) return dayA - dayB;
+                    const timeA = a.time || ""; const timeB = b.time || "";
+                    return timeA.localeCompare(timeB);
+                });
+
+                slots.forEach(data => {
+                    const btn = document.createElement('button'); const isFull = data.booked >= data.capacity;
                     btn.className = `w-full p-4 rounded text-left font-bold border transition tracking-widest ${isFull ? 'bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed' : 'bg-red-950/40 hover:bg-red-900/60 text-red-200 border-red-900/50 shadow-sm'}`;
-                    btn.innerHTML = `${data.time} (空き: ${data.capacity - data.booked}人)`; btn.disabled = isFull; btn.onclick = () => issueTicket(doc.id, data.time);
+                    
+                    const dayLabel = data.day ? `<span class="bg-red-900 text-red-200 px-2 py-0.5 rounded text-xs mr-2 font-bold">${data.day}日目</span>` : "";
+                    btn.innerHTML = `${dayLabel}${data.time} (空き: ${data.capacity - data.booked}人)`; 
+                    
+                    btn.disabled = isFull; 
+                    btn.onclick = () => issueTicket(data.id, `${data.day ? data.day+'日目 ' : ''}${data.time}`);
                     container.appendChild(btn);
                 });
-                if(snapshot.empty) container.innerHTML = '<p class="text-gray-500">現在公開されている時間枠はありません。</p>';
+                if(slots.length === 0) container.innerHTML = '<p class="text-gray-500">現在公開されている時間枠はありません。</p>';
             });
         }
 
