@@ -21,16 +21,19 @@
             src: url('home/onryu.ttf') format('truetype'),
                  url('./home/onryu.ttf') format('truetype'),
                  url('home/onryou.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
+            font-weight: normal; font-style: normal; font-display: swap;
         }
 
         *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby { 
             font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
         }
 
-        body { background-color: #030303; color: #e0e0e0; overflow-x: hidden; min-height: 100dvh; }
+        body { 
+            background-color: #030303; 
+            color: #e0e0e0; 
+            overflow-x: hidden; 
+            min-height: 100dvh; 
+        }
 
         .text-blood-dark {
             background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%);
@@ -47,7 +50,13 @@
         }
         @keyframes stampIn { to { opacity: 0.95; transform: scale(1); } }
         
-        #blood-screen { position: absolute; inset: 0; background: #500000; opacity: 0; transition: opacity 0.2s; z-index: 10000; pointer-events: none; }
+        /* 🩸 滑り落ちるリアル血の膜（グラデーション追加） */
+        #blood-screen { 
+            position: absolute; inset: 0; 
+            opacity: 0; transition: opacity 0.2s; z-index: 10000; 
+            pointer-events: none;
+            background: linear-gradient(to bottom, #3d0000 0%, #660000 30%, #4a0000 100%);
+        }
         .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
     </style>
 </head>
@@ -83,7 +92,17 @@
         <g fill="#7a0202"><circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" /><circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" /><circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" /></g>
     </svg>
 
-    <div id="opening"><div id="blood-screen"></div></div>
+    <!-- ========================================================
+         🩸 オープニングレイヤー（ドロっと落ちる本物の血膜仕様の復活）
+         ======================================================== -->
+    <div id="opening">
+        <div id="blood-screen">
+            <!-- スライドして落ちる時の「上端のちぎれたドロドロの波線」 -->
+            <svg class="w-full h-16 sm:h-24 absolute left-0" style="top: 0; transform: translateY(-98%); fill: #3d0000;" viewBox="0 0 1000 150" preserveAspectRatio="none">
+                <path d="M0,150 L1000,150 L1000,0 C980,80 960,100 940,20 C920,120 900,110 880,10 C860,90 840,130 820,30 C800,80 780,100 760,10 C740,110 720,140 700,40 C680,100 660,120 640,0 C620,80 600,130 580,20 C560,90 540,110 520,10 C500,140 480,120 460,30 C440,100 420,90 400,0 C380,120 360,140 340,40 C320,80 300,110 280,10 C260,130 240,120 220,20 C200,90 180,100 160,0 C140,110 120,140 100,30 C80,80 60,120 40,10 C20,100 10,90 0,0 Z" />
+            </svg>
+        </div>
+    </div>
 
     <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center z-20">
         
@@ -92,7 +111,6 @@
             <button id="menu-btn" onclick="toggleMenu()" class="text-4xl hover:text-red-500 drop-shadow-md transition-transform duration-300 w-10 h-10 flex items-center justify-center">☰</button>
         </header>
 
-        <!-- メニュー（絵文字を削除） -->
         <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-24 right-6 z-50 shadow-2xl">
             <a href="ticket.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">整理券の予約</a>
             <a href="ranking.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">ランキングを見る</a>
@@ -213,6 +231,7 @@
                     bloodScreen.style.opacity = '1';
                     setTimeout(() => {
                         opening.style.background = 'transparent'; document.querySelectorAll('.hand-wrapper').forEach(el => el.style.opacity = '0');
+                        // 【完全復活】ドロっとした波線の血の幕が重力で滑り落ちるシネマティック演出
                         bloodScreen.style.transition = "transform 1.8s cubic-bezier(0.6, 0.05, 0.9, 0.3)"; bloodScreen.style.transform = "translateY(100vh)";
                         mainContent.style.opacity = '1'; setTimeout(() => { opening.style.display = 'none'; }, 1800);
                     }, 300);
