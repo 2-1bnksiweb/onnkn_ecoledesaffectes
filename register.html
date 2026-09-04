@@ -104,33 +104,25 @@
                     currentTeamName = doc.data().teamName;
                     document.getElementById('team-display').innerText = `チーム名: ${currentTeamName}`;
                 } else {
-                    alert("無効なQRコードです。");
+                    alert("無効なURLまたはQRコードです。");
                 }
             });
         }
 
-        // ================= 【修正】Googleログイン（スマホ対応・リダイレクト方式） =================
-        // ページロード時にGoogleログインから戻ってきたかをチェックする
-        firebase.auth().getRedirectResult().then((result) => {
-            if (result.credential) {
+        // ================= 【修正1】Googleログイン（小窓ポップアップ方式） =================
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            // ブラウザのセキュリティ制限を回避するため、リダイレクトではなく小窓（Popup）方式に変更しました
+            firebase.auth().signInWithPopup(provider).then((result) => {
                 currentUserUid = result.user.uid;
                 if(result.user.displayName) document.getElementById('m-name').value = result.user.displayName;
                 showProfileForm();
-            }
-        }).catch((error) => {
-            if(error.code !== 'auth/redirect-cancelled-by-user') {
-                alert("Googleログインエラー: " + error.message);
-            }
-        });
-
-        // ボタンを押したらGoogleログイン画面へジャンプする
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            // ポップアップではなく画面遷移（リダイレクト）を使うことでスマホSafariのエラーを回避
-            firebase.auth().signInWithRedirect(provider);
+            }).catch((error) => {
+                alert("Googleログインに失敗しました: " + error.message);
+            });
         }
 
-        // ================= メール＆パスワードログイン/登録 =================
+        // ================= 【修正2】メール＆パスワードの自動判定の強化 =================
         function loginWithEmail() {
             const email = document.getElementById('email-input').value;
             const password = document.getElementById('password-input').value;
@@ -139,28 +131,37 @@
 
             document.getElementById('login-section').style.opacity = '0.5';
 
+            // ① まず「既存のログイン」を試す
             firebase.auth().signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
+                // ログイン成功
                 currentUserUid = userCredential.user.uid;
                 document.getElementById('login-section').style.opacity = '1';
                 showProfileForm();
             })
             .catch((error) => {
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-login-credentials' || error.code === 'auth/invalid-credential') {
-                    firebase.auth().createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        currentUserUid = userCredential.user.uid;
-                        document.getElementById('login-section').style.opacity = '1';
-                        showProfileForm();
-                    })
-                    .catch((err) => { 
-                        document.getElementById('login-section').style.opacity = '1';
-                        alert("アカウント作成エラー: FirebaseのAuthenticationで「メール/パスワード」が有効になっているか確認してください。\n" + err.message); 
-                    });
-                } else {
+                // ② ログインに失敗した場合、「新規登録」を試す
+                firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // 新規登録成功！
+                    currentUserUid = userCredential.user.uid;
                     document.getElementById('login-section').style.opacity = '1';
-                    alert("ログインエラー: パスワードが間違っているか、通信環境を確認してください。");
-                }
+                    showProfileForm();
+                })
+                .catch((err) => { 
+                    document.getElementById('login-section').style.opacity = '1';
+                    
+                    // ③ 新規登録も失敗した場合の原因を特定
+                    if (err.code === 'auth/email-already-in-use') {
+                        // メールアドレスが既に使われている＝「パスワードの打ち間違い」
+                        alert("ログインエラー：パスワードが間違っています。");
+                    } else if (err.code === 'auth/operation-not-allowed' || err.code === 'auth/admin-restricted-operation') {
+                        // Firebaseの設定がOFFになっている
+                        alert("エラー：Firebaseで「メール/パスワード」が【無効】になっています！管理者にお問い合わせください。");
+                    } else {
+                        alert("通信エラー、または無効なメールアドレスです。\n" + err.message); 
+                    }
+                });
             });
         }
 
