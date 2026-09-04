@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#050505">
+    <title>メンバー登録 - 恐怖の廃校</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&display=swap" rel="stylesheet">
+    <style>
+        @font-face { font-family: 'OnryouFont'; src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby, select { font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; }
+        body { background-color: #030303; color: #d1d1d1; overflow-x: hidden; min-height: 100dvh; }
+        .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
+        .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
+    </style>
+</head>
+<body class="relative">
+    <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
+
+    <div class="max-w-md mx-auto p-6 relative z-20 mt-4 mb-12">
+        <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm mt-6">
+            <h1 class="text-3xl font-bold text-center mb-6 text-blood-dark tracking-widest">チーム参加登録</h1>
+            
+            <p id="team-display" class="text-center font-bold text-xl mb-6 text-red-500 border border-red-950 py-3 rounded bg-black/50 tracking-widest">読込中...</p>
+            
+            <!-- STEP 1: ログイン選択 -->
+            <div id="login-section" class="space-y-4">
+                <p class="text-sm text-gray-400 text-center mb-4 leading-relaxed">本人確認と過去の参加歴確認のため<br>アカウント登録（ログイン）をお願いします。</p>
+                
+                <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center bg-gray-200 text-gray-900 py-3 rounded font-bold hover:bg-white transition shadow text-lg font-sans">
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Google で続ける
+                </button>
+
+                <div class="text-center text-gray-600 my-4 text-sm font-sans">または</div>
+
+                <div class="space-y-3">
+                    <input type="email" id="email-input" placeholder="メールアドレス" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded font-sans focus:outline-none focus:border-red-700">
+                    <input type="password" id="password-input" placeholder="パスワード (6文字以上)" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded font-sans focus:outline-none focus:border-red-700">
+                    <button onclick="loginWithEmail()" class="w-full bg-red-950 border border-red-800 text-red-200 py-3 rounded font-bold hover:bg-red-900 transition tracking-widest text-lg">メールで登録 / ログイン</button>
+                    <p class="text-xs text-gray-500 text-center mt-2 font-sans">※アカウントがない場合は自動的に作成されます</p>
+                </div>
+            </div>
+
+            <!-- STEP 2: プロフィール入力 -->
+            <form id="profile-form" onsubmit="submitMember(event)" class="hidden">
+                <div class="mb-4 text-center">
+                    <span class="inline-block bg-red-950 text-red-400 text-sm px-4 py-1 rounded border border-red-800 font-bold tracking-widest">アカウント認証完了</span>
+                </div>
+                <div class="mb-4">
+                    <label class="block font-bold mb-1 text-gray-300">お名前 (フルネーム)</label>
+                    <input type="text" id="m-name" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans">
+                </div>
+                <div class="mb-8">
+                    <label class="block font-bold mb-1 text-gray-300">学年 (例: 1年, 先生)</label>
+                    <input type="text" id="m-grade" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans">
+                </div>
+                <button type="submit" class="w-full bg-[#260101] border border-[#520202] text-blood-dark py-4 rounded font-bold hover:bg-black transition shadow-btn text-xl tracking-widest">このチームに登録する</button>
+            </form>
+
+            <!-- STEP 3: 完了画面 -->
+            <div id="success-msg" class="hidden text-center mt-6">
+                <h2 class="text-3xl font-bold text-red-600 mb-4" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">登録完了！</h2>
+                <p class="text-gray-300 mb-8 leading-relaxed">他のメンバーも登録し終えたら<br>下のボタンからゲーム待機画面へ進んでください。</p>
+                <button id="go-play-btn" class="w-full bg-red-900 border border-red-700 text-white py-4 rounded font-bold text-xl shadow-btn animate-pulse tracking-widest">ゲーム画面へ進む</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const teamId = urlParams.get('teamId');
+        let currentTeamName = "";
+        let currentUserUid = "";
+
+        // 蜘蛛の巣背景
+        function buildSpiderWebs() {
+            const container = document.getElementById("spider-web-container");
+            const svgNs = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNs, "svg");
+            svg.setAttribute("width", "100%"); svg.setAttribute("height", "100%");
+            container.appendChild(svg);
+            const cx = window.innerWidth; const cy = 0; const maxR = Math.min(window.innerWidth, window.innerHeight) * 0.9; 
+            for (let i = 0; i < 12; i++) {
+                const a = Math.PI / 2 + (Math.PI / 2) * (i / 11);
+                const r = maxR * 0.8; const x = cx + Math.cos(a) * r; const y = cy + Math.sin(a) * r;
+                const line = document.createElementNS(svgNs, "line");
+                line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
+                line.setAttribute("stroke", "rgba(160, 160, 160, 0.4)"); line.setAttribute("stroke-width", "1.2");
+                svg.appendChild(line);
+            }
+        }
+        window.addEventListener('DOMContentLoaded', buildSpiderWebs);
+
+        // チーム名取得
+        db.collection('teams').doc(teamId).get().then(doc => {
+            if(doc.exists) {
+                currentTeamName = doc.data().teamName;
+                document.getElementById('team-display').innerText = `チーム名: ${currentTeamName}`;
+            } else {
+                alert("無効なQRコードです。");
+            }
+        });
+
+        // ================= Googleログイン =================
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider).then((result) => {
+                currentUserUid = result.user.uid;
+                if(result.user.displayName) document.getElementById('m-name').value = result.user.displayName;
+                showProfileForm();
+            }).catch((error) => {
+                alert("Googleログインに失敗しました: " + error.message);
+            });
+        }
+
+        // ================= メール＆パスワードログイン/登録 =================
+        function loginWithEmail() {
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            if(!email || !password) return alert("メールアドレスとパスワードを入力してください");
+            if(password.length < 6) return alert("パスワードは6文字以上で入力してください");
+
+            // まずログインを試す
+            firebase.auth().signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                currentUserUid = userCredential.user.uid;
+                showProfileForm();
+            })
+            .catch((error) => {
+                // アカウントが存在しない場合は、新規作成を試す
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-login-credentials' || error.code === 'auth/invalid-credential') {
+                    firebase.auth().createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        currentUserUid = userCredential.user.uid;
+                        showProfileForm();
+                    })
+                    .catch((err) => { alert("アカウント作成エラー: " + err.message); });
+                } else {
+                    alert("ログインエラー: パスワードが間違っているか、通信環境を確認してください。");
+                }
+            });
+        }
+
+        function showProfileForm() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('profile-form').style.display = 'block';
+        }
+
+        // ================= メンバー情報の保存 =================
+        async function submitMember(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true; submitBtn.innerText = "登録中...";
+
+            // 過去の参加歴を検索してリピーターか判定
+            const pastSnapshot = await db.collection('members').where('uid', '==', currentUserUid).get();
+            let isExperienced = false;
+            let pastTeams = [];
+            
+            pastSnapshot.forEach(doc => {
+                if(doc.data().teamId !== teamId) {
+                    isExperienced = true;
+                    pastTeams.push(doc.data().teamName);
+                }
+            });
+
+            await db.collection('members').add({
+                teamId: teamId,
+                teamName: currentTeamName,
+                uid: currentUserUid,
+                name: document.getElementById('m-name').value,
+                grade: document.getElementById('m-grade').value,
+                isExperienced: isExperienced,
+                pastTeams: pastTeams,
+                registeredAt: new Date()
+            });
+
+            document.getElementById('profile-form').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'block';
+
+            document.getElementById('go-play-btn').onclick = () => {
+                window.location.href = `play.html?teamId=${teamId}`;
+            };
+        }
+    </script>
+</body>
+</html>
