@@ -4,53 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#050505">
-    
-    <title>整理券発行 - 恐怖の廃校</title>
+    <title>予約画面 - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="firebase-config.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&display=swap" rel="stylesheet">
-    
     <style>
-        @font-face {
-            font-family: 'OnryouFont';
-            src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype');
-            font-weight: normal; font-style: normal; font-display: swap;
-        }
-
-        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby, select { 
-            font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
-        }
-
-        body { 
-            background-color: #030303; 
-            color: #d1d1d1; 
-            overflow-x: hidden; 
-            min-height: 100dvh; 
-        }
-
-        .text-blood-dark {
-            background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9));
-        }
-        
+        @font-face { font-family: 'OnryouFont'; src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby, select { font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; }
+        body { background-color: #030303; color: #d1d1d1; overflow-x: hidden; min-height: 100dvh; }
+        .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
         .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
-
-        @keyframes swing {
-            0% { transform: rotate(-2.5deg); }
-            100% { transform: rotate(2.5deg); }
-        }
+        @keyframes swing { 0% { transform: rotate(-2.5deg); } 100% { transform: rotate(2.5deg); } }
         .spider-shadow { filter: drop-shadow(0 3px 5px rgba(0,0,0,0.9)); }
     </style>
 </head>
 <body class="relative">
-
-    <!-- 蜘蛛の巣背景 -->
     <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
 
     <div class="max-w-2xl mx-auto p-6 relative z-20 mt-4 mb-12">
@@ -65,14 +36,14 @@
         </div>
 
         <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm mt-6">
-            <!-- 【変更】タイトル修正 -->
-            <h1 class="text-4xl sm:text-5xl font-black text-center mb-8 text-blood-dark tracking-widest">整理券発行</h1>
+            <!-- 【変更】タイトルをFirebaseから動的に読み込む -->
+            <h1 id="ticket-page-title" class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">
+                整理券発行
+            </h1>
             
-            <!-- ① 整理券の枠を確保する入力フォーム -->
             <div id="ticket-section">
                 <div class="mb-4">
                     <label class="block font-bold mb-1 text-gray-300">チーム名</label>
-                    <!-- 【変更】プレースホルダー修正 -->
                     <input type="text" id="team-name" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" placeholder="例: 桃山連合" required>
                 </div>
                 <div class="mb-8">
@@ -82,46 +53,31 @@
 
                 <h2 class="text-2xl font-bold mb-4 text-blood-dark border-b border-red-950 pb-2 tracking-widest">ご希望の時間を選択</h2>
                 <div id="slots-container" class="space-y-3"><p class="text-gray-500">読込中...</p></div>
-                
-                <div id="walkin-container" class="mt-6 hidden border-t border-red-950 pt-4">
-                    <button onclick="issueTicket('walkin', '当日枠', 99)" class="w-full bg-red-900 border border-red-700 text-white py-4 rounded hover:bg-red-800 font-bold shadow-btn tracking-widest text-lg">当日枠の整理券を発行する</button>
-                </div>
+                <!-- 【変更】当日枠(walkin)を完全に削除しました -->
             </div>
 
-            <!-- ② メンバー登録用QRとリアルタイム進捗 -->
             <div id="qr-section" class="hidden text-center">
                 <h2 class="text-2xl font-bold text-red-500 mb-4" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">整理券の枠を確保しました</h2>
                 <p class="mb-4 text-white font-bold text-lg border-b border-red-900 pb-2 tracking-widest">※まだ予約は完了していません！</p>
                 <p class="mb-4 text-gray-300 text-sm leading-relaxed">
                     このQRコードまたはURLを<span class="text-red-400 font-bold text-base">メンバー全員</span>に共有し、各自のスマホからアカウント登録を完了させてください。
                 </p>
-                
-                <!-- 【変更】URL直リンクの追加 -->
                 <a id="qr-url-link" href="#" target="_blank" class="block mb-6 text-xs text-blue-400 hover:text-blue-300 underline break-all font-sans"></a>
-
-                <!-- 【変更】QRコード白黒反転デザイン -->
                 <div id="qrcode" class="flex justify-center mb-6 p-4 bg-black border border-gray-700 rounded-lg inline-block shadow-[0_0_20px_rgba(255,255,255,0.1)]"></div>
-                
-                <!-- 【追加】リアルタイム登録人数表示 -->
                 <div class="mb-6 p-4 bg-red-950/40 border border-red-900 rounded-lg inline-block w-full">
                     <p id="registered-count-display" class="text-2xl font-bold text-white tracking-widest mb-1 drop-shadow-md">現在の登録人数: 0 / 0 人</p>
                     <p class="text-xs text-gray-400">全員が登録を完了すると、自動で画面が切り替わります。</p>
                 </div>
             </div>
 
-            <!-- ③ 全員登録完了後の「受付用QRコード」 -->
             <div id="final-qr-section" class="hidden text-center animate-pulse">
                 <h2 class="text-3xl font-bold text-red-600 mb-6 tracking-widest" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">予約が完全に完了しました！</h2>
                 <p class="mb-6 text-gray-300 leading-relaxed text-sm">
                     時間になりましたら受付へお越しいただき、スタッフに以下の<br>
                     <span class="text-red-500 font-bold text-xl block mt-2 tracking-widest">「受付用QRコード」</span>を提示してください。
                 </p>
-                
-                <!-- 【変更】受付用QRも白黒反転デザイン -->
                 <div id="final-qrcode" class="flex justify-center mb-6 p-4 bg-black border border-gray-700 rounded-lg inline-block shadow-[0_0_20px_rgba(255,0,0,0.3)]"></div>
-                
                 <p class="text-xs text-gray-400 mb-8 border-t border-gray-800 pt-4">※画面を閉じる前にスクリーンショットを撮って保存してください。</p>
-                
                 <a href="index.html" class="inline-block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark font-bold text-xl rounded shadow-btn hover:bg-black transition tracking-widest">ホームに戻る</a>
             </div>
 
@@ -138,7 +94,6 @@
             }
         }
 
-        // 蜘蛛の巣ジェネレーター
         function buildSpiderWebs() {
             const container = document.getElementById("spider-web-container");
             const svgNs = "http://www.w3.org/2000/svg";
@@ -160,7 +115,7 @@
                 if (Math.random() < 0.15) {
                     const bLine = document.createElementNS(svgNs, "line");
                     bLine.setAttribute("x1", cx); bLine.setAttribute("y1", cy); bLine.setAttribute("x2", x); bLine.setAttribute("y2", y);
-                    bLine.setAttribute("stroke", "#8a0303"); bLine.setAttribute("stroke-width", "1.6"); bLine.setAttribute("stroke-dasharray", `${Math.random()*10+5} ${Math.random()*40+20}`); bLine.setAttribute("opacity", "0.75");
+                    bLine.setAttribute("stroke", "#8a0303"); bLine.setAttribute("stroke-width", "1.6"); bLine.setAttribute("stroke-dasharray", `${Math.random()*10+5} ${Math.random()*40+20}`); bLine.setAttribute("stroke-dashoffset", `${Math.random()*50}`); bLine.setAttribute("opacity", "0.75");
                     svg.appendChild(bLine);
                 }
                 rays.push({ angle: a, r: r });
@@ -186,32 +141,20 @@
                     }
                 }
             }
-            const spiderPath = "M 0,-5 C 3,-5 6,-1 6,5 C 6,11 3,15 0,15 C -3,15 -6,11 -6,5 C -6,-1 -3,-5 0,-5 Z M 0,-7.5 A 2.5 2.5 0 1 1 0,-7.49 Z M 3,-4 L 11,-9 L 15,-4 M 5,1 L 13,-2 L 19,2 M 5,6 L 15,7 L 19,14 M 4,10 L 11,15 L 13,22 M -3,-4 L -11,-9 L -15,-4 M -5,1 L -13,-2 L -19,2 M -5,6 L -15,7 L -19,14 M -4,10 L -11,15 L -13,22";
-            const masterSpider = document.createElementNS(svgNs, "g"); masterSpider.setAttribute("class", "spider-shadow");
-            masterSpider.innerHTML = `<path d="${spiderPath}" stroke="rgba(255,255,255,0.75)" stroke-width="1.2" fill="rgba(255,255,255,0.75)" stroke-linejoin="round" stroke-linecap="round" /><path d="${spiderPath}" stroke="#000" stroke-width="0.8" fill="#000" stroke-linejoin="round" stroke-linecap="round" />`;
-            const masterR = maxR * 0.35; const masterA = Math.PI / 2 + Math.PI / 4.5;
-            masterSpider.setAttribute("transform", `translate(${cx + Math.cos(masterA) * masterR}, ${cy + Math.sin(masterA) * masterR}) rotate(-50) scale(0.75)`);
-            svg.appendChild(masterSpider);
-            const dropCount = 6 + Math.floor(Math.random() * 4); 
-            for (let i = 0; i < dropCount; i++) {
-                const lx = 20 + Math.random() * (width - 40); const ly = 60 + Math.random() * (height * 0.85);
-                const g = document.createElementNS(svgNs, "g"); g.style.transformOrigin = `${lx}px 0px`; g.style.animation = `swing ${3 + Math.random() * 4}s ease-in-out ${Math.random() * -5}s infinite alternate`;
-                const line = document.createElementNS(svgNs, "line"); line.setAttribute("x1", lx); line.setAttribute("y1", 0); line.setAttribute("x2", lx); line.setAttribute("y2", ly); line.setAttribute("stroke", "rgba(180, 180, 180, 0.6)"); line.setAttribute("stroke-width", "1.0"); g.appendChild(line);
-                if (Math.random() < 0.2) {
-                    const bLine = document.createElementNS(svgNs, "line"); bLine.setAttribute("x1", lx); bLine.setAttribute("y1", 0); bLine.setAttribute("x2", lx); bLine.setAttribute("y2", ly); bLine.setAttribute("stroke", "#8a0303"); bLine.setAttribute("stroke-width", "1.5"); bLine.setAttribute("stroke-dasharray", `${Math.random()*15+5} ${Math.random()*50+20}`); bLine.setAttribute("opacity", "0.75"); g.appendChild(bLine);
-                }
-                const spider = document.createElementNS(svgNs, "g"); spider.setAttribute("class", "spider-shadow"); spider.setAttribute("transform", `translate(${lx}, ${ly}) scale(${0.35 + Math.random() * 0.2})`);
-                spider.innerHTML = `<path d="${spiderPath}" stroke="rgba(255,255,255,0.75)" stroke-width="1.0" fill="rgba(255,255,255,0.75)" stroke-linejoin="round" stroke-linecap="round" /><path d="${spiderPath}" stroke="#000" stroke-width="0.6" fill="#000" stroke-linejoin="round" stroke-linecap="round" />`;
-                g.appendChild(spider); svg.appendChild(g);
-            }
         }
         window.addEventListener('DOMContentLoaded', buildSpiderWebs);
 
+        // 【変更】Firestoreからタイトル設定を読み込んで反映
+        db.collection('settings').doc('config').onSnapshot(doc => {
+            if(doc.exists && doc.data().ticketTitle) {
+                document.getElementById('ticket-page-title').innerText = doc.data().ticketTitle;
+                document.title = `${doc.data().ticketTitle} - 恐怖の廃校`;
+            }
+        });
+
         async function loadSlots() {
             const container = document.getElementById('slots-container'); container.innerHTML = '';
-            const settingsDoc = await db.collection('settings').doc('config').get();
-            if(settingsDoc.exists && settingsDoc.data().walkInActive) document.getElementById('walkin-container').style.display = 'block';
-
+            
             db.collection('slots').onSnapshot(snapshot => {
                 container.innerHTML = '';
                 let slots = [];
@@ -220,7 +163,8 @@
                 slots.sort((a, b) => {
                     const dayA = a.day || 1; const dayB = b.day || 1;
                     if (dayA !== dayB) return dayA - dayB;
-                    return (a.time || "").localeCompare(b.time || "");
+                    const timeA = a.time || ""; const timeB = b.time || "";
+                    return timeA.localeCompare(timeB);
                 });
 
                 slots.forEach(data => {
@@ -248,19 +192,16 @@
             if(!teamName) return alert("チーム名を入力してください");
             if(count > available) return alert("この枠の空き人数が足りません");
 
-            if (slotId !== 'walkin') {
-                const slotRef = db.collection('slots').doc(slotId);
-                try {
-                    await db.runTransaction(async (t) => {
-                        const doc = await t.get(slotRef); 
-                        const newBooked = Number(doc.data().booked) + count;
-                        if (newBooked > Number(doc.data().capacity)) throw "他の人が先に枠を取り満員になりました"; 
-                        t.update(slotRef, { booked: newBooked });
-                    });
-                } catch (e) { alert(e); return; }
-            }
+            const slotRef = db.collection('slots').doc(slotId);
+            try {
+                await db.runTransaction(async (t) => {
+                    const doc = await t.get(slotRef); 
+                    const newBooked = Number(doc.data().booked) + count;
+                    if (newBooked > Number(doc.data().capacity)) throw "他の人が先に枠を取り満員になりました"; 
+                    t.update(slotRef, { booked: newBooked });
+                });
+            } catch (e) { alert(e); return; }
             
-            // チーム情報をFirebaseに確保
             const teamDoc = await db.collection('teams').add({
                 teamName: teamName,
                 timeLabel: timeLabel,
@@ -271,45 +212,30 @@
                 createdAt: new Date()
             });
 
-            // 画面をメンバー登録QRに切り替え
             document.getElementById('ticket-section').style.display = 'none'; 
             document.getElementById('qr-section').style.display = 'block';
             
-            // メンバー登録用URLの生成と表示
             const registerUrl = `${window.location.origin}${window.location.pathname.replace('ticket.html', 'register.html')}?teamId=${teamDoc.id}`;
-            
             document.getElementById('qr-url-link').href = registerUrl;
             document.getElementById('qr-url-link').innerText = registerUrl;
 
-            // 【変更】白QR・黒背景で生成
             new QRCode(document.getElementById("qrcode"), { 
                 text: registerUrl, 
-                width: 200, 
-                height: 200,
-                colorDark: "#ffffff",
-                colorLight: "#000000"
+                width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000"
             });
 
-            // 【追加】メンバーの登録状況をリアルタイムで監視
             db.collection('members').where('teamId', '==', teamDoc.id).onSnapshot(snap => {
                 const registeredCount = snap.size;
-                
-                // 人数表記をリアルタイム更新
                 document.getElementById('registered-count-display').innerText = `現在の登録人数: ${registeredCount} / ${count} 人`;
 
-                // 全員登録完了したら、受付用QRコード画面に切り替える
                 if (registeredCount >= count) {
                     document.getElementById('qr-section').style.display = 'none';
                     document.getElementById('final-qr-section').style.display = 'block';
 
-                    // 受付用QRを生成 (白QR・黒背景)
                     if (!document.getElementById("final-qrcode").hasChildNodes()) {
                         new QRCode(document.getElementById("final-qrcode"), { 
                             text: teamDoc.id, 
-                            width: 200, 
-                            height: 200,
-                            colorDark: "#ffffff",
-                            colorLight: "#000000"
+                            width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000"
                         });
                     }
                 }
