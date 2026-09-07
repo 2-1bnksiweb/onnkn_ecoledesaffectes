@@ -1,61 +1,44 @@
-　<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>運営統合システム - 恐怖の廃校</title>
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="firebase-config.js"></script>
-
     <style>
         body { background-color: #111; color: #eee; font-family: sans-serif; }
-        .font-mono { font-family: 'Courier New', Courier, monospace; }
         .tab-active { border-bottom: 4px solid #ef4444; color: #ef4444; font-weight: bold; }
         .tab-inactive { border-bottom: 1px solid #333; color: #888; }
         input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     </style>
 </head>
 <body>
-
     <div class="max-w-4xl mx-auto p-4">
         <h1 class="text-2xl font-bold text-center text-red-500 mb-6">【運営】管理システム</h1>
-
         <nav class="flex mb-6 bg-gray-900 rounded-t-lg overflow-hidden">
             <button id="btn-qr" onclick="switchTab('qr')" class="flex-1 py-4 text-center tab-active transition">📷 QR受付</button>
             <button id="btn-timer" onclick="switchTab('timer')" class="flex-1 py-4 text-center tab-inactive transition">⏱ タイマー</button>
             <button id="btn-admin" onclick="switchTab('admin')" class="flex-1 py-4 text-center tab-inactive transition">⚙️ 設定</button>
         </nav>
 
-        <!-- =======================================================
-             📷 タブ1：QR受付
-             ======================================================= -->
         <div id="tab-qr">
             <div id="reader-container" class="bg-gray-800 p-6 rounded-lg shadow text-center">
                 <h2 class="text-xl font-bold mb-6 text-white">お客様の受付QRをスキャン</h2>
                 <div id="reader" class="w-full bg-black rounded overflow-hidden hidden mb-4"></div>
                 <button id="btn-start-camera" onclick="startCamera()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 rounded-lg text-xl shadow-lg">📸 カメラを起動する</button>
             </div>
-
             <div id="team-confirm-section" class="hidden bg-gray-800 p-6 rounded-lg shadow border border-red-500 mt-4">
                 <h2 class="text-2xl font-bold text-green-400 mb-4">チーム情報を確認しました</h2>
                 <h3 id="scanned-team-name" class="text-3xl font-bold text-white mb-2"></h3>
                 <ul id="scanned-members" class="mb-6 text-gray-300 list-disc list-inside pl-4"></ul>
-                
                 <label class="block font-bold mb-2 text-yellow-400">挑戦する謎（問題）</label>
-                <select id="puzzle-select" class="w-full p-3 rounded bg-gray-700 text-white mb-4 border border-gray-600 focus:outline-none">
-                    <option value="">(読込中...)</option>
-                </select>
-
+                <select id="puzzle-select" class="w-full p-3 rounded bg-gray-700 text-white mb-4 border border-gray-600 focus:outline-none"><option value="">(読込中...)</option></select>
                 <label class="block font-bold mb-2 text-yellow-400">参加は何回目ですか？</label>
-                <select id="play-count-select" class="w-full p-3 rounded bg-gray-700 text-white mb-6 border border-gray-600 focus:outline-none">
-                    <option value="1">1回目（初回ランキングへ）</option>
-                    <option value="2">2回目以上（リピーターランキングへ）</option>
-                </select>
-
+                <select id="play-count-select" class="w-full p-3 rounded bg-gray-700 text-white mb-6 border border-gray-600 focus:outline-none"><option value="1">1回目（初回ランキング）</option><option value="2">2回目以上（猛者ランキング）</option></select>
                 <div class="flex gap-4">
                     <button onclick="cancelScan()" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-4 rounded">キャンセル</button>
                     <button id="btn-start-team" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded">タイマーへ送る</button>
@@ -63,83 +46,46 @@
             </div>
         </div>
 
-        <!-- =======================================================
-             ⏱ タブ2：タイマーリスト
-             ======================================================= -->
         <div id="tab-timer" class="hidden">
             <h2 class="text-xl font-bold mb-4 text-red-400 border-b border-red-900 pb-2">現在プレイ中のチーム</h2>
-            <div id="timer-list" class="space-y-4">
-                <p class="text-gray-500">プレイ中のチームはありません。</p>
-            </div>
+            <div id="timer-list" class="space-y-4"><p class="text-gray-500">プレイ中のチームはありません。</p></div>
         </div>
 
-        <!-- =======================================================
-             ⚙️ タブ3：設定
-             ======================================================= -->
         <div id="tab-admin" class="hidden space-y-8">
-            
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">テキスト設定</h2>
                 <label class="block text-gray-300 font-bold mb-2">ホーム画面 あらすじ</label>
-                <textarea id="story-text-input" rows="4" class="w-full bg-gray-900 text-white border border-gray-600 p-3 mb-4 rounded focus:outline-none focus:border-red-500"></textarea>
-                
-                <label class="block text-gray-300 font-bold mb-2">予約画面のタイトル</label>
-                <input type="text" id="ticket-title-input" class="w-full bg-gray-900 text-white border border-gray-600 p-3 mb-6 rounded focus:outline-none focus:border-red-500" placeholder="例: 整理券発行">
-                
+                <textarea id="story-text-input" rows="4" class="w-full bg-gray-900 text-white border border-gray-600 p-3 mb-4 rounded"></textarea>
                 <button onclick="saveTexts()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded font-bold shadow">テキストを保存する</button>
             </div>
-
-            <!-- 謎とイベント（ヒント・サイレン）の登録 -->
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-yellow-500 border-b border-gray-700 pb-2">謎（問題）とイベントの設定</h2>
-                
                 <div class="mb-6 bg-gray-900 p-4 rounded border border-gray-600">
-                    <label class="block text-gray-300 font-bold mb-2">問題のナンバリング (例: 問題A, 難問Ver)</label>
-                    <input type="text" id="puzzle-name" class="w-full bg-gray-800 text-white border border-gray-600 p-3 mb-6 rounded focus:outline-none focus:border-yellow-500" placeholder="問題名を入力">
-                    
+                    <label class="block text-gray-300 font-bold mb-2">問題のナンバリング (例: 問題A)</label>
+                    <input type="text" id="puzzle-name" class="w-full bg-gray-800 text-white border border-gray-600 p-3 mb-6 rounded" placeholder="問題名を入力">
                     <label class="block text-gray-300 font-bold mb-2">この問題のイベント（ヒント / アラーム）</label>
-                    <div id="hint-fields-container" class="space-y-3">
-                        <!-- イベント入力欄がここに追加されます -->
-                    </div>
-                    <button onclick="addHintField()" class="text-yellow-400 hover:text-yellow-300 text-sm mt-4 font-bold block">+ ヒント・アラームを追加</button>
-                    
-                    <button onclick="savePuzzle()" class="mt-8 w-full bg-yellow-600 hover:bg-yellow-500 text-white px-6 py-4 rounded font-bold shadow text-lg">この問題とイベントを登録する</button>
+                    <div id="hint-fields-container" class="space-y-3"></div>
+                    <button onclick="addHintField()" class="text-yellow-400 hover:text-yellow-300 text-sm mt-4 font-bold block">+ イベントを追加</button>
+                    <button onclick="savePuzzle()" class="mt-8 w-full bg-yellow-600 hover:bg-yellow-500 text-white px-6 py-4 rounded font-bold text-lg">この問題とイベントを登録する</button>
                 </div>
-
                 <h3 class="font-bold text-gray-400 mb-2 border-b border-gray-700 pb-2">登録済みの問題一覧</h3>
                 <ul id="puzzles-admin-list" class="space-y-3 mt-4"></ul>
             </div>
-
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">機能スイッチ</h2>
                 <div class="flex items-center justify-between py-2">
                     <span class="font-bold text-gray-200">2回目以降ランキングの公開</span>
                     <label class="flex items-center cursor-pointer">
-                        <div class="relative">
-                            <input type="checkbox" id="toggle-repeater" class="sr-only" onchange="toggleRepeater()">
-                            <div id="toggle-bg" class="block w-14 h-8 rounded-full transition-colors duration-300 bg-gray-600"></div>
-                            <div id="toggle-dot" class="absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 transform"></div>
-                        </div>
+                        <div class="relative"><input type="checkbox" id="toggle-repeater" class="sr-only" onchange="toggleRepeater()"><div id="toggle-bg" class="block w-14 h-8 rounded-full transition-colors bg-gray-600"></div><div id="toggle-dot" class="absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform transform"></div></div>
                     </label>
                 </div>
             </div>
-
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">整理券 枠の追加</h2>
                 <div class="flex flex-col md:flex-row gap-3 mb-6 bg-gray-900 p-4 rounded border border-gray-600">
-                    <select id="slot-day" class="border border-gray-600 bg-gray-800 text-white p-3 rounded focus:outline-none focus:border-red-500 font-bold">
-                        <option value="1">1日目</option>
-                        <option value="2">2日目</option>
-                    </select>
-                    <div class="flex items-center gap-2 flex-1">
-                        <input type="time" id="slot-time-start" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold shadow-inner" style="color-scheme: light;">
-                        <span class="text-gray-400 font-bold">〜</span>
-                        <input type="time" id="slot-time-end" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold shadow-inner" style="color-scheme: light;">
-                    </div>
-                    <div class="flex gap-2 mt-2 md:mt-0">
-                        <input type="number" id="slot-cap" placeholder="定員" class="border border-gray-400 bg-white text-black p-3 w-20 md:w-24 rounded font-bold shadow-inner" style="color-scheme: light;">
-                        <button onclick="addSlot()" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded font-bold shadow flex-1 md:flex-none">追加</button>
-                    </div>
+                    <select id="slot-day" class="border border-gray-600 bg-gray-800 text-white p-3 rounded font-bold"><option value="1">1日目</option><option value="2">2日目</option></select>
+                    <div class="flex items-center gap-2 flex-1"><input type="time" id="slot-time-start" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold" style="color-scheme: light;"><span class="text-gray-400 font-bold">〜</span><input type="time" id="slot-time-end" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold" style="color-scheme: light;"></div>
+                    <div class="flex gap-2 mt-2 md:mt-0"><input type="number" id="slot-cap" placeholder="定員" class="border border-gray-400 bg-white text-black p-3 w-24 rounded font-bold" style="color-scheme: light;"><button onclick="addSlot()" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded font-bold flex-1 md:flex-none">追加</button></div>
                 </div>
                 <h3 class="font-bold text-gray-400 mb-2 border-b border-gray-700 pb-2">現在の枠一覧</h3>
                 <ul id="slots-admin-list" class="space-y-2 mt-4"></ul>
@@ -148,234 +94,117 @@
     </div>
 
     <script>
-        function switchTab(tabId) {
-            ['qr', 'timer', 'admin'].forEach(id => {
-                document.getElementById(`tab-${id}`).style.display = (id === tabId) ? 'block' : 'none';
-                document.getElementById(`btn-${id}`).className = (id === tabId) ? "flex-1 py-4 text-center tab-active transition" : "flex-1 py-4 text-center tab-inactive hover:bg-gray-800 transition";
-            });
-        }
-
-        // ================= タブ1: QRスキャナー =================
+        function switchTab(t) { ['qr','timer','admin'].forEach(id => { document.getElementById(`tab-${id}`).style.display=(id===t)?'block':'none'; document.getElementById(`btn-${id}`).className=(id===t)?"flex-1 py-4 text-center tab-active transition":"flex-1 py-4 text-center tab-inactive hover:bg-gray-800 transition"; }); }
         let html5QrCode; let currentTeamId = null;
         function startCamera() {
-            document.getElementById('btn-start-camera').style.display = 'none'; document.getElementById('reader').style.display = 'block';
+            document.getElementById('btn-start-camera').style.display='none'; document.getElementById('reader').style.display='block';
             html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, (err) => {}).catch(err => {
-                alert("カメラ起動失敗。Safariの設定でカメラを許可してください。"); document.getElementById('btn-start-camera').style.display = 'block'; document.getElementById('reader').style.display = 'none';
-            });
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, (err) => {}).catch(e => { alert("カメラ起動失敗。"); document.getElementById('btn-start-camera').style.display='block'; document.getElementById('reader').style.display='none'; });
         }
-
-        async function onScanSuccess(decodedText) {
+        async function onScanSuccess(t) {
             if (window.isScanning) return; window.isScanning = true;
-            if(html5QrCode) { try { await html5QrCode.stop(); html5QrCode.clear(); } catch(e) {} }
+            if(html5QrCode) { try { await html5QrCode.stop(); html5QrCode.clear(); } catch(e){} }
             try {
-                const doc = await db.collection('teams').doc(decodedText).get();
+                const doc = await db.collection('teams').doc(t).get();
                 if(!doc.exists) { alert("無効なQRです。"); cancelScan(); return; }
                 const data = doc.data();
                 if(data.status !== 'registered') { alert("追加済み、または終了したチームです。"); cancelScan(); return; }
-                
-                currentTeamId = decodedText;
-                document.getElementById('reader-container').style.display = 'none'; document.getElementById('team-confirm-section').style.display = 'block';
+                currentTeamId = t;
+                document.getElementById('reader-container').style.display='none'; document.getElementById('team-confirm-section').style.display='block';
                 document.getElementById('scanned-team-name').innerText = data.teamName;
                 document.getElementById('scanned-members').innerHTML = data.members.map(m => `<li>${m.grade} ${m.name}</li>`).join('');
-                
                 document.getElementById('btn-start-team').onclick = async () => {
-                    const playCount = parseInt(document.getElementById('play-count-select').value);
-                    const puzzleId = document.getElementById('puzzle-select').value;
-                    if (!puzzleId) return alert("挑戦する問題（謎）を選択してください！");
-
-                    await db.collection('teams').doc(currentTeamId).update({ 
-                        status: 'playing', playCount: playCount, puzzleId: puzzleId
-                    });
-                    alert("タイマーリストに追加しました！");
-                    cancelScan(); switchTab('timer');
+                    const pc = parseInt(document.getElementById('play-count-select').value); const pId = document.getElementById('puzzle-select').value;
+                    if (!pId) return alert("挑戦する問題を選択してください！");
+                    await db.collection('teams').doc(currentTeamId).update({ status: 'playing', playCount: pc, puzzleId: pId });
+                    alert("タイマーリストに追加しました！"); cancelScan(); switchTab('timer');
                 };
-            } catch (err) { alert("通信エラー\n" + err.message); cancelScan(); }
+            } catch (e) { alert("通信エラー\n" + e.message); cancelScan(); }
         }
-
-        function cancelScan() {
-            currentTeamId = null; window.isScanning = false;
-            document.getElementById('team-confirm-section').style.display = 'none'; document.getElementById('reader-container').style.display = 'block';
-            document.getElementById('btn-start-camera').style.display = 'block'; document.getElementById('reader').style.display = 'none';
-        }
-
-        // ================= タブ2: タイマー同期機能 =================
+        function cancelScan() { currentTeamId = null; window.isScanning = false; document.getElementById('team-confirm-section').style.display='none'; document.getElementById('reader-container').style.display='block'; document.getElementById('btn-start-camera').style.display='block'; document.getElementById('reader').style.display='none'; }
+        
         db.collection('teams').where('status', '==', 'playing').onSnapshot(snap => {
             const list = document.getElementById('timer-list'); list.innerHTML = '';
             if(snap.empty) { list.innerHTML = '<p class="text-gray-500">プレイ中のチームはありません。</p>'; return; }
-
             snap.forEach(doc => {
-                const data = doc.data(); const id = doc.id;
-                let btnText = "▶ 再生"; let btnColor = "bg-green-600 hover:bg-green-500"; let pulseClass = "";
-                if(data.timerState === 'running') { btnText = "⏸ 一時停止"; btnColor = "bg-yellow-600 hover:bg-yellow-500"; pulseClass = "text-red-400"; }
-                
-                const card = document.createElement('div');
-                card.className = "bg-gray-800 border border-gray-700 p-5 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center gap-4";
-                card.innerHTML = `
-                    <div class="flex-1 w-full text-center md:text-left">
-                        <h3 class="text-2xl font-bold text-white mb-1">${data.teamName}</h3>
-                        <p class="text-sm text-gray-400">参加: ${data.playCount}回目</p>
-                    </div>
-                    <div class="text-5xl font-mono ${pulseClass} tracking-widest timer-display font-bold" data-id="${id}" data-state="${data.timerState}" data-start="${data.startTime || 0}" data-acc="${data.accumulatedTime || 0}">00:00.00</div>
-                    <div class="flex gap-2 w-full md:w-auto">
-                        <button onclick="toggleTimer('${id}')" class="flex-1 md:w-32 ${btnColor} text-white font-bold py-4 px-4 rounded transition shadow">${btnText}</button>
-                        <button onclick="finishTimer('${id}')" class="flex-1 md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded transition shadow">決定</button>
-                    </div>
-                `;
-                list.appendChild(card);
+                const d = doc.data(); const id = doc.id;
+                let btn = "▶ 再生"; let col = "bg-green-600"; let p = "";
+                if(d.timerState === 'running') { btn = "⏸ 一時停止"; col = "bg-yellow-600"; p = "text-red-400"; }
+                const c = document.createElement('div'); c.className = "bg-gray-800 border border-gray-700 p-5 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center gap-4";
+                c.innerHTML = `<div class="flex-1 w-full text-center md:text-left"><h3 class="text-2xl font-bold text-white mb-1">${d.teamName}</h3><p class="text-sm text-gray-400">参加: ${d.playCount}回目</p></div><div class="text-5xl font-mono ${p} tracking-widest timer-display font-bold" data-id="${id}" data-state="${d.timerState}" data-start="${d.startTime || 0}" data-acc="${d.accumulatedTime || 0}">00:00.00</div><div class="flex gap-2 w-full md:w-auto"><button onclick="toggleTimer('${id}')" class="flex-1 md:w-32 ${col} text-white font-bold py-4 px-4 rounded shadow">${btn}</button><button onclick="finishTimer('${id}')" class="flex-1 md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded shadow">決定</button></div>`;
+                list.appendChild(c);
             });
         });
-
         setInterval(() => {
             document.querySelectorAll('.timer-display').forEach(el => {
-                if(el.dataset.state === 'running') {
-                    el.innerText = formatTime(parseInt(el.dataset.acc) + (Date.now() - parseInt(el.dataset.start)));
-                } else if(el.dataset.state === 'ready') { 
-                    el.innerText = "00:00.00";
-                } else { 
-                    el.innerText = formatTime(parseInt(el.dataset.acc)); 
-                }
+                if(el.dataset.state === 'running') el.innerText = formatTime(parseInt(el.dataset.acc) + (Date.now() - parseInt(el.dataset.start)));
+                else if(el.dataset.state === 'ready') el.innerText = "00:00.00";
+                else el.innerText = formatTime(parseInt(el.dataset.acc));
             });
         }, 30);
-
         async function toggleTimer(id) {
-            const docRef = db.collection('teams').doc(id); const doc = await docRef.get(); const data = doc.data();
-            if (data.timerState === 'ready' || data.timerState === 'paused') { await docRef.update({ timerState: 'running', startTime: Date.now() }); } 
-            else if (data.timerState === 'running') { await docRef.update({ timerState: 'paused', accumulatedTime: data.accumulatedTime + (Date.now() - data.startTime) }); }
+            const r = db.collection('teams').doc(id); const d = await r.get(); const dt = d.data();
+            if (dt.timerState === 'ready' || dt.timerState === 'paused') await r.update({ timerState: 'running', startTime: Date.now() });
+            else if (dt.timerState === 'running') await r.update({ timerState: 'paused', accumulatedTime: dt.accumulatedTime + (Date.now() - dt.startTime) });
         }
-
         async function finishTimer(id) {
             if(!confirm("タイムを決定してランキングに追加しますか？")) return;
-            const docRef = db.collection('teams').doc(id); const doc = await docRef.get(); const data = doc.data();
-            let finalTime = data.accumulatedTime;
-            if (data.timerState === 'running') finalTime += (Date.now() - data.startTime);
-            try {
-                await db.collection('times').add({ teamName: data.teamName, time: finalTime, count: data.playCount || 1, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
-                await docRef.update({ status: 'finished' }); alert("ランキングに送信完了しました！");
-            } catch (err) { alert("保存に失敗しました。\n" + err.message); }
+            const r = db.collection('teams').doc(id); const d = await r.get(); const dt = d.data();
+            let ft = dt.accumulatedTime; if (dt.timerState === 'running') ft += (Date.now() - dt.startTime);
+            try { await db.collection('times').add({ teamName: dt.teamName, time: ft, count: dt.playCount || 1, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); await r.update({ status: 'finished' }); alert("送信完了！"); } catch (e) { alert("エラー: " + e.message); }
         }
+        function formatTime(ms) { const m = Math.floor(ms / 60000).toString().padStart(2, '0'); const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0'); const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0'); return `${m}:${s}.${c}`; }
 
-        function formatTime(ms) {
-            const m = Math.floor(ms / 60000).toString().padStart(2, '0'); const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0'); const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0'); return `${m}:${s}.${c}`;
-        }
-
-        // ================= タブ3: その他の設定 =================
-        function updateToggleUI(isActive) {
-            const bg = document.getElementById('toggle-bg'); const dot = document.getElementById('toggle-dot'); const checkbox = document.getElementById('toggle-repeater');
-            checkbox.checked = isActive;
-            if (isActive) { bg.classList.remove('bg-gray-600'); bg.classList.add('bg-green-500'); dot.classList.add('translate-x-6'); } 
+        function updateToggleUI(act) {
+            const bg = document.getElementById('toggle-bg'); const dot = document.getElementById('toggle-dot'); document.getElementById('toggle-repeater').checked = act;
+            if (act) { bg.classList.remove('bg-gray-600'); bg.classList.add('bg-green-500'); dot.classList.add('translate-x-6'); } 
             else { bg.classList.add('bg-gray-600'); bg.classList.remove('bg-green-500'); dot.classList.remove('translate-x-6'); }
         }
-
         db.collection('settings').doc('config').onSnapshot(doc => {
-            let data = { showRepeaters: false, storyText: "", ticketTitle: "整理券発行" };
-            if(doc.exists) data = Object.assign(data, doc.data());
-            else db.collection('settings').doc('config').set(data);
-            
-            document.getElementById('story-text-input').value = data.storyText || "";
-            document.getElementById('ticket-title-input').value = data.ticketTitle || "整理券発行";
-            updateToggleUI(data.showRepeaters);
+            let data = { showRepeaters: false, storyText: "" };
+            if(doc.exists) data = Object.assign(data, doc.data()); else db.collection('settings').doc('config').set(data);
+            document.getElementById('story-text-input').value = data.storyText || ""; updateToggleUI(data.showRepeaters);
         });
-
-        async function saveTexts() { 
-            try { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value, ticketTitle: document.getElementById('ticket-title-input').value }, {merge: true}); alert("テキスト設定を保存しました！"); } catch (err) { alert("保存失敗: " + err.message); }
-        }
+        async function saveTexts() { try { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true}); alert("保存しました！"); } catch (e) { alert("エラー: " + e.message); } }
+        async function toggleRepeater() { try { await db.collection('settings').doc('config').set({ showRepeaters: document.getElementById('toggle-repeater').checked }, {merge: true}); } catch (e) { alert("エラー: " + e.message); } }
         
-        async function toggleRepeater() { 
-            try { const checkbox = document.getElementById('toggle-repeater'); await db.collection('settings').doc('config').set({ showRepeaters: checkbox.checked }, {merge: true}); } catch (err) { alert("設定変更失敗: " + err.message); }
-        }
-        
-        // ---------------- 枠の追加 ----------------
-        async function addSlot() {
-            const day = document.getElementById('slot-day').value; 
-            const start = document.getElementById('slot-time-start').value; 
-            const end = document.getElementById('slot-time-end').value; 
-            const capacity = parseInt(document.getElementById('slot-cap').value);
-            
-            if(!start || !end || !capacity) return alert("時間と定員をすべて入力してください");
-            try { 
-                await db.collection('slots').add({ day: parseInt(day), time: `${start}〜${end}`, capacity: capacity, booked: 0 }); 
-                document.getElementById('slot-time-start').value = ''; 
-                document.getElementById('slot-time-end').value = ''; 
-                document.getElementById('slot-cap').value = ''; 
-            } catch (err) { 
-                alert("枠の追加に失敗しました。\n詳細: " + err.message); 
-            }
-        }
-
-        db.collection('slots').onSnapshot(snap => {
-            const list = document.getElementById('slots-admin-list'); list.innerHTML = '';
-            let slots = []; snap.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
-            slots.sort((a, b) => { const dayA = a.day || 1; const dayB = b.day || 1; if (dayA !== dayB) return dayA - dayB; return (a.time || "").localeCompare(b.time || ""); });
-            slots.forEach(d => {
-                const dayLabel = d.day ? `<span class="bg-blue-900 text-blue-200 px-2 py-1 rounded text-xs mr-2 font-bold">${d.day}日目</span>` : "";
-                list.innerHTML += `<li class="flex justify-between items-center bg-gray-800 border border-gray-700 p-3 rounded"><span class="text-white font-bold">${dayLabel}${d.time} <span class="text-gray-400 text-sm font-normal ml-2">(定員: ${d.capacity} / 予約済: ${d.booked})</span></span><button onclick="if(confirm('削除しますか？')) db.collection('slots').doc('${d.id}').delete()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-sm font-bold shadow text-white">削除</button></li>`;
-            });
-        });
-
-        // ---------------- 謎とイベントの追加 ----------------
         function addHintField() {
-            const container = document.getElementById('hint-fields-container');
-            const div = document.createElement('div');
-            div.className = "flex flex-col md:flex-row items-start md:items-center gap-2 hint-item bg-gray-800 border border-gray-700 p-3 rounded";
-            div.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <input type="number" placeholder="時間" class="w-20 bg-gray-900 text-white border border-gray-600 p-2 rounded hint-time" min="0" step="0.1">
-                    <span class="text-gray-400 font-bold whitespace-nowrap">分後</span>
-                </div>
-                <select class="bg-gray-900 text-white border border-gray-600 p-2 rounded event-type w-full md:w-auto">
-                    <option value="hint">💡 ヒント</option>
-                    <option value="alarm">🚨 サイレン</option>
-                </select>
-                <input type="text" placeholder="ヒント内容 (サイレン時は空でOK)" class="flex-1 w-full bg-gray-900 text-white border border-gray-600 p-2 rounded hint-text">
-                <button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-3 py-1 text-xl hover:text-red-400 self-end md:self-auto">×</button>
-            `;
-            container.appendChild(div);
+            const c = document.getElementById('hint-fields-container'); const div = document.createElement('div');
+            div.className = "flex flex-col md:flex-row items-center gap-2 hint-item bg-gray-800 border border-gray-700 p-3 rounded";
+            div.innerHTML = `<div class="flex items-center gap-2"><input type="number" class="w-20 bg-gray-900 text-white border border-gray-600 p-2 rounded hint-time" min="0" step="0.1"><span class="text-gray-400 font-bold">分後</span></div><select class="bg-gray-900 text-white border border-gray-600 p-2 rounded event-type w-full md:w-auto"><option value="hint">💡 ヒント</option><option value="alarm">🚨 サイレン</option></select><input type="text" placeholder="ヒント内容 (サイレンは空でOK)" class="flex-1 w-full bg-gray-900 text-white border border-gray-600 p-2 rounded hint-text"><button onclick="this.parentElement.remove()" class="text-red-500 font-bold px-3 py-1 text-xl">×</button>`;
+            c.appendChild(div);
         }
-
         window.addEventListener('DOMContentLoaded', () => { addHintField(); });
-
         async function savePuzzle() {
-            const name = document.getElementById('puzzle-name').value;
-            if(!name) return alert("問題名を入力してください");
-            
+            const name = document.getElementById('puzzle-name').value; if(!name) return alert("問題名を入力してください");
             const events = [];
             document.querySelectorAll('.hint-item').forEach(item => {
-                const t = item.querySelector('.hint-time').value;
-                const type = item.querySelector('.event-type').value;
-                const text = item.querySelector('.hint-text').value;
-                if(t && (type === 'alarm' || text)) {
-                    events.push({ timeMin: Number(t), timeMs: Number(t) * 60000, type: type, text: text });
-                }
+                const t = item.querySelector('.hint-time').value; const type = item.querySelector('.event-type').value; const text = item.querySelector('.hint-text').value;
+                if(t && (type === 'alarm' || text)) events.push({ timeMin: Number(t), timeMs: Number(t) * 60000, type: type, text: text });
             });
             events.sort((a, b) => a.timeMs - b.timeMs);
-
-            try {
-                await db.collection('puzzles').add({ name, hints: events, createdAt: new Date() });
-                alert("問題とイベントを登録しました！");
-                document.getElementById('puzzle-name').value = '';
-                document.getElementById('hint-fields-container').innerHTML = '';
-                addHintField();
-            } catch(e) { alert("エラー: " + e.message); }
+            try { await db.collection('puzzles').add({ name, hints: events, createdAt: new Date() }); alert("登録しました！"); document.getElementById('puzzle-name').value = ''; document.getElementById('hint-fields-container').innerHTML = ''; addHintField(); } catch(e) { alert("エラー: " + e.message); }
         }
-
         db.collection('puzzles').orderBy('createdAt').onSnapshot(snap => {
-            const list = document.getElementById('puzzles-admin-list');
-            const select = document.getElementById('puzzle-select');
-            list.innerHTML = '';
-            if(select) select.innerHTML = '<option value="">(挑戦する問題を選択)</option>';
-
+            const list = document.getElementById('puzzles-admin-list'); const select = document.getElementById('puzzle-select');
+            list.innerHTML = ''; if(select) select.innerHTML = '<option value="">(問題を選択)</option>';
             snap.forEach(doc => {
-                const d = doc.data();
-                let hintsText = d.hints.map(h => h.type === 'alarm' ? `${h.timeMin}分:🚨` : `${h.timeMin}分:💡`).join(' / ');
-                if(!hintsText) hintsText = "イベント設定なし";
-                
-                list.innerHTML += `<li class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-800 border border-gray-700 p-4 rounded gap-3">
-                    <div><span class="text-yellow-400 font-bold block mb-1 text-lg">${d.name}</span><span class="text-gray-400 text-sm leading-relaxed">${hintsText}</span></div>
-                    <button onclick="if(confirm('削除しますか？')) db.collection('puzzles').doc('${doc.id}').delete()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded font-bold shadow text-white w-full md:w-auto">削除</button>
-                </li>`;
-                
+                const d = doc.data(); let hText = d.hints.map(h => h.type === 'alarm' ? `${h.timeMin}分:🚨` : `${h.timeMin}分:💡`).join(' / '); if(!hText) hText = "設定なし";
+                list.innerHTML += `<li class="flex flex-col md:flex-row justify-between items-center bg-gray-800 border border-gray-700 p-4 rounded gap-3"><div><span class="text-yellow-400 font-bold block mb-1 text-lg">${d.name}</span><span class="text-gray-400 text-sm">${hText}</span></div><button onclick="if(confirm('削除しますか？')) db.collection('puzzles').doc('${doc.id}').delete()" class="bg-red-600 px-4 py-2 rounded font-bold text-white w-full md:w-auto">削除</button></li>`;
                 if(select) select.innerHTML += `<option value="${doc.id}">${d.name}</option>`;
+            });
+        });
+        async function addSlot() {
+            const d = document.getElementById('slot-day').value; const s = document.getElementById('slot-time-start').value; const e = document.getElementById('slot-time-end').value; const c = parseInt(document.getElementById('slot-cap').value);
+            if(!s || !e || !c) return alert("全て入力してください");
+            try { await db.collection('slots').add({ day: parseInt(d), time: `${s}〜${e}`, capacity: c, booked: 0 }); document.getElementById('slot-time-start').value = ''; document.getElementById('slot-time-end').value = ''; document.getElementById('slot-cap').value = ''; } catch (err) { alert("エラー: " + err.message); }
+        }
+        db.collection('slots').onSnapshot(snap => {
+            const list = document.getElementById('slots-admin-list'); list.innerHTML = ''; let slots = []; snap.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
+            slots.sort((a, b) => { const dA = a.day || 1; const dB = b.day || 1; if (dA !== dB) return dA - dB; return (a.time || "").localeCompare(b.time || ""); });
+            slots.forEach(d => {
+                const l = d.day ? `<span class="bg-blue-900 text-blue-200 px-2 py-1 rounded text-xs mr-2 font-bold">${d.day}日目</span>` : "";
+                list.innerHTML += `<li class="flex justify-between items-center bg-gray-800 border border-gray-700 p-3 rounded"><span class="text-white font-bold">${l}${d.time} <span class="text-gray-400 text-sm ml-2">(定員: ${d.capacity} / 予約: ${d.booked})</span></span><button onclick="if(confirm('削除しますか？')) db.collection('slots').doc('${d.id}').delete()" class="bg-red-600 px-4 py-2 rounded font-bold text-white">削除</button></li>`;
             });
         });
     </script>
