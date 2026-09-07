@@ -40,9 +40,7 @@
                 整理券発行
             </h1>
             
-            <!-- ==============================================
-                 ① 代表者の整理券確保エリア
-                 ============================================== -->
+            <!-- ① 代表者の整理券確保エリア -->
             <div id="ticket-section">
                 <div class="mb-4">
                     <label class="block font-bold mb-1 text-gray-300">チーム名</label>
@@ -82,15 +80,12 @@
                 <div id="final-qrcode" class="flex justify-center mb-6 p-4 bg-black border border-gray-700 rounded-lg inline-block shadow-[0_0_20px_rgba(255,0,0,0.3)]"></div>
                 <p class="text-xs text-gray-400 mb-8 border-t border-gray-800 pt-4">※画面を閉じる前にスクリーンショットを撮って保存してください。</p>
                 
-                <!-- 【変更】代表者は受付後にゲーム待機画面へ飛べるように導線を追加！ -->
                 <a id="go-to-play-leader" href="#" class="block w-full py-4 mb-4 bg-red-900 border border-red-700 text-white font-bold text-xl rounded shadow-btn hover:bg-red-800 transition tracking-widest">ゲーム待機画面へ進む</a>
                 
                 <a href="index.html" class="inline-block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark font-bold text-xl rounded shadow-btn hover:bg-black transition tracking-widest">ホームに戻る</a>
             </div>
 
-            <!-- ==============================================
-                 ② メンバー各自のアカウント登録エリア
-                 ============================================== -->
+            <!-- ② メンバー各自のアカウント登録エリア -->
             <div id="member-register-section" class="hidden">
                 <h1 class="text-3xl font-bold text-center mb-6 text-blood-dark tracking-widest">チーム参加登録</h1>
                 <p id="team-display" class="text-center font-bold text-xl mb-6 text-red-500 border border-red-950 py-3 rounded bg-black/50 tracking-widest">読込中...</p>
@@ -128,7 +123,6 @@
                     <button type="submit" class="w-full bg-[#260101] border border-[#520202] text-blood-dark py-4 rounded font-bold hover:bg-black transition shadow-btn text-xl tracking-widest">このチームに登録する</button>
                 </form>
 
-                <!-- 【変更】メンバーは登録が完了したら「ホーム画面へ戻る」に修正 -->
                 <div id="success-msg" class="hidden text-center mt-6">
                     <h2 class="text-3xl font-bold text-red-600 mb-4" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">登録完了！</h2>
                     <p class="text-gray-300 mb-8 leading-relaxed text-sm sm:text-base">チームへの参加登録が完了しました。<br>時間になりましたら代表者と共に受付へお越しください。</p>
@@ -149,7 +143,7 @@
             }
         }
 
-        // 蜘蛛の巣ジェネレーター
+        // 蜘蛛の巣背景
         function buildSpiderWebs() {
             const container = document.getElementById("spider-web-container");
             const svgNs = "http://www.w3.org/2000/svg";
@@ -200,9 +194,6 @@
         }
         window.addEventListener('DOMContentLoaded', buildSpiderWebs);
 
-        // =========================================================
-        // 処理の切り分け（整理券確保モード or メンバー登録モード）
-        // =========================================================
         const urlParams = new URLSearchParams(window.location.search);
         const action = urlParams.get('action'); 
         const teamId = urlParams.get('teamId');
@@ -210,17 +201,20 @@
         let currentTeamName = "";
         let currentUserUid = "";
 
-        firebase.auth().getRedirectResult().then((result) => {
-            if (result && result.user) {
-                currentUserUid = result.user.uid;
-                if(result.user.displayName) document.getElementById('m-name').value = result.user.displayName;
-                showProfileForm();
-            }
-        }).catch((error) => {
-            if(error.code !== 'auth/redirect-cancelled-by-user') {
-                alert("Googleログインエラー: アプリ内ブラウザではブロックされます。Safariで開いてください。");
-            }
-        });
+        // ================= 【修正】Googleログイン（小窓ポップアップ方式） =================
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            // リダイレクトではなく「小窓」で開くことで、元のページの状態を維持し確実にログインを完了させる
+            firebase.auth().signInWithPopup(provider).then((result) => {
+                if (result && result.user) {
+                    currentUserUid = result.user.uid;
+                    if(result.user.displayName) document.getElementById('m-name').value = result.user.displayName;
+                    showProfileForm();
+                }
+            }).catch((error) => {
+                alert("Googleログインエラー: \n" + error.message + "\n\n※LINE内ブラウザ等の場合は、画面右下のメニューから「Safari(またはChrome)で開く」を選択してからお試しください。");
+            });
+        }
 
         if (action === 'register') {
             document.getElementById('ticket-page-title').style.display = 'none';
@@ -297,7 +291,6 @@
                 status: 'registered', timerState: 'ready', accumulatedTime: 0, createdAt: new Date()
             });
 
-            // 自分が「代表者」であることをスマホに記憶させる
             localStorage.setItem('isLeader_' + teamDoc.id, 'true');
 
             document.getElementById('ticket-section').style.display = 'none'; 
@@ -321,7 +314,6 @@
                     document.getElementById('qr-section').style.display = 'none';
                     document.getElementById('final-qr-section').style.display = 'block';
                     
-                    // 代表者がゲーム画面に進むためのURLをセット
                     document.getElementById('go-to-play-leader').href = `play.html?teamId=${teamDoc.id}`;
 
                     if (!document.getElementById("final-qrcode").hasChildNodes()) {
@@ -331,12 +323,6 @@
                     }
                 }
             });
-        }
-
-        // ================= メンバー：アカウント登録処理 =================
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithRedirect(provider);
         }
 
         function loginWithEmail() {
@@ -359,52 +345,3 @@
                     .then((userCredential) => {
                         currentUserUid = userCredential.user.uid;
                         document.getElementById('login-section').style.opacity = '1';
-                        showProfileForm();
-                    })
-                    .catch((err) => { 
-                        document.getElementById('login-section').style.opacity = '1';
-                        if (err.code === 'auth/email-already-in-use') alert("ログインエラー：パスワードが間違っています。");
-                        else if (err.code === 'auth/operation-not-allowed') alert("エラー：Firebaseで「メール/パスワード」が無効になっています！");
-                        else alert("通信エラー\n" + err.message); 
-                    });
-                } else {
-                    document.getElementById('login-section').style.opacity = '1';
-                    alert("通信エラーが発生しました。");
-                }
-            });
-        }
-
-        function showProfileForm() {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('profile-form').style.display = 'block';
-        }
-
-        // 【修正】メンバーは登録が完了したら、ゲーム待機ではなく「ホーム」に戻す
-        async function submitMember(e) {
-            e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.disabled = true; submitBtn.innerText = "登録中...";
-
-            const pastSnapshot = await db.collection('members').where('uid', '==', currentUserUid).get();
-            let isExperienced = false;
-            let pastTeams = [];
-            
-            pastSnapshot.forEach(doc => {
-                if(doc.data().teamId !== teamId) {
-                    isExperienced = true;
-                    pastTeams.push(doc.data().teamName);
-                }
-            });
-
-            await db.collection('members').add({
-                teamId: teamId, teamName: currentTeamName, uid: currentUserUid,
-                name: document.getElementById('m-name').value, grade: document.getElementById('m-grade').value,
-                isExperienced: isExperienced, pastTeams: pastTeams, registeredAt: new Date()
-            });
-
-            document.getElementById('profile-form').style.display = 'none';
-            document.getElementById('success-msg').style.display = 'block';
-        }
-    </script>
-</body>
-</html>
