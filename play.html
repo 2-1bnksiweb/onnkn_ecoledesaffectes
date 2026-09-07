@@ -16,6 +16,7 @@
         .font-mono { font-family: 'Share Tech Mono', monospace !important; }
         .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
         
+        /* 🚨 サイレン発動時のフラッシュエフェクト */
         @keyframes alarmFlash { 0%, 100% { background-color: rgba(255, 0, 0, 0.4); } 50% { background-color: rgba(255, 0, 0, 0.8); } }
         .alarm-active { animation: alarmFlash 0.5s infinite; }
     </style>
@@ -24,12 +25,8 @@
 
     <div id="waiting-screen" class="text-center w-full max-w-md z-20">
         <h1 class="text-3xl font-bold text-red-500 mb-8 tracking-widest text-blood-dark">システム接続完了</h1>
-        <p class="text-gray-400 mb-8 leading-relaxed">
-            受付のスタッフにQRコードを提示し、<br>開始の指示があるまでお待ちください。
-        </p>
-        <button onclick="readyPlayer()" class="w-full bg-red-900 border border-red-700 text-white py-6 rounded-lg font-bold text-2xl shadow-[0_0_15px_rgba(255,0,0,0.5)] animate-pulse tracking-widest">
-            ゲームに接続して待機する
-        </button>
+        <p class="text-gray-400 mb-8 leading-relaxed">受付のスタッフにQRコードを提示し、<br>開始の指示があるまでお待ちください。</p>
+        <button onclick="readyPlayer()" class="w-full bg-red-900 border border-red-700 text-white py-6 rounded-lg font-bold text-2xl shadow-[0_0_15px_rgba(255,0,0,0.5)] animate-pulse tracking-widest">ゲームに接続して待機する</button>
     </div>
 
     <div id="playing-screen" class="hidden w-full max-w-lg flex-col items-center justify-center h-full z-20">
@@ -41,7 +38,6 @@
                 <div id="team-timer" class="text-6xl sm:text-7xl font-mono text-red-500 font-bold drop-shadow-[0_0_8px_#ff0000]">00:00.00</div>
             </div>
 
-            <!-- 💡 動的にヒントが追加されるコンテナ -->
             <div id="hints-container" class="space-y-4 mb-4 text-left"></div>
             
             <button id="stop-alarm-btn" onclick="stopHorrorSiren()" class="hidden w-full bg-red-600 text-white py-6 rounded-lg font-bold text-3xl shadow-[0_0_25px_#ff0000] animate-pulse tracking-widest mt-8 border-4 border-red-400">
@@ -52,9 +48,7 @@
         <!-- メンバーの画面 -->
         <div id="member-view" class="hidden w-full text-center">
             <div class="bg-gray-900/50 border border-gray-700 p-8 rounded-lg shadow-lg">
-                <p class="text-xl text-gray-400 leading-loose tracking-widest">
-                    ※残り時間および脱出のヒントは、<br><span class="text-red-500 font-bold">代表者の端末</span>にのみ表示されます。
-                </p>
+                <p class="text-xl text-gray-400 leading-loose tracking-widest">※残り時間および脱出のヒントやサイレンは、<br><span class="text-red-500 font-bold">代表者の端末</span>のみ連動して作動します。</p>
             </div>
         </div>
     </div>
@@ -88,11 +82,16 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }
 
+        // ==========================================
+        // 🚨 サイレン処理
+        // ==========================================
         function playHorrorSiren() {
             if (hasAlarmPlayed) return;
-            hasAlarmPlayed = true;
+            hasAlarmPlayed = true; // 重複起動防止
+            
             document.getElementById('alarm-overlay').style.display = 'block';
             document.getElementById('stop-alarm-btn').style.display = 'block';
+            
             if (!audioCtx) { const AudioContext = window.AudioContext || window.webkitAudioContext; audioCtx = new AudioContext(); }
             if (audioCtx.state === 'suspended') audioCtx.resume();
 
@@ -109,10 +108,14 @@
 
         function stopHorrorSiren() {
             if (alarmInterval) clearInterval(alarmInterval);
+            hasAlarmPlayed = false; // ボタンで止めたらリセットし、次のサイレンに備える
             document.getElementById('alarm-overlay').style.display = 'none';
             document.getElementById('stop-alarm-btn').style.display = 'none';
         }
 
+        // ==========================================
+        // ⏱ タイマーとイベント（ヒント/アラーム）の監視ループ
+        // ==========================================
         let timerInterval;
 
         db.collection('teams').doc(teamId).onSnapshot(async doc => {
@@ -121,7 +124,7 @@
             
             if (data.status === 'playing') {
                 
-                // 💡 挑戦する問題のヒントリストを読み込む
+                // 💡 挑戦する問題の「ヒント＆アラーム設定」を読み込む
                 if (!isHintsLoaded && data.puzzleId) {
                     isHintsLoaded = true;
                     const pDoc = await db.collection('puzzles').doc(data.puzzleId).get();
@@ -144,27 +147,28 @@
                 
                 timerInterval = setInterval(() => {
                     let elapsed = data.accumulatedTime;
-                    if (data.timerState === 'running') {
-                        elapsed += (Date.now() - data.startTime);
-                    }
+                    if (data.timerState === 'running') elapsed += (Date.now() - data.startTime);
+                    
                     document.getElementById('team-timer').innerText = formatTime(elapsed);
                     
-                    // 💡 動的ヒントの表示処理
-                    puzzleHints.forEach((hint, idx) => {
-                        if (elapsed >= hint.timeMs && !shownHints.has(idx)) {
-                            shownHints.add(idx);
-                            const container = document.getElementById('hints-container');
-                            const box = document.createElement('div');
-                            box.className = "bg-yellow-950/50 border border-yellow-700 text-yellow-300 p-4 rounded-lg shadow-lg text-left whitespace-pre-wrap animate-pulse";
-                            box.innerHTML = `<span class="font-bold text-white border-b border-yellow-600 block mb-2 pb-1">💡 ${hint.timeMin}分経過 ヒント</span>${hint.text}`;
-                            container.appendChild(box);
+                    // 💡 動的イベント（ヒント or サイレン）の実行
+                    puzzleHints.forEach((event, idx) => {
+                        if (elapsed >= event.timeMs && !shownHints.has(idx)) {
+                            shownHints.add(idx); // 発動済みにマーク
+                            
+                            if (event.type === 'alarm') {
+                                // アラーム発動
+                                playHorrorSiren();
+                            } else {
+                                // ヒント表示
+                                const container = document.getElementById('hints-container');
+                                const box = document.createElement('div');
+                                box.className = "bg-yellow-950/50 border border-yellow-700 text-yellow-300 p-4 rounded-lg shadow-lg text-left whitespace-pre-wrap animate-pulse";
+                                box.innerHTML = `<span class="font-bold text-white border-b border-yellow-600 block mb-2 pb-1">💡 ${event.timeMin}分経過 ヒント</span>${event.text}`;
+                                container.appendChild(box);
+                            }
                         }
                     });
-                    
-                    // 🚨 5分経過でサイレン発動
-                    if (elapsed >= 300000 && !hasAlarmPlayed) {
-                        playHorrorSiren();
-                    }
                     
                 }, 30);
 
