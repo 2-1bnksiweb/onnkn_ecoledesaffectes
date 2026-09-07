@@ -7,6 +7,7 @@
     <title>予約画面 - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="firebase-config.js"></script>
@@ -17,8 +18,6 @@
         body { background-color: #030303; color: #d1d1d1; overflow-x: hidden; min-height: 100dvh; }
         .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
         .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
-        @keyframes swing { 0% { transform: rotate(-2.5deg); } 100% { transform: rotate(2.5deg); } }
-        .spider-shadow { filter: drop-shadow(0 3px 5px rgba(0,0,0,0.9)); }
     </style>
 </head>
 <body class="relative">
@@ -36,11 +35,14 @@
         </div>
 
         <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm mt-6">
-            <!-- 【変更】タイトルをFirebaseから動的に読み込む -->
+            
             <h1 id="ticket-page-title" class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">
                 整理券発行
             </h1>
             
+            <!-- ==============================================
+                 ① 代表者の整理券確保エリア
+                 ============================================== -->
             <div id="ticket-section">
                 <div class="mb-4">
                     <label class="block font-bold mb-1 text-gray-300">チーム名</label>
@@ -53,9 +55,9 @@
 
                 <h2 class="text-2xl font-bold mb-4 text-blood-dark border-b border-red-950 pb-2 tracking-widest">ご希望の時間を選択</h2>
                 <div id="slots-container" class="space-y-3"><p class="text-gray-500">読込中...</p></div>
-                <!-- 【変更】当日枠(walkin)を完全に削除しました -->
             </div>
 
+            <!-- 代表者用：メンバー各自へ送るQR画面 -->
             <div id="qr-section" class="hidden text-center">
                 <h2 class="text-2xl font-bold text-red-500 mb-4" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">整理券の枠を確保しました</h2>
                 <p class="mb-4 text-white font-bold text-lg border-b border-red-900 pb-2 tracking-widest">※まだ予約は完了していません！</p>
@@ -70,6 +72,7 @@
                 </div>
             </div>
 
+            <!-- 全員登録完了後の「受付用QRコード」 -->
             <div id="final-qr-section" class="hidden text-center animate-pulse">
                 <h2 class="text-3xl font-bold text-red-600 mb-6 tracking-widest" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">予約が完全に完了しました！</h2>
                 <p class="mb-6 text-gray-300 leading-relaxed text-sm">
@@ -79,6 +82,53 @@
                 <div id="final-qrcode" class="flex justify-center mb-6 p-4 bg-black border border-gray-700 rounded-lg inline-block shadow-[0_0_20px_rgba(255,0,0,0.3)]"></div>
                 <p class="text-xs text-gray-400 mb-8 border-t border-gray-800 pt-4">※画面を閉じる前にスクリーンショットを撮って保存してください。</p>
                 <a href="index.html" class="inline-block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark font-bold text-xl rounded shadow-btn hover:bg-black transition tracking-widest">ホームに戻る</a>
+            </div>
+
+            <!-- ==============================================
+                 ② メンバー各自のアカウント登録エリア（統合）
+                 ============================================== -->
+            <div id="member-register-section" class="hidden">
+                <h1 class="text-3xl font-bold text-center mb-6 text-blood-dark tracking-widest">チーム参加登録</h1>
+                <p id="team-display" class="text-center font-bold text-xl mb-6 text-red-500 border border-red-950 py-3 rounded bg-black/50 tracking-widest">読込中...</p>
+                
+                <div id="login-section" class="space-y-4">
+                    <p class="text-sm text-gray-400 text-center mb-4 leading-relaxed">本人確認と過去の参加歴確認のため<br>アカウント連携（ログイン）をお願いします。</p>
+                    
+                    <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center bg-gray-200 text-gray-900 py-3 rounded font-bold hover:bg-white transition shadow text-lg font-sans">
+                        <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                        Google で続ける
+                    </button>
+
+                    <div class="text-center text-gray-600 my-4 text-sm font-sans">または</div>
+
+                    <div class="space-y-3">
+                        <input type="email" id="email-input" placeholder="メールアドレス" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded font-sans focus:outline-none focus:border-red-700">
+                        <input type="password" id="password-input" placeholder="パスワード (6文字以上)" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded font-sans focus:outline-none focus:border-red-700">
+                        <button onclick="loginWithEmail()" class="w-full bg-red-950 border border-red-800 text-red-200 py-3 rounded font-bold hover:bg-red-900 transition tracking-widest text-lg">メールで登録 / ログイン</button>
+                        <p class="text-xs text-gray-500 text-center mt-2 font-sans">※アカウントがない場合は自動的に作成されます</p>
+                    </div>
+                </div>
+
+                <form id="profile-form" onsubmit="submitMember(event)" class="hidden">
+                    <div class="mb-4 text-center">
+                        <span class="inline-block bg-red-950 text-red-400 text-sm px-4 py-1 rounded border border-red-800 font-bold tracking-widest">アカウント認証完了</span>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block font-bold mb-1 text-gray-300">お名前 (フルネーム)</label>
+                        <input type="text" id="m-name" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans">
+                    </div>
+                    <div class="mb-8">
+                        <label class="block font-bold mb-1 text-gray-300">学年 (例: 1年, 先生)</label>
+                        <input type="text" id="m-grade" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans">
+                    </div>
+                    <button type="submit" class="w-full bg-[#260101] border border-[#520202] text-blood-dark py-4 rounded font-bold hover:bg-black transition shadow-btn text-xl tracking-widest">このチームに登録する</button>
+                </form>
+
+                <div id="success-msg" class="hidden text-center mt-6">
+                    <h2 class="text-3xl font-bold text-red-600 mb-4" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">登録完了！</h2>
+                    <p class="text-gray-300 mb-8 leading-relaxed">他のメンバーも登録し終えたら<br>下のボタンからゲーム待機画面へ進んでください。</p>
+                    <button id="go-play-btn" class="w-full bg-red-900 border border-red-700 text-white py-4 rounded font-bold text-xl shadow-btn animate-pulse tracking-widest">ゲーム画面へ進む</button>
+                </div>
             </div>
 
         </div>
@@ -94,67 +144,78 @@
             }
         }
 
+        // 蜘蛛の巣背景
         function buildSpiderWebs() {
             const container = document.getElementById("spider-web-container");
             const svgNs = "http://www.w3.org/2000/svg";
             const svg = document.createElementNS(svgNs, "svg");
             svg.setAttribute("width", "100%"); svg.setAttribute("height", "100%");
             container.appendChild(svg);
-            const width = window.innerWidth; const height = window.innerHeight;
-            const cx = width; const cy = 0; const maxR = Math.min(width, height) * 0.9; 
-            const rayCount = 12 + Math.floor(Math.random() * 4); 
-            const angles = [];
-            for (let i = 0; i < rayCount; i++) { angles.push(Math.PI / 2 + (Math.PI / 2) * (i / (rayCount - 1)) + (Math.random() * 0.06 - 0.03)); }
-            const rays = [];
-            angles.forEach(a => {
-                const r = maxR * (0.6 + Math.random() * 0.4); const x = cx + Math.cos(a) * r; const y = cy + Math.sin(a) * r;
+            const cx = window.innerWidth; const cy = 0; const maxR = Math.min(window.innerWidth, window.innerHeight) * 0.9; 
+            for (let i = 0; i < 12; i++) {
+                const a = Math.PI / 2 + (Math.PI / 2) * (i / 11);
+                const r = maxR * 0.8; const x = cx + Math.cos(a) * r; const y = cy + Math.sin(a) * r;
                 const line = document.createElementNS(svgNs, "line");
                 line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
                 line.setAttribute("stroke", "rgba(160, 160, 160, 0.4)"); line.setAttribute("stroke-width", "1.2");
                 svg.appendChild(line);
-                if (Math.random() < 0.15) {
-                    const bLine = document.createElementNS(svgNs, "line");
-                    bLine.setAttribute("x1", cx); bLine.setAttribute("y1", cy); bLine.setAttribute("x2", x); bLine.setAttribute("y2", y);
-                    bLine.setAttribute("stroke", "#8a0303"); bLine.setAttribute("stroke-width", "1.6"); bLine.setAttribute("stroke-dasharray", `${Math.random()*10+5} ${Math.random()*40+20}`); bLine.setAttribute("stroke-dashoffset", `${Math.random()*50}`); bLine.setAttribute("opacity", "0.75");
-                    svg.appendChild(bLine);
-                }
-                rays.push({ angle: a, r: r });
-            });
-            const rings = 12 + Math.floor(Math.random() * 6);
-            for (let rIdx = 1; rIdx <= rings; rIdx++) {
-                const rBase = (maxR / rings) * rIdx;
-                for (let i = 0; i < rayCount - 1; i++) {
-                    if (Math.random() < 0.1) continue; 
-                    const r1 = rBase * (0.95 + Math.random() * 0.1); const r2 = rBase * (0.95 + Math.random() * 0.1);
-                    if (r1 > rays[i].r || r2 > rays[i+1].r) continue;
-                    const x1 = cx + Math.cos(rays[i].angle) * r1; const y1 = cy + Math.sin(rays[i].angle) * r1;
-                    const x2 = cx + Math.cos(rays[i+1].angle) * r2; const y2 = cy + Math.sin(rays[i+1].angle) * r2;
-                    const midAngle = (rays[i].angle + rays[i+1].angle) / 2; const midR = (r1 + r2) / 2 * 0.94; 
-                    const mx = cx + Math.cos(midAngle) * midR; const my = cy + Math.sin(midAngle) * midR;
-                    const path = document.createElementNS(svgNs, "path");
-                    path.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`); path.setAttribute("fill", "none"); path.setAttribute("stroke", "rgba(160, 160, 160, 0.5)"); path.setAttribute("stroke-width", "0.8");
-                    svg.appendChild(path);
-                    if (Math.random() < 0.1) {
-                        const bPath = document.createElementNS(svgNs, "path");
-                        bPath.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`); bPath.setAttribute("fill", "none"); bPath.setAttribute("stroke", "#8a0303"); bPath.setAttribute("stroke-width", "1.3"); bPath.setAttribute("stroke-dasharray", `${Math.random()*8+4} ${Math.random()*30+15}`); bPath.setAttribute("opacity", "0.75");
-                        svg.appendChild(bPath);
-                    }
-                }
             }
         }
         window.addEventListener('DOMContentLoaded', buildSpiderWebs);
 
-        // 【変更】Firestoreからタイトル設定を読み込んで反映
-        db.collection('settings').doc('config').onSnapshot(doc => {
-            if(doc.exists && doc.data().ticketTitle) {
-                document.getElementById('ticket-page-title').innerText = doc.data().ticketTitle;
-                document.title = `${doc.data().ticketTitle} - 恐怖の廃校`;
+        // =========================================================
+        // 処理の切り分け（整理券確保モード or メンバー登録モード）
+        // =========================================================
+        const urlParams = new URLSearchParams(window.location.search);
+        const action = urlParams.get('action'); 
+        const teamId = urlParams.get('teamId');
+
+        let currentTeamName = "";
+        let currentUserUid = "";
+
+        // Googleログインのリダイレクト受け取り処理
+        firebase.auth().getRedirectResult().then((result) => {
+            if (result && result.user) {
+                currentUserUid = result.user.uid;
+                if(result.user.displayName) document.getElementById('m-name').value = result.user.displayName;
+                showProfileForm();
+            }
+        }).catch((error) => {
+            if(error.code !== 'auth/redirect-cancelled-by-user') {
+                alert("Googleログインエラー: アプリ内ブラウザ（LINEやInstagramなど）ではGoogleの仕様によりブロックされます。右下のメニュー等から「Safariで開く」を選ぶか、メールアドレスで登録してください。");
             }
         });
 
+        // 画面の出し分け
+        if (action === 'register') {
+            document.getElementById('ticket-page-title').style.display = 'none';
+            document.getElementById('ticket-section').style.display = 'none';
+            document.getElementById('member-register-section').style.display = 'block';
+            
+            // チーム名取得
+            if(teamId) {
+                db.collection('teams').doc(teamId).get().then(doc => {
+                    if(doc.exists) {
+                        currentTeamName = doc.data().teamName;
+                        document.getElementById('team-display').innerText = `チーム名: ${currentTeamName}`;
+                    } else {
+                        alert("無効なURLです。");
+                    }
+                });
+            }
+        } else {
+            // タイトル読み込みと時間枠の表示
+            db.collection('settings').doc('config').onSnapshot(doc => {
+                if(doc.exists && doc.data().ticketTitle) {
+                    document.getElementById('ticket-page-title').innerText = doc.data().ticketTitle;
+                }
+            });
+            loadSlots();
+        }
+
+        // ================= 代表者：整理券確保処理 =================
         async function loadSlots() {
             const container = document.getElementById('slots-container'); container.innerHTML = '';
-            
             db.collection('slots').onSnapshot(snapshot => {
                 container.innerHTML = '';
                 let slots = [];
@@ -163,8 +224,7 @@
                 slots.sort((a, b) => {
                     const dayA = a.day || 1; const dayB = b.day || 1;
                     if (dayA !== dayB) return dayA - dayB;
-                    const timeA = a.time || ""; const timeB = b.time || "";
-                    return timeA.localeCompare(timeB);
+                    return (a.time || "").localeCompare(b.time || "");
                 });
 
                 slots.forEach(data => {
@@ -173,7 +233,6 @@
                     const available = Number(data.capacity) - Number(data.booked);
                     
                     btn.className = `w-full p-4 rounded text-left font-bold border transition tracking-widest ${isFull ? 'bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed' : 'bg-red-950/40 hover:bg-red-900/60 text-red-200 border-red-900/50 shadow-sm'}`;
-                    
                     const dayLabel = data.day ? `<span class="bg-red-900 text-red-200 px-2 py-0.5 rounded text-xs mr-2 font-bold">${data.day}日目</span>` : "";
                     btn.innerHTML = `${dayLabel}${data.time} (空き: ${available}人)`; 
                     
@@ -203,25 +262,22 @@
             } catch (e) { alert(e); return; }
             
             const teamDoc = await db.collection('teams').add({
-                teamName: teamName,
-                timeLabel: timeLabel,
-                expectedCount: count,
-                status: 'registered',
-                timerState: 'ready',
-                accumulatedTime: 0,
-                createdAt: new Date()
+                teamName: teamName, timeLabel: timeLabel, expectedCount: count,
+                status: 'registered', timerState: 'ready', accumulatedTime: 0, createdAt: new Date()
             });
 
             document.getElementById('ticket-section').style.display = 'none'; 
             document.getElementById('qr-section').style.display = 'block';
             
-            const registerUrl = `${window.location.origin}${window.location.pathname.replace('ticket.html', 'register.html')}?teamId=${teamDoc.id}`;
+            // 💡【重要】メンバー登録画面へのURLを「同じticket.html」に向ける
+            const baseUrl = window.location.href.split('?')[0]; 
+            const registerUrl = `${baseUrl}?action=register&teamId=${teamDoc.id}`;
+            
             document.getElementById('qr-url-link').href = registerUrl;
             document.getElementById('qr-url-link').innerText = registerUrl;
 
             new QRCode(document.getElementById("qrcode"), { 
-                text: registerUrl, 
-                width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000"
+                text: registerUrl, width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000"
             });
 
             db.collection('members').where('teamId', '==', teamDoc.id).onSnapshot(snap => {
@@ -231,18 +287,94 @@
                 if (registeredCount >= count) {
                     document.getElementById('qr-section').style.display = 'none';
                     document.getElementById('final-qr-section').style.display = 'block';
-
                     if (!document.getElementById("final-qrcode").hasChildNodes()) {
                         new QRCode(document.getElementById("final-qrcode"), { 
-                            text: teamDoc.id, 
-                            width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000"
+                            text: teamDoc.id, width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000"
                         });
                     }
                 }
             });
         }
 
-        loadSlots();
+        // ================= メンバー：アカウント登録処理 =================
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithRedirect(provider);
+        }
+
+        function loginWithEmail() {
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            if(!email || !password) return alert("メールアドレスとパスワードを入力してください");
+            if(password.length < 6) return alert("パスワードは6文字以上で入力してください");
+
+            document.getElementById('login-section').style.opacity = '0.5';
+
+            firebase.auth().signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                currentUserUid = userCredential.user.uid;
+                document.getElementById('login-section').style.opacity = '1';
+                showProfileForm();
+            })
+            .catch((error) => {
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-login-credentials' || error.code === 'auth/invalid-credential') {
+                    firebase.auth().createUserWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        currentUserUid = userCredential.user.uid;
+                        document.getElementById('login-section').style.opacity = '1';
+                        showProfileForm();
+                    })
+                    .catch((err) => { 
+                        document.getElementById('login-section').style.opacity = '1';
+                        if (err.code === 'auth/email-already-in-use') alert("ログインエラー：パスワードが間違っています。");
+                        else alert("通信エラー、または無効なメールアドレスです。\n" + err.message); 
+                    });
+                } else {
+                    document.getElementById('login-section').style.opacity = '1';
+                    alert("通信エラーが発生しました。");
+                }
+            });
+        }
+
+        function showProfileForm() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('profile-form').style.display = 'block';
+        }
+
+        async function submitMember(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true; submitBtn.innerText = "登録中...";
+
+            const pastSnapshot = await db.collection('members').where('uid', '==', currentUserUid).get();
+            let isExperienced = false;
+            let pastTeams = [];
+            
+            pastSnapshot.forEach(doc => {
+                if(doc.data().teamId !== teamId) {
+                    isExperienced = true;
+                    pastTeams.push(doc.data().teamName);
+                }
+            });
+
+            await db.collection('members').add({
+                teamId: teamId,
+                teamName: currentTeamName,
+                uid: currentUserUid,
+                name: document.getElementById('m-name').value,
+                grade: document.getElementById('m-grade').value,
+                isExperienced: isExperienced,
+                pastTeams: pastTeams,
+                registeredAt: new Date()
+            });
+
+            document.getElementById('profile-form').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'block';
+
+            document.getElementById('go-play-btn').onclick = () => {
+                window.location.href = `play.html?teamId=${teamId}`;
+            };
+        }
     </script>
 </body>
 </html>
