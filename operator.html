@@ -3,241 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#050505">
-    <title>脱出ゲームプレイ画面 - 恐怖の廃校</title>
+    <title>運営統合システム - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="firebase-config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        @font-face { font-family: 'OnryouFont'; src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
-        body { font-family: 'OnryouFont', 'Shippori Mincho', serif; background-color: #030303; color: #d1d1d1; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-center; }
-        .font-mono { font-family: 'Share Tech Mono', monospace !important; }
-        .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
-        
-        /* 🚨 サイレン発動時のフラッシュエフェクト */
-        @keyframes alarmFlash {
-            0%, 100% { background-color: rgba(255, 0, 0, 0.4); }
-            50% { background-color: rgba(255, 0, 0, 0.8); }
-        }
-        .alarm-active { animation: alarmFlash 0.5s infinite; }
+        body { background-color: #111; color: #eee; font-family: sans-serif; }
+        .tab-active { border-bottom: 4px solid #ef4444; color: #ef4444; font-weight: bold; }
+        .tab-inactive { border-bottom: 1px solid #333; color: #888; }
+        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     </style>
 </head>
-<body class="relative p-6 justify-center">
+<body>
+    <div class="max-w-4xl mx-auto p-4">
+        <h1 class="text-2xl font-bold text-center text-red-500 mb-6">【運営】管理システム</h1>
+        <nav class="flex mb-6 bg-gray-900 rounded-t-lg overflow-hidden">
+            <button id="btn-qr" onclick="switchTab('qr')" class="flex-1 py-4 text-center tab-active transition">📷 QR受付</button>
+            <button id="btn-timer" onclick="switchTab('timer')" class="flex-1 py-4 text-center tab-inactive transition">⏱ タイマー</button>
+            <button id="btn-admin" onclick="switchTab('admin')" class="flex-1 py-4 text-center tab-inactive transition">⚙️ 設定</button>
+        </nav>
 
-    <!-- 待機画面（オーディオコンテキストを起動させるため、必ず一度タップさせる） -->
-    <div id="waiting-screen" class="text-center w-full max-w-md z-20">
-        <h1 class="text-3xl font-bold text-red-500 mb-8 tracking-widest text-blood-dark">システム接続完了</h1>
-        <p class="text-gray-400 mb-8 leading-relaxed">
-            受付のスタッフにQRコードを提示し、<br>開始の指示があるまでお待ちください。
-        </p>
-        <button onclick="readyPlayer()" class="w-full bg-red-900 border border-red-700 text-white py-6 rounded-lg font-bold text-2xl shadow-[0_0_15px_rgba(255,0,0,0.5)] animate-pulse tracking-widest">
-            ゲームに接続して待機する
-        </button>
-    </div>
-
-    <!-- プレイ中画面 -->
-    <div id="playing-screen" class="hidden w-full max-w-lg flex-col items-center justify-center h-full z-20">
-        
-        <!-- 【代表者の画面】タイマーとヒントとサイレン表示 -->
-        <div id="leader-view" class="hidden w-full text-center">
-            <div class="bg-black/80 border border-red-900 p-6 rounded-lg shadow-[0_0_30px_rgba(255,0,0,0.2)] mb-6">
-                <p class="text-sm text-gray-500 mb-2 tracking-widest">TEAM ESCAPE TIME</p>
-                <div id="team-timer" class="text-6xl sm:text-7xl font-mono text-red-500 font-bold drop-shadow-[0_0_8px_#ff0000]">00:00.00</div>
+        <div id="tab-qr">
+            <div id="reader-container" class="bg-gray-800 p-6 rounded-lg shadow text-center">
+                <h2 class="text-xl font-bold mb-6 text-white">お客様の受付QRをスキャン</h2>
+                <div id="reader" class="w-full bg-black rounded overflow-hidden hidden mb-4"></div>
+                <button id="btn-start-camera" onclick="startCamera()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 rounded-lg text-xl shadow-lg">📸 カメラを起動する</button>
             </div>
-
-            <div id="hint-2m-box" class="hidden bg-yellow-950/50 border border-yellow-700 text-yellow-300 p-4 rounded-lg shadow-lg mb-4 text-left whitespace-pre-wrap"></div>
-            <div id="hint-4m-box" class="hidden bg-yellow-950/50 border border-yellow-700 text-yellow-300 p-4 rounded-lg shadow-lg mb-4 text-left whitespace-pre-wrap"></div>
-            
-            <button id="stop-alarm-btn" onclick="stopHorrorSiren()" class="hidden w-full bg-red-600 text-white py-6 rounded-lg font-bold text-3xl shadow-[0_0_25px_#ff0000] animate-pulse tracking-widest mt-8 border-4 border-red-400">
-                🚨 サイレンを止める！
-            </button>
-        </div>
-
-        <!-- 【メンバーの画面】 -->
-        <div id="member-view" class="hidden w-full text-center">
-            <div class="bg-gray-900/50 border border-gray-700 p-8 rounded-lg shadow-lg">
-                <p class="text-xl text-gray-400 leading-loose tracking-widest">
-                    ※残り時間および脱出のヒントは、<br><span class="text-red-500 font-bold">代表者の端末</span>にのみ表示されます。
-                </p>
+            <div id="team-confirm-section" class="hidden bg-gray-800 p-6 rounded-lg shadow border border-red-500 mt-4">
+                <h2 class="text-2xl font-bold text-green-400 mb-4">チーム情報を確認しました</h2>
+                <h3 id="scanned-team-name" class="text-3xl font-bold text-white mb-2"></h3>
+                <ul id="scanned-members" class="mb-6 text-gray-300 list-disc list-inside pl-4"></ul>
+                <label class="block font-bold mb-2 text-yellow-400">参加は何回目ですか？</label>
+                <select id="play-count-select" class="w-full p-3 rounded bg-gray-700 text-white mb-6 border border-gray-600 focus:outline-none">
+                    <option value="1">1回目（初回ランキングへ）</option>
+                    <option value="2">2回目以上（リピーターランキングへ）</option>
+                </select>
+                <div class="flex gap-4">
+                    <button onclick="cancelScan()" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-4 rounded">キャンセル</button>
+                    <button id="btn-start-team" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded">タイマーへ送る</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- アラーム発動時の真っ赤なオーバーレイ -->
-    <div id="alarm-overlay" class="fixed inset-0 pointer-events-none z-10 hidden alarm-active"></div>
+        <div id="tab-timer" class="hidden">
+            <h2 class="text-xl font-bold mb-4 text-red-400 border-b border-red-900 pb-2">現在プレイ中のチーム</h2>
+            <div id="timer-list" class="space-y-4"><p class="text-gray-500">プレイ中のチームはありません。</p></div>
+        </div>
+
+        <div id="tab-admin" class="hidden space-y-8">
+            <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
+                <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">テキスト＆ヒント設定</h2>
+                
+                <label class="block text-gray-300 font-bold mb-2">ホーム画面 あらすじ</label>
+                <textarea id="story-text-input" rows="3" class="w-full bg-gray-900 text-white border border-gray-600 p-3 mb-4 rounded focus:outline-none focus:border-red-500"></textarea>
+                
+                <label class="block text-gray-300 font-bold mb-2">予約画面のタイトル</label>
+                <input type="text" id="ticket-title-input" class="w-full bg-gray-900 text-white border border-gray-600 p-3 mb-6 rounded focus:outline-none focus:border-red-500">
+                
+                <!-- 💡【追加】ヒント設定エリア -->
+                <div class="p-4 bg-gray-900 border border-gray-600 rounded mb-6">
+                    <label class="block text-yellow-400 font-bold mb-2">💡 2分経過時のヒント</label>
+                    <input type="text" id="hint-2m-input" class="w-full bg-gray-800 text-white border border-gray-700 p-3 mb-4 rounded focus:outline-none focus:border-yellow-500" placeholder="2分で表示するヒントを入力">
+                    
+                    <label class="block text-yellow-400 font-bold mb-2">💡 4分経過時のヒント</label>
+                    <input type="text" id="hint-4m-input" class="w-full bg-gray-800 text-white border border-gray-700 p-3 rounded focus:outline-none focus:border-yellow-500" placeholder="4分で表示するヒントを入力">
+                </div>
+
+                <button onclick="saveTexts()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded font-bold shadow">設定を保存する</button>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
+                <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">機能スイッチ</h2>
+                <div class="flex items-center justify-between py-2">
+                    <span class="font-bold text-gray-200">2回目以降ランキングの公開</span>
+                    <label class="flex items-center cursor-pointer">
+                        <div class="relative">
+                            <input type="checkbox" id="toggle-repeater" class="sr-only" onchange="toggleRepeater()">
+                            <div id="toggle-bg" class="block w-14 h-8 rounded-full transition-colors duration-300 bg-gray-600"></div>
+                            <div id="toggle-dot" class="absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform duration-300 transform"></div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
+                <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">整理券 枠の追加</h2>
+                <div class="flex flex-col md:flex-row gap-3 mb-6 bg-gray-900 p-4 rounded border border-gray-600">
+                    <select id="slot-day" class="border border-gray-600 bg-gray-800 text-white p-3 rounded focus:outline-none focus:border-red-500 font-bold"><option value="1">1日目</option><option value="2">2日目</option></select>
+                    <div class="flex items-center gap-2 flex-1"><input type="time" id="slot-time-start" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold shadow-inner" style="color-scheme: light;"><span class="text-gray-400 font-bold">〜</span><input type="time" id="slot-time-end" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold shadow-inner" style="color-scheme: light;"></div>
+                    <div class="flex gap-2 mt-2 md:mt-0"><input type="number" id="slot-cap" placeholder="定員" class="border border-gray-400 bg-white text-black p-3 w-20 md:w-24 rounded font-bold shadow-inner" style="color-scheme: light;"><button onclick="addSlot()" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded font-bold shadow flex-1 md:flex-none">追加</button></div>
+                </div>
+                <h3 class="font-bold text-gray-400 mb-2 border-b border-gray-700 pb-2">現在の枠一覧</h3>
+                <ul id="slots-admin-list" class="space-y-2 mt-4"></ul>
+            </div>
+        </div>
+    </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const teamId = urlParams.get('teamId');
-        if(!teamId) alert("無効なアクセスです");
-
-        // 代表者かどうかの判定（ticket.htmlで予約したスマホのみ 'true' になる）
-        const isLeader = localStorage.getItem('isLeader_' + teamId) === 'true';
-
-        let audioCtx;
-        let alarmInterval;
-        let hasAlarmPlayed = false;
-        let hint2mPlayed = false;
-        let hint4mPlayed = false;
-        
-        let hint2mText = "ヒントが設定されていません";
-        let hint4mText = "ヒントが設定されていません";
-
-        // ヒントのテキストをFirebaseから取得しておく
-        db.collection('settings').doc('config').get().then(doc => {
-            if(doc.exists) {
-                if(doc.data().hint2m) hint2mText = doc.data().hint2m;
-                if(doc.data().hint4m) hint4mText = doc.data().hint4m;
-            }
-        });
-
-        // 待機ボタンを押してオーディオコンテキストをアクティブにする
-        function readyPlayer() {
-            document.getElementById('waiting-screen').innerHTML = `
-                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-red-600 mx-auto mb-6"></div>
-                <p class="text-xl text-red-500 tracking-widest">通信待機中...</p>
-            `;
-            
-            // Web Audio APIの初期化（これをしないとiOSで音が鳴らない）
-            if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-            }
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        function switchTab(tabId) {
+            ['qr', 'timer', 'admin'].forEach(id => {
+                document.getElementById(`tab-${id}`).style.display = (id === tabId) ? 'block' : 'none';
+                document.getElementById(`btn-${id}`).className = (id === tabId) ? "flex-1 py-4 text-center tab-active transition" : "flex-1 py-4 text-center tab-inactive hover:bg-gray-800 transition";
+            });
         }
 
-        // ==========================================
-        // 🚨 悪夢の不協和音サイレン・ジェネレーター
-        // ==========================================
-        function playHorrorSiren() {
-            if (hasAlarmPlayed) return;
-            hasAlarmPlayed = true;
-            
-            document.getElementById('alarm-overlay').style.display = 'block';
-            document.getElementById('stop-alarm-btn').style.display = 'block';
-            
-            if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-            }
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            // 0.6秒間隔で「ビーッ！ビーッ！」という大きな警告音を生成
-            alarmInterval = setInterval(() => {
-                const osc1 = audioCtx.createOscillator();
-                const osc2 = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                osc1.type = 'sawtooth';
-                osc2.type = 'square';
-                
-                // 不協和音による恐怖感
-                osc1.frequency.setValueAtTime(800, audioCtx.currentTime);
-                osc1.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.4);
-                
-                osc2.frequency.setValueAtTime(850, audioCtx.currentTime);
-                osc2.frequency.exponentialRampToValueAtTime(650, audioCtx.currentTime + 0.4);
-                
-                // 音量エンベロープ（徐々に大きくなりスッと消える）
-                gain.gain.setValueAtTime(0, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.1);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-                
-                osc1.connect(gain);
-                osc2.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                osc1.start();
-                osc2.start();
-                osc1.stop(audioCtx.currentTime + 0.5);
-                osc2.stop(audioCtx.currentTime + 0.5);
-            }, 600);
+        let html5QrCode; let currentTeamId = null;
+        function startCamera() {
+            document.getElementById('btn-start-camera').style.display = 'none'; document.getElementById('reader').style.display = 'block';
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, (err) => {}).catch(err => {
+                alert("カメラ起動失敗。"); document.getElementById('btn-start-camera').style.display = 'block'; document.getElementById('reader').style.display = 'none';
+            });
         }
 
-        function stopHorrorSiren() {
-            if (alarmInterval) clearInterval(alarmInterval);
-            document.getElementById('alarm-overlay').style.display = 'none';
-            document.getElementById('stop-alarm-btn').style.display = 'none';
+        async function onScanSuccess(decodedText) {
+            if (window.isScanning) return; window.isScanning = true;
+            if(html5QrCode) { try { await html5QrCode.stop(); html5QrCode.clear(); } catch(e) {} }
+            try {
+                const doc = await db.collection('teams').doc(decodedText).get();
+                if(!doc.exists) { alert("無効なQRコードです。"); cancelScan(); return; }
+                const data = doc.data();
+                if(data.status !== 'registered') { alert("追加済み、または終了したチームです。"); cancelScan(); return; }
+                
+                currentTeamId = decodedText;
+                document.getElementById('reader-container').style.display = 'none'; document.getElementById('team-confirm-section').style.display = 'block';
+                document.getElementById('scanned-team-name').innerText = data.teamName;
+                document.getElementById('scanned-members').innerHTML = data.members.map(m => `<li>${m.grade} ${m.name}</li>`).join('');
+                document.getElementById('btn-start-team').onclick = async () => {
+                    const playCount = parseInt(document.getElementById('play-count-select').value);
+                    await db.collection('teams').doc(currentTeamId).update({ status: 'playing', playCount: playCount });
+                    alert("タイマーリストに追加！"); cancelScan(); switchTab('timer');
+                };
+            } catch (err) { alert("通信エラー\n" + err.message); cancelScan(); }
         }
 
-        // ==========================================
-        // ⏱ タイマーとヒントの監視ループ
-        // ==========================================
-        let timerInterval;
+        function cancelScan() {
+            currentTeamId = null; window.isScanning = false;
+            document.getElementById('team-confirm-section').style.display = 'none'; document.getElementById('reader-container').style.display = 'block';
+            document.getElementById('btn-start-camera').style.display = 'block'; document.getElementById('reader').style.display = 'none';
+        }
 
-        db.collection('teams').doc(teamId).onSnapshot(doc => {
-            if(!doc.exists) return;
-            const data = doc.data();
-            
-            // 運営が「タイマーへ送る」を押したら画面切り替え
-            if (data.status === 'playing') {
-                document.getElementById('waiting-screen').style.display = 'none';
-                document.getElementById('playing-screen').style.display = 'flex';
-                
-                if (isLeader) {
-                    document.getElementById('leader-view').style.display = 'block';
-                } else {
-                    document.getElementById('member-view').style.display = 'block';
-                    return; // メンバーはここで処理終了（タイマーは動かさない）
-                }
-                
-                if(timerInterval) clearInterval(timerInterval);
-                
-                // リーダーのみタイマーを回す
-                timerInterval = setInterval(() => {
-                    let elapsed = data.accumulatedTime;
-                    if (data.timerState === 'running') {
-                        elapsed += (Date.now() - data.startTime);
-                    }
-                    
-                    document.getElementById('team-timer').innerText = formatTime(elapsed);
-                    
-                    // 💡 2分(120秒)経過でヒント1表示
-                    if (elapsed >= 120000 && !hint2mPlayed) {
-                        hint2mPlayed = true;
-                        const box = document.getElementById('hint-2m-box');
-                        box.innerHTML = `<span class="font-bold text-white border-b border-yellow-600 block mb-2 pb-1">💡 2分経過 ヒント</span>${hint2mText}`;
-                        box.style.display = 'block';
-                    }
-                    
-                    // 💡 4分(240秒)経過でヒント2表示
-                    if (elapsed >= 240000 && !hint4mPlayed) {
-                        hint4mPlayed = true;
-                        const box = document.getElementById('hint-4m-box');
-                        box.innerHTML = `<span class="font-bold text-white border-b border-yellow-600 block mb-2 pb-1">💡 4分経過 ヒント</span>${hint4mText}`;
-                        box.style.display = 'block';
-                    }
-                    
-                    // 🚨 5分(300秒)経過でサイレン発動！
-                    if (elapsed >= 300000 && !hasAlarmPlayed) {
-                        playHorrorSiren();
-                    }
-                    
-                }, 30);
-
-            } else if (data.status === 'finished') {
-                if(timerInterval) clearInterval(timerInterval);
-                stopHorrorSiren();
-                
-                // ゲーム終了（ランキングへ自動遷移）
-                document.getElementById('playing-screen').innerHTML = `
-                    <div class="text-center w-full">
-                        <h1 class="text-4xl font-bold text-yellow-500 mb-6 drop-shadow-lg tracking-widest">記録完了</h1>
-                        <p class="text-xl mb-8 text-white">あなたのチームのタイムが記録されました。</p>
-                        <a href="ranking.html" class="inline-block bg-red-900 border border-red-700 text-white px-8 py-4 rounded font-bold text-xl shadow-btn tracking-widest">ランキングを見る</a>
+        db.collection('teams').where('status', '==', 'playing').onSnapshot(snap => {
+            const list = document.getElementById('timer-list'); list.innerHTML = '';
+            if(snap.empty) { list.innerHTML = '<p class="text-gray-500">プレイ中のチームはありません。</p>'; return; }
+            snap.forEach(doc => {
+                const data = doc.data(); const id = doc.id;
+                let btnText = "▶ 再生"; let btnColor = "bg-green-600 hover:bg-green-500"; let pulseClass = "";
+                if(data.timerState === 'running') { btnText = "⏸ 一時停止"; btnColor = "bg-yellow-600 hover:bg-yellow-500"; pulseClass = "text-red-400"; }
+                const card = document.createElement('div');
+                card.className = "bg-gray-800 border border-gray-700 p-5 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center gap-4";
+                card.innerHTML = `
+                    <div class="flex-1 w-full text-center md:text-left">
+                        <h3 class="text-2xl font-bold text-white mb-1">${data.teamName}</h3>
+                        <p class="text-sm text-gray-400">参加: ${data.playCount}回目</p>
+                    </div>
+                    <div class="text-5xl font-mono ${pulseClass} tracking-widest timer-display font-bold" data-id="${id}" data-state="${data.timerState}" data-start="${data.startTime || 0}" data-acc="${data.accumulatedTime || 0}">00:00.00</div>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <button onclick="toggleTimer('${id}')" class="flex-1 md:w-32 ${btnColor} text-white font-bold py-4 px-4 rounded transition shadow">${btnText}</button>
+                        <button onclick="finishTimer('${id}')" class="flex-1 md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded transition shadow">決定</button>
                     </div>
                 `;
-            }
+                list.appendChild(card);
+            });
         });
 
-        function formatTime(ms) {
-            const m = Math.floor(ms / 60000).toString().padStart(2, '0');
-            const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
-            const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0');
-            return `${m}:${s}.${c}`;
+        setInterval(() => {
+            document.querySelectorAll('.timer-display').forEach(el => {
+                if(el.dataset.state === 'running') { el.innerText = formatTime(parseInt(el.dataset.acc) + (Date.now() - parseInt(el.dataset.start))); } 
+                else if(el.dataset.state === 'ready') { el.innerText = "00:00.00"; } 
+                else { el.innerText = formatTime(parseInt(el.dataset.acc)); }
+            });
+        }, 30);
+
+        async function toggleTimer(id) {
+            const docRef = db.collection('teams').doc(id); const doc = await docRef.get(); const data = doc.data();
+            if (data.timerState === 'ready' || data.timerState === 'paused') { await docRef.update({ timerState: 'running', startTime: Date.now() }); } 
+            else if (data.timerState === 'running') { await docRef.update({ timerState: 'paused', accumulatedTime: data.accumulatedTime + (Date.now() - data.startTime) }); }
         }
+
+        async function finishTimer(id) {
+            if(!confirm("タイムを決定してランキングに追加しますか？")) return;
+            const docRef = db.collection('teams').doc(id); const doc = await docRef.get(); const data = doc.data();
+            let finalTime = data.accumulatedTime;
+            if (data.timerState === 'running') finalTime += (Date.now() - data.startTime);
+            try {
+                await db.collection('times').add({ teamName: data.teamName, time: finalTime, count: data.playCount || 1, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                await docRef.update({ status: 'finished' }); alert("ランキングに送信完了しました！");
+            } catch (err) { alert("保存に失敗しました。\n" + err.message); }
+        }
+
+        function formatTime(ms) {
+            const m = Math.floor(ms / 60000).toString().padStart(2, '0'); const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0'); const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0'); return `${m}:${s}.${c}`;
+        }
+
+        function updateToggleUI(isActive) {
+            const bg = document.getElementById('toggle-bg'); const dot = document.getElementById('toggle-dot'); const checkbox = document.getElementById('toggle-repeater');
+            checkbox.checked = isActive;
+            if (isActive) { bg.classList.remove('bg-gray-600'); bg.classList.add('bg-green-500'); dot.classList.add('translate-x-6'); } 
+            else { bg.classList.add('bg-gray-600'); bg.classList.remove('bg-green-500'); dot.classList.remove('translate-x-6'); }
+        }
+
+        db.collection('settings').doc('config').onSnapshot(doc => {
+            let data = { showRepeaters: false, storyText: "", ticketTitle: "整理券発行", hint2m: "", hint4m: "" };
+            if(doc.exists) data = Object.assign(data, doc.data());
+            else db.collection('settings').doc('config').set(data);
+
+            document.getElementById('story-text-input').value = data.storyText || "";
+            document.getElementById('ticket-title-input').value = data.ticketTitle || "整理券発行";
+            // 💡【追加】ヒントを読み込み
+            document.getElementById('hint-2m-input').value = data.hint2m || "";
+            document.getElementById('hint-4m-input').value = data.hint4m || "";
+            
+            updateToggleUI(data.showRepeaters);
+        });
+
+        async function saveTexts() { 
+            try {
+                await db.collection('settings').doc('config').set({ 
+                    storyText: document.getElementById('story-text-input').value,
+                    ticketTitle: document.getElementById('ticket-title-input').value,
+                    hint2m: document.getElementById('hint-2m-input').value,
+                    hint4m: document.getElementById('hint-4m-input').value
+                }, {merge: true}); 
+                alert("設定を保存しました！"); 
+            } catch (err) { alert("保存失敗: " + err.message); }
+        }
+        
+        async function toggleRepeater() { 
+            try {
+                const checkbox = document.getElementById('toggle-repeater');
+                await db.collection('settings').doc('config').set({ showRepeaters: checkbox.checked }, {merge: true}); 
+            } catch (err) { alert("設定変更失敗: " + err.message); }
+        }
+        
+        async function addSlot() {
+            const day = document.getElementById('slot-day').value; const start = document.getElementById('slot-time-start').value; const end = document.getElementById('slot-time-end').value; const capacity = parseInt(document.getElementById('slot-cap').value);
+            if(!start || !end || !capacity) return alert("時間と定員をすべて入力してください");
+            try {
+                await db.collection('slots').add({ day: parseInt(day), time: `${start}〜${end}`, capacity: capacity, booked: 0 });
+                document.getElementById('slot-time-start').value = ''; document.getElementById('slot-time-end').value = ''; document.getElementById('slot-cap').value = '';
+            } catch (err) { alert("枠の追加に失敗しました。\n詳細: " + err.message); }
+        }
+
+        db.collection('slots').onSnapshot(snap => {
+            const list = document.getElementById('slots-admin-list'); list.innerHTML = '';
+            let slots = []; snap.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
+            slots.sort((a, b) => {
+                const dayA = a.day || 1; const dayB = b.day || 1;
+                if (dayA !== dayB) return dayA - dayB; return (a.time || "").localeCompare(b.time || "");
+            });
+            slots.forEach(d => {
+                const dayLabel = d.day ? `<span class="bg-blue-900 text-blue-200 px-2 py-1 rounded text-xs mr-2 font-bold">${d.day}日目</span>` : "";
+                list.innerHTML += `<li class="flex justify-between items-center bg-gray-800 border border-gray-700 p-3 rounded"><span class="text-white font-bold">${dayLabel}${d.time} <span class="text-gray-400 text-sm font-normal ml-2">(定員: ${d.capacity} / 予約済: ${d.booked})</span></span><button onclick="if(confirm('削除しますか？')) db.collection('slots').doc('${d.id}').delete()" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-sm font-bold shadow text-white">削除</button></li>`;
+            });
+        });
     </script>
 </body>
 </html>
