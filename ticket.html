@@ -143,7 +143,6 @@
             }
         }
 
-        // 蜘蛛の巣背景
         function buildSpiderWebs() {
             const container = document.getElementById("spider-web-container");
             const svgNs = "http://www.w3.org/2000/svg";
@@ -201,20 +200,17 @@
         let currentTeamName = "";
         let currentUserUid = "";
 
-        // ================= 【修正】Googleログイン（小窓ポップアップ方式） =================
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            // リダイレクトではなく「小窓」で開くことで、元のページの状態を維持し確実にログインを完了させる
-            firebase.auth().signInWithPopup(provider).then((result) => {
-                if (result && result.user) {
-                    currentUserUid = result.user.uid;
-                    if(result.user.displayName) document.getElementById('m-name').value = result.user.displayName;
-                    showProfileForm();
-                }
-            }).catch((error) => {
-                alert("Googleログインエラー: \n" + error.message + "\n\n※LINE内ブラウザ等の場合は、画面右下のメニューから「Safari(またはChrome)で開く」を選択してからお試しください。");
-            });
-        }
+        firebase.auth().getRedirectResult().then((result) => {
+            if (result && result.user) {
+                currentUserUid = result.user.uid;
+                if(result.user.displayName) document.getElementById('m-name').value = result.user.displayName;
+                showProfileForm();
+            }
+        }).catch((error) => {
+            if(error.code !== 'auth/redirect-cancelled-by-user') {
+                alert("Googleログインエラー: アプリ内ブラウザではブロックされます。Safariで開いてください。");
+            }
+        });
 
         if (action === 'register') {
             document.getElementById('ticket-page-title').style.display = 'none';
@@ -241,6 +237,7 @@
         // ================= 代表者：整理券確保処理 =================
         async function loadSlots() {
             const container = document.getElementById('slots-container'); container.innerHTML = '';
+            
             db.collection('slots').onSnapshot(snapshot => {
                 container.innerHTML = '';
                 let slots = [];
@@ -265,6 +262,7 @@
                     btn.onclick = () => issueTicket(data.id, `${data.day ? data.day+'日目 ' : ''}${data.time}`, available);
                     container.appendChild(btn);
                 });
+                
                 if(slots.length === 0) container.innerHTML = '<p class="text-gray-500">現在公開されている時間枠はありません。</p>';
             });
         }
@@ -325,6 +323,20 @@
             });
         }
 
+        // ================= メンバー：アカウント登録処理 =================
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider).then((result) => {
+                if (result && result.user) {
+                    currentUserUid = result.user.uid;
+                    if(result.user.displayName) document.getElementById('m-name').value = result.user.displayName;
+                    showProfileForm();
+                }
+            }).catch((error) => {
+                alert("Googleログインエラー: \n" + error.message + "\n\n※LINE内ブラウザ等の場合は、画面右下のメニューから「Safari(またはChrome)で開く」を選択してからお試しください。");
+            });
+        }
+
         function loginWithEmail() {
             const email = document.getElementById('email-input').value;
             const password = document.getElementById('password-input').value;
@@ -345,3 +357,51 @@
                     .then((userCredential) => {
                         currentUserUid = userCredential.user.uid;
                         document.getElementById('login-section').style.opacity = '1';
+                        showProfileForm();
+                    })
+                    .catch((err) => { 
+                        document.getElementById('login-section').style.opacity = '1';
+                        if (err.code === 'auth/email-already-in-use') alert("ログインエラー：パスワードが間違っています。");
+                        else if (err.code === 'auth/operation-not-allowed') alert("エラー：Firebaseで「メール/パスワード」が無効になっています！");
+                        else alert("通信エラー\n" + err.message); 
+                    });
+                } else {
+                    document.getElementById('login-section').style.opacity = '1';
+                    alert("通信エラーが発生しました。");
+                }
+            });
+        }
+
+        function showProfileForm() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('profile-form').style.display = 'block';
+        }
+
+        async function submitMember(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true; submitBtn.innerText = "登録中...";
+
+            const pastSnapshot = await db.collection('members').where('uid', '==', currentUserUid).get();
+            let isExperienced = false;
+            let pastTeams = [];
+            
+            pastSnapshot.forEach(doc => {
+                if(doc.data().teamId !== teamId) {
+                    isExperienced = true;
+                    pastTeams.push(doc.data().teamName);
+                }
+            });
+
+            await db.collection('members').add({
+                teamId: teamId, teamName: currentTeamName, uid: currentUserUid,
+                name: document.getElementById('m-name').value, grade: document.getElementById('m-grade').value,
+                isExperienced: isExperienced, pastTeams: pastTeams, registeredAt: new Date()
+            });
+
+            document.getElementById('profile-form').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
