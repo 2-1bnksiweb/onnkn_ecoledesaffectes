@@ -36,13 +36,8 @@
 
         <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm mt-6">
             
-            <h1 id="ticket-page-title" class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">
-                整理券発行
-            </h1>
+            <h1 id="ticket-page-title" class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">整理券発行</h1>
             
-            <!-- ==============================================
-                 ① 代表者の整理券確保エリア
-                 ============================================== -->
             <div id="ticket-section">
                 <div class="mb-4">
                     <label class="block font-bold mb-1 text-gray-300">チーム名</label>
@@ -57,7 +52,6 @@
                 <div id="slots-container" class="space-y-3"><p class="text-gray-500">読込中...</p></div>
             </div>
 
-            <!-- 代表者用：メンバー各自へ送るQR画面 -->
             <div id="qr-section" class="hidden text-center">
                 <h2 class="text-2xl font-bold text-red-500 mb-4" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">整理券の枠を確保しました</h2>
                 <p class="mb-4 text-white font-bold text-lg border-b border-red-900 pb-2 tracking-widest">※まだ予約は完了していません！</p>
@@ -72,7 +66,6 @@
                 </div>
             </div>
 
-            <!-- 全員登録完了後の「受付用QRコード」 -->
             <div id="final-qr-section" class="hidden text-center animate-pulse">
                 <h2 class="text-3xl font-bold text-red-600 mb-6 tracking-widest" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">予約が完全に完了しました！</h2>
                 <p class="mb-6 text-gray-300 leading-relaxed text-sm">
@@ -84,28 +77,23 @@
                 <a href="index.html" class="inline-block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark font-bold text-xl rounded shadow-btn hover:bg-black transition tracking-widest">ホームに戻る</a>
             </div>
 
-            <!-- ==============================================
-                 ② メンバー各自のアカウント登録エリア（統合）
-                 ============================================== -->
+            <!-- メンバー登録エリア -->
             <div id="member-register-section" class="hidden">
                 <h1 class="text-3xl font-bold text-center mb-6 text-blood-dark tracking-widest">チーム参加登録</h1>
                 <p id="team-display" class="text-center font-bold text-xl mb-6 text-red-500 border border-red-950 py-3 rounded bg-black/50 tracking-widest">読込中...</p>
                 
                 <div id="login-section" class="space-y-4">
-                    <p class="text-sm text-gray-400 text-center mb-4 leading-relaxed">本人確認と過去の参加歴確認のため<br>アカウント連携（ログイン）をお願いします。</p>
-                    
+                    <p class="text-sm text-gray-400 text-center mb-4 leading-relaxed">本人確認と過去の参加歴確認のため<br>アカウント登録（ログイン）をお願いします。</p>
                     <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center bg-gray-200 text-gray-900 py-3 rounded font-bold hover:bg-white transition shadow text-lg font-sans">
                         <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                         Google で続ける
                     </button>
-
                     <div class="text-center text-gray-600 my-4 text-sm font-sans">または</div>
-
                     <div class="space-y-3">
                         <input type="email" id="email-input" placeholder="メールアドレス" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded font-sans focus:outline-none focus:border-red-700">
                         <input type="password" id="password-input" placeholder="パスワード (6文字以上)" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded font-sans focus:outline-none focus:border-red-700">
                         <button onclick="loginWithEmail()" class="w-full bg-red-950 border border-red-800 text-red-200 py-3 rounded font-bold hover:bg-red-900 transition tracking-widest text-lg">メールで登録 / ログイン</button>
-                        <p class="text-xs text-gray-500 text-center mt-2 font-sans">※アカウントがない場合は自動的に作成されます</p>
+                        <p class="text-xs text-gray-500 text-center mt-2 font-sans">※アカウントがない場合は自動作成されます</p>
                     </div>
                 </div>
 
@@ -130,42 +118,15 @@
                     <button id="go-play-btn" class="w-full bg-red-900 border border-red-700 text-white py-4 rounded font-bold text-xl shadow-btn animate-pulse tracking-widest">ゲーム画面へ進む</button>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
         function toggleMenu() {
             const menu = document.getElementById('nav-menu');
-            const btn = document.getElementById('menu-btn');
-            if(menu) { 
-                if(menu.classList.contains('hidden')) { menu.classList.remove('hidden'); menu.classList.add('flex'); btn.innerText = '✕'; btn.style.transform = 'rotate(90deg)'; } 
-                else { menu.classList.add('hidden'); menu.classList.remove('flex'); btn.innerText = '☰'; btn.style.transform = 'rotate(0deg)'; }
-            }
+            if(menu) { menu.classList.toggle('hidden'); menu.classList.toggle('flex'); }
         }
 
-        // 蜘蛛の巣背景
-        function buildSpiderWebs() {
-            const container = document.getElementById("spider-web-container");
-            const svgNs = "http://www.w3.org/2000/svg";
-            const svg = document.createElementNS(svgNs, "svg");
-            svg.setAttribute("width", "100%"); svg.setAttribute("height", "100%");
-            container.appendChild(svg);
-            const cx = window.innerWidth; const cy = 0; const maxR = Math.min(window.innerWidth, window.innerHeight) * 0.9; 
-            for (let i = 0; i < 12; i++) {
-                const a = Math.PI / 2 + (Math.PI / 2) * (i / 11);
-                const r = maxR * 0.8; const x = cx + Math.cos(a) * r; const y = cy + Math.sin(a) * r;
-                const line = document.createElementNS(svgNs, "line");
-                line.setAttribute("x1", cx); line.setAttribute("y1", cy); line.setAttribute("x2", x); line.setAttribute("y2", y);
-                line.setAttribute("stroke", "rgba(160, 160, 160, 0.4)"); line.setAttribute("stroke-width", "1.2");
-                svg.appendChild(line);
-            }
-        }
-        window.addEventListener('DOMContentLoaded', buildSpiderWebs);
-
-        // =========================================================
-        // 処理の切り分け（整理券確保モード or メンバー登録モード）
-        // =========================================================
         const urlParams = new URLSearchParams(window.location.search);
         const action = urlParams.get('action'); 
         const teamId = urlParams.get('teamId');
@@ -173,7 +134,6 @@
         let currentTeamName = "";
         let currentUserUid = "";
 
-        // Googleログインのリダイレクト受け取り処理
         firebase.auth().getRedirectResult().then((result) => {
             if (result && result.user) {
                 currentUserUid = result.user.uid;
@@ -181,73 +141,52 @@
                 showProfileForm();
             }
         }).catch((error) => {
-            if(error.code !== 'auth/redirect-cancelled-by-user') {
-                alert("Googleログインエラー: アプリ内ブラウザ（LINEやInstagramなど）ではGoogleの仕様によりブロックされます。右下のメニュー等から「Safariで開く」を選ぶか、メールアドレスで登録してください。");
-            }
+            if(error.code !== 'auth/redirect-cancelled-by-user') alert("Googleログインエラー: アプリ内ブラウザではブロックされます。Safariで開いてください。");
         });
 
-        // 画面の出し分け
         if (action === 'register') {
             document.getElementById('ticket-page-title').style.display = 'none';
             document.getElementById('ticket-section').style.display = 'none';
             document.getElementById('member-register-section').style.display = 'block';
-            
-            // チーム名取得
             if(teamId) {
                 db.collection('teams').doc(teamId).get().then(doc => {
-                    if(doc.exists) {
-                        currentTeamName = doc.data().teamName;
-                        document.getElementById('team-display').innerText = `チーム名: ${currentTeamName}`;
-                    } else {
-                        alert("無効なURLです。");
-                    }
+                    if(doc.exists) { currentTeamName = doc.data().teamName; document.getElementById('team-display').innerText = `チーム名: ${currentTeamName}`; } 
+                    else { alert("無効なURLです。"); }
                 });
             }
         } else {
-            // タイトル読み込みと時間枠の表示
             db.collection('settings').doc('config').onSnapshot(doc => {
-                if(doc.exists && doc.data().ticketTitle) {
-                    document.getElementById('ticket-page-title').innerText = doc.data().ticketTitle;
-                }
+                if(doc.exists && doc.data().ticketTitle) document.getElementById('ticket-page-title').innerText = doc.data().ticketTitle;
             });
             loadSlots();
         }
 
-        // ================= 代表者：整理券確保処理 =================
         async function loadSlots() {
             const container = document.getElementById('slots-container'); container.innerHTML = '';
             db.collection('slots').onSnapshot(snapshot => {
-                container.innerHTML = '';
-                let slots = [];
+                container.innerHTML = ''; let slots = [];
                 snapshot.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
-                
                 slots.sort((a, b) => {
                     const dayA = a.day || 1; const dayB = b.day || 1;
                     if (dayA !== dayB) return dayA - dayB;
                     return (a.time || "").localeCompare(b.time || "");
                 });
-
                 slots.forEach(data => {
                     const btn = document.createElement('button'); 
                     const isFull = Number(data.booked) >= Number(data.capacity);
                     const available = Number(data.capacity) - Number(data.booked);
-                    
                     btn.className = `w-full p-4 rounded text-left font-bold border transition tracking-widest ${isFull ? 'bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed' : 'bg-red-950/40 hover:bg-red-900/60 text-red-200 border-red-900/50 shadow-sm'}`;
                     const dayLabel = data.day ? `<span class="bg-red-900 text-red-200 px-2 py-0.5 rounded text-xs mr-2 font-bold">${data.day}日目</span>` : "";
                     btn.innerHTML = `${dayLabel}${data.time} (空き: ${available}人)`; 
-                    
-                    btn.disabled = isFull; 
-                    btn.onclick = () => issueTicket(data.id, `${data.day ? data.day+'日目 ' : ''}${data.time}`, available);
+                    btn.disabled = isFull; btn.onclick = () => issueTicket(data.id, `${data.day ? data.day+'日目 ' : ''}${data.time}`, available);
                     container.appendChild(btn);
                 });
-                if(slots.length === 0) container.innerHTML = '<p class="text-gray-500">現在公開されている時間枠はありません。</p>';
             });
         }
 
         async function issueTicket(slotId, timeLabel, available = 99) {
             const teamName = document.getElementById('team-name').value;
             const count = parseInt(document.getElementById('member-count').value);
-            
             if(!teamName) return alert("チーム名を入力してください");
             if(count > available) return alert("この枠の空き人数が足りません");
 
@@ -266,114 +205,55 @@
                 status: 'registered', timerState: 'ready', accumulatedTime: 0, createdAt: new Date()
             });
 
+            // 💡【追加】自分が「代表者」であることをスマホに記憶させる
+            localStorage.setItem('isLeader_' + teamDoc.id, 'true');
+
             document.getElementById('ticket-section').style.display = 'none'; 
             document.getElementById('qr-section').style.display = 'block';
             
-            // 💡【重要】メンバー登録画面へのURLを「同じticket.html」に向ける
             const baseUrl = window.location.href.split('?')[0]; 
             const registerUrl = `${baseUrl}?action=register&teamId=${teamDoc.id}`;
-            
-            document.getElementById('qr-url-link').href = registerUrl;
-            document.getElementById('qr-url-link').innerText = registerUrl;
-
-            new QRCode(document.getElementById("qrcode"), { 
-                text: registerUrl, width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000"
-            });
+            document.getElementById('qr-url-link').href = registerUrl; document.getElementById('qr-url-link').innerText = registerUrl;
+            new QRCode(document.getElementById("qrcode"), { text: registerUrl, width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000" });
 
             db.collection('members').where('teamId', '==', teamDoc.id).onSnapshot(snap => {
                 const registeredCount = snap.size;
                 document.getElementById('registered-count-display').innerText = `現在の登録人数: ${registeredCount} / ${count} 人`;
-
                 if (registeredCount >= count) {
                     document.getElementById('qr-section').style.display = 'none';
                     document.getElementById('final-qr-section').style.display = 'block';
                     if (!document.getElementById("final-qrcode").hasChildNodes()) {
-                        new QRCode(document.getElementById("final-qrcode"), { 
-                            text: teamDoc.id, width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000"
-                        });
+                        new QRCode(document.getElementById("final-qrcode"), { text: teamDoc.id, width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000" });
                     }
                 }
             });
         }
 
-        // ================= メンバー：アカウント登録処理 =================
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            firebase.auth().signInWithRedirect(provider);
-        }
+        function loginWithGoogle() { firebase.auth().signInWithRedirect(new firebase.auth.GoogleAuthProvider()); }
 
         function loginWithEmail() {
-            const email = document.getElementById('email-input').value;
-            const password = document.getElementById('password-input').value;
-            if(!email || !password) return alert("メールアドレスとパスワードを入力してください");
-            if(password.length < 6) return alert("パスワードは6文字以上で入力してください");
-
+            const email = document.getElementById('email-input').value; const password = document.getElementById('password-input').value;
+            if(!email || !password) return alert("入力してください"); if(password.length < 6) return alert("6文字以上で入力してください");
             document.getElementById('login-section').style.opacity = '0.5';
-
-            firebase.auth().signInWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                currentUserUid = userCredential.user.uid;
-                document.getElementById('login-section').style.opacity = '1';
-                showProfileForm();
-            })
-            .catch((error) => {
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-login-credentials' || error.code === 'auth/invalid-credential') {
-                    firebase.auth().createUserWithEmailAndPassword(email, password)
-                    .then((userCredential) => {
-                        currentUserUid = userCredential.user.uid;
-                        document.getElementById('login-section').style.opacity = '1';
-                        showProfileForm();
-                    })
-                    .catch((err) => { 
-                        document.getElementById('login-section').style.opacity = '1';
-                        if (err.code === 'auth/email-already-in-use') alert("ログインエラー：パスワードが間違っています。");
-                        else alert("通信エラー、または無効なメールアドレスです。\n" + err.message); 
-                    });
-                } else {
-                    document.getElementById('login-section').style.opacity = '1';
-                    alert("通信エラーが発生しました。");
-                }
+            firebase.auth().signInWithEmailAndPassword(email, password).then((u) => { currentUserUid = u.user.uid; document.getElementById('login-section').style.opacity = '1'; showProfileForm(); })
+            .catch((e) => {
+                if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-login-credentials' || e.code === 'auth/invalid-credential') {
+                    firebase.auth().createUserWithEmailAndPassword(email, password).then((u) => { currentUserUid = u.user.uid; document.getElementById('login-section').style.opacity = '1'; showProfileForm(); })
+                    .catch((err) => { document.getElementById('login-section').style.opacity = '1'; alert(err.code === 'auth/email-already-in-use' ? "パスワードが間違っています。" : "エラー: " + err.message); });
+                } else { document.getElementById('login-section').style.opacity = '1'; alert("通信エラーが発生しました。"); }
             });
         }
 
-        function showProfileForm() {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('profile-form').style.display = 'block';
-        }
+        function showProfileForm() { document.getElementById('login-section').style.display = 'none'; document.getElementById('profile-form').style.display = 'block'; }
 
         async function submitMember(e) {
-            e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.disabled = true; submitBtn.innerText = "登録中...";
-
+            e.preventDefault(); e.target.querySelector('button[type="submit"]').disabled = true;
             const pastSnapshot = await db.collection('members').where('uid', '==', currentUserUid).get();
-            let isExperienced = false;
-            let pastTeams = [];
-            
-            pastSnapshot.forEach(doc => {
-                if(doc.data().teamId !== teamId) {
-                    isExperienced = true;
-                    pastTeams.push(doc.data().teamName);
-                }
-            });
-
-            await db.collection('members').add({
-                teamId: teamId,
-                teamName: currentTeamName,
-                uid: currentUserUid,
-                name: document.getElementById('m-name').value,
-                grade: document.getElementById('m-grade').value,
-                isExperienced: isExperienced,
-                pastTeams: pastTeams,
-                registeredAt: new Date()
-            });
-
-            document.getElementById('profile-form').style.display = 'none';
-            document.getElementById('success-msg').style.display = 'block';
-
-            document.getElementById('go-play-btn').onclick = () => {
-                window.location.href = `play.html?teamId=${teamId}`;
-            };
+            let isExperienced = false; let pastTeams = [];
+            pastSnapshot.forEach(doc => { if(doc.data().teamId !== teamId) { isExperienced = true; pastTeams.push(doc.data().teamName); } });
+            await db.collection('members').add({ teamId, teamName: currentTeamName, uid: currentUserUid, name: document.getElementById('m-name').value, grade: document.getElementById('m-grade').value, isExperienced, pastTeams, registeredAt: new Date() });
+            document.getElementById('profile-form').style.display = 'none'; document.getElementById('success-msg').style.display = 'block';
+            document.getElementById('go-play-btn').onclick = () => { window.location.href = `play.html?teamId=${teamId}`; };
         }
     </script>
 </body>
