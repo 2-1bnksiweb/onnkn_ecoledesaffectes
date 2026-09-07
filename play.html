@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#050505">
+    <title>脱出ゲームプレイ画面 - 恐怖の廃校</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        @font-face { font-family: 'OnryouFont'; src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
+        body { font-family: 'OnryouFont', 'Shippori Mincho', serif; background-color: #030303; color: #d1d1d1; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-center; }
+        .font-mono { font-family: 'Share Tech Mono', monospace !important; }
+        .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
+        
+        /* 🚨 サイレン発動時のフラッシュエフェクト */
+        @keyframes alarmFlash {
+            0%, 100% { background-color: rgba(255, 0, 0, 0.4); }
+            50% { background-color: rgba(255, 0, 0, 0.8); }
+        }
+        .alarm-active { animation: alarmFlash 0.5s infinite; }
+    </style>
+</head>
+<body class="relative p-6 justify-center">
+
+    <!-- 待機画面（オーディオコンテキストを起動させるため、必ず一度タップさせる） -->
+    <div id="waiting-screen" class="text-center w-full max-w-md z-20">
+        <h1 class="text-3xl font-bold text-red-500 mb-8 tracking-widest text-blood-dark">システム接続完了</h1>
+        <p class="text-gray-400 mb-8 leading-relaxed">
+            受付のスタッフにQRコードを提示し、<br>開始の指示があるまでお待ちください。
+        </p>
+        <button onclick="readyPlayer()" class="w-full bg-red-900 border border-red-700 text-white py-6 rounded-lg font-bold text-2xl shadow-[0_0_15px_rgba(255,0,0,0.5)] animate-pulse tracking-widest">
+            ゲームに接続して待機する
+        </button>
+    </div>
+
+    <!-- プレイ中画面 -->
+    <div id="playing-screen" class="hidden w-full max-w-lg flex-col items-center justify-center h-full z-20">
+        
+        <!-- 【代表者の画面】タイマーとヒントとサイレン表示 -->
+        <div id="leader-view" class="hidden w-full text-center">
+            <div class="bg-black/80 border border-red-900 p-6 rounded-lg shadow-[0_0_30px_rgba(255,0,0,0.2)] mb-6">
+                <p class="text-sm text-gray-500 mb-2 tracking-widest">TEAM ESCAPE TIME</p>
+                <div id="team-timer" class="text-6xl sm:text-7xl font-mono text-red-500 font-bold drop-shadow-[0_0_8px_#ff0000]">00:00.00</div>
+            </div>
+
+            <div id="hint-2m-box" class="hidden bg-yellow-950/50 border border-yellow-700 text-yellow-300 p-4 rounded-lg shadow-lg mb-4 text-left whitespace-pre-wrap"></div>
+            <div id="hint-4m-box" class="hidden bg-yellow-950/50 border border-yellow-700 text-yellow-300 p-4 rounded-lg shadow-lg mb-4 text-left whitespace-pre-wrap"></div>
+            
+            <button id="stop-alarm-btn" onclick="stopHorrorSiren()" class="hidden w-full bg-red-600 text-white py-6 rounded-lg font-bold text-3xl shadow-[0_0_25px_#ff0000] animate-pulse tracking-widest mt-8 border-4 border-red-400">
+                🚨 サイレンを止める！
+            </button>
+        </div>
+
+        <!-- 【メンバーの画面】 -->
+        <div id="member-view" class="hidden w-full text-center">
+            <div class="bg-gray-900/50 border border-gray-700 p-8 rounded-lg shadow-lg">
+                <p class="text-xl text-gray-400 leading-loose tracking-widest">
+                    ※残り時間および脱出のヒントは、<br><span class="text-red-500 font-bold">代表者の端末</span>にのみ表示されます。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- アラーム発動時の真っ赤なオーバーレイ -->
+    <div id="alarm-overlay" class="fixed inset-0 pointer-events-none z-10 hidden alarm-active"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const teamId = urlParams.get('teamId');
+        if(!teamId) alert("無効なアクセスです");
+
+        // 代表者かどうかの判定（ticket.htmlで予約したスマホのみ 'true' になる）
+        const isLeader = localStorage.getItem('isLeader_' + teamId) === 'true';
+
+        let audioCtx;
+        let alarmInterval;
+        let hasAlarmPlayed = false;
+        let hint2mPlayed = false;
+        let hint4mPlayed = false;
+        
+        let hint2mText = "ヒントが設定されていません";
+        let hint4mText = "ヒントが設定されていません";
+
+        // ヒントのテキストをFirebaseから取得しておく
+        db.collection('settings').doc('config').get().then(doc => {
+            if(doc.exists) {
+                if(doc.data().hint2m) hint2mText = doc.data().hint2m;
+                if(doc.data().hint4m) hint4mText = doc.data().hint4m;
+            }
+        });
+
+        // 待機ボタンを押してオーディオコンテキストをアクティブにする
+        function readyPlayer() {
+            document.getElementById('waiting-screen').innerHTML = `
+                <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-red-600 mx-auto mb-6"></div>
+                <p class="text-xl text-red-500 tracking-widest">通信待機中...</p>
+            `;
+            
+            // Web Audio APIの初期化（これをしないとiOSで音が鳴らない）
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        // ==========================================
+        // 🚨 悪夢の不協和音サイレン・ジェネレーター
+        // ==========================================
+        function playHorrorSiren() {
+            if (hasAlarmPlayed) return;
+            hasAlarmPlayed = true;
+            
+            document.getElementById('alarm-overlay').style.display = 'block';
+            document.getElementById('stop-alarm-btn').style.display = 'block';
+            
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            // 0.6秒間隔で「ビーッ！ビーッ！」という大きな警告音を生成
+            alarmInterval = setInterval(() => {
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc1.type = 'sawtooth';
+                osc2.type = 'square';
+                
+                // 不協和音による恐怖感
+                osc1.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc1.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.4);
+                
+                osc2.frequency.setValueAtTime(850, audioCtx.currentTime);
+                osc2.frequency.exponentialRampToValueAtTime(650, audioCtx.currentTime + 0.4);
+                
+                // 音量エンベロープ（徐々に大きくなりスッと消える）
+                gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.1);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc1.start();
+                osc2.start();
+                osc1.stop(audioCtx.currentTime + 0.5);
+                osc2.stop(audioCtx.currentTime + 0.5);
+            }, 600);
+        }
+
+        function stopHorrorSiren() {
+            if (alarmInterval) clearInterval(alarmInterval);
+            document.getElementById('alarm-overlay').style.display = 'none';
+            document.getElementById('stop-alarm-btn').style.display = 'none';
+        }
+
+        // ==========================================
+        // ⏱ タイマーとヒントの監視ループ
+        // ==========================================
+        let timerInterval;
+
+        db.collection('teams').doc(teamId).onSnapshot(doc => {
+            if(!doc.exists) return;
+            const data = doc.data();
+            
+            // 運営が「タイマーへ送る」を押したら画面切り替え
+            if (data.status === 'playing') {
+                document.getElementById('waiting-screen').style.display = 'none';
+                document.getElementById('playing-screen').style.display = 'flex';
+                
+                if (isLeader) {
+                    document.getElementById('leader-view').style.display = 'block';
+                } else {
+                    document.getElementById('member-view').style.display = 'block';
+                    return; // メンバーはここで処理終了（タイマーは動かさない）
+                }
+                
+                if(timerInterval) clearInterval(timerInterval);
+                
+                // リーダーのみタイマーを回す
+                timerInterval = setInterval(() => {
+                    let elapsed = data.accumulatedTime;
+                    if (data.timerState === 'running') {
+                        elapsed += (Date.now() - data.startTime);
+                    }
+                    
+                    document.getElementById('team-timer').innerText = formatTime(elapsed);
+                    
+                    // 💡 2分(120秒)経過でヒント1表示
+                    if (elapsed >= 120000 && !hint2mPlayed) {
+                        hint2mPlayed = true;
+                        const box = document.getElementById('hint-2m-box');
+                        box.innerHTML = `<span class="font-bold text-white border-b border-yellow-600 block mb-2 pb-1">💡 2分経過 ヒント</span>${hint2mText}`;
+                        box.style.display = 'block';
+                    }
+                    
+                    // 💡 4分(240秒)経過でヒント2表示
+                    if (elapsed >= 240000 && !hint4mPlayed) {
+                        hint4mPlayed = true;
+                        const box = document.getElementById('hint-4m-box');
+                        box.innerHTML = `<span class="font-bold text-white border-b border-yellow-600 block mb-2 pb-1">💡 4分経過 ヒント</span>${hint4mText}`;
+                        box.style.display = 'block';
+                    }
+                    
+                    // 🚨 5分(300秒)経過でサイレン発動！
+                    if (elapsed >= 300000 && !hasAlarmPlayed) {
+                        playHorrorSiren();
+                    }
+                    
+                }, 30);
+
+            } else if (data.status === 'finished') {
+                if(timerInterval) clearInterval(timerInterval);
+                stopHorrorSiren();
+                
+                // ゲーム終了（ランキングへ自動遷移）
+                document.getElementById('playing-screen').innerHTML = `
+                    <div class="text-center w-full">
+                        <h1 class="text-4xl font-bold text-yellow-500 mb-6 drop-shadow-lg tracking-widest">記録完了</h1>
+                        <p class="text-xl mb-8 text-white">あなたのチームのタイムが記録されました。</p>
+                        <a href="ranking.html" class="inline-block bg-red-900 border border-red-700 text-white px-8 py-4 rounded font-bold text-xl shadow-btn tracking-widest">ランキングを見る</a>
+                    </div>
+                `;
+            }
+        });
+
+        function formatTime(ms) {
+            const m = Math.floor(ms / 60000).toString().padStart(2, '0');
+            const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
+            const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0');
+            return `${m}:${s}.${c}`;
+        }
+    </script>
+</body>
+</html>
