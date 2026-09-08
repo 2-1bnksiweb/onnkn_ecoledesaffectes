@@ -73,7 +73,6 @@
             <button id="menu-btn" onclick="toggleMenu()" class="text-4xl hover:text-red-500 drop-shadow-md transition-transform duration-300 w-10 h-10 flex items-center justify-center -mt-2">☰</button>
         </header>
 
-        <!-- 【修正】運営システムへのリンクを削除 -->
         <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-16 right-6 z-50 shadow-2xl">
             <a href="index.html" class="text-gray-400 hover:text-white border-b border-red-900 pb-2">ホームへ戻る</a>
             <a href="ticket.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">整理券の予約</a>
@@ -139,26 +138,47 @@
             const firstTimers = {}; const repeaters = {};
             snapshot.forEach(doc => {
                 const data = doc.data();
-                if(data.count === 1) { if(!firstTimers[data.teamName] || firstTimers[data.teamName].time > data.time) firstTimers[data.teamName] = data; } 
-                else { if(!repeaters[data.teamName] || repeaters[data.teamName].time > data.time) repeaters[data.teamName] = data; }
+                if(data.count === 1) { 
+                    if(!firstTimers[data.teamName] || firstTimers[data.teamName].time > data.time) firstTimers[data.teamName] = data; 
+                } else { 
+                    if(!repeaters[data.teamName] || repeaters[data.teamName].time > data.time) repeaters[data.teamName] = data; 
+                }
             });
             renderList('first-timer-list', Object.values(firstTimers), false);
             renderList('repeater-list', Object.values(repeaters), true);
         });
 
+        // 💡【改良】チーム名と一緒に (〇人) を表示！
         function renderList(elementId, dataArray, isRepeater) {
             const list = document.getElementById(elementId); list.innerHTML = '';
             dataArray.sort((a, b) => a.time - b.time).slice(0, 10).forEach((data, index) => {
                 const li = document.createElement('li');
                 li.className = isRepeater ? "flex justify-between items-center bg-zinc-950/90 border border-amber-900/40 p-3 rounded text-gray-200 shadow-sm hover:border-amber-600 transition" : "flex justify-between items-center bg-zinc-950/90 border border-red-950/60 p-3 rounded text-gray-200 shadow-sm hover:border-red-600 transition";
+                
                 let rankStyle = "text-xl font-bold font-mono-tech ";
                 if(index === 0) rankStyle += "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]";
                 else if(index === 1) rankStyle += "text-gray-300";
                 else if(index === 2) rankStyle += "text-amber-600";
                 else rankStyle += "text-gray-600";
+                
                 const countBadge = data.count > 1 ? `<span class="text-xs bg-amber-950/80 border border-amber-600 text-amber-200 px-2 py-0.5 rounded ml-2 font-mono-tech font-bold">${data.count}回目</span>` : '';
                 const timeColor = isRepeater ? "text-amber-400" : "text-red-400";
-                li.innerHTML = `<div class="flex items-center"><span class="w-8 ${rankStyle}">#${(index + 1).toString().padStart(2, '0')}</span><span class="font-bold text-base sm:text-lg text-white ml-1">${data.teamName}</span>${countBadge}</div><span class="font-mono-tech text-lg sm:text-xl ${timeColor} font-bold tracking-wider drop-shadow-[0_0_6px_currentColor]">${formatTime(data.time)}</span>`;
+                
+                // 人数表示
+                const memberCountText = data.memberCount ? `<span class="text-xs text-gray-400 font-normal ml-1 font-sans">(${data.memberCount}人)</span>` : '';
+
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-8 ${rankStyle}">#${(index + 1).toString().padStart(2, '0')}</span>
+                        <span class="font-bold text-base sm:text-lg text-white ml-1">
+                            ${data.teamName} ${memberCountText}
+                        </span>
+                        ${countBadge}
+                    </div>
+                    <span class="font-mono-tech text-lg sm:text-xl ${timeColor} font-bold tracking-wider drop-shadow-[0_0_6px_currentColor]">
+                        ${formatTime(data.time)}
+                    </span>
+                `;
                 list.appendChild(li);
             });
             if(dataArray.length === 0) list.innerHTML = '<p class="text-gray-700 text-sm font-mono-tech">記録がありません</p>';
