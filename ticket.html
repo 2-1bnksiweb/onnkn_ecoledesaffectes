@@ -4,176 +4,277 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#050505">
-    <title>脱出ゲームプレイ画面 - 恐怖の廃校</title>
+    <title>予約画面 - 恐怖の廃校</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="firebase-config.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&display=swap" rel="stylesheet">
     <style>
         @font-face { font-family: 'OnryouFont'; src: url('home/onryu.ttf') format('truetype'), url('./home/onryu.ttf') format('truetype'), url('home/onryou.ttf') format('truetype'); font-weight: normal; font-style: normal; font-display: swap; }
-        body { font-family: 'OnryouFont', 'Shippori Mincho', serif; background-color: #030303; color: #d1d1d1; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .font-mono { font-family: 'Share Tech Mono', monospace !important; }
-        .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
-        @keyframes alarmFlash { 0%, 100% { background-color: rgba(255, 0, 0, 0.4); } 50% { background-color: rgba(255, 0, 0, 0.8); } }
-        .alarm-active { animation: alarmFlash 0.5s infinite; }
+        *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby, select { font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; }
+        body { background-color: #030303; color: #d1d1d1; overflow-x: hidden; min-height: 100dvh; }
+        .text-blood-dark { background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 2px 2px #000000) drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
+        .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
     </style>
 </head>
-<body class="relative p-6 justify-center">
+<body class="relative">
+    <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
 
-    <!-- 待機画面 -->
-    <div id="waiting-screen" class="text-center w-full max-w-md z-20">
-        <h1 class="text-3xl font-bold text-red-500 mb-8 tracking-widest text-blood-dark">システム接続完了</h1>
-        <p class="text-gray-400 mb-8 leading-relaxed">受付のスタッフにQRコードを提示し、<br>開始の指示があるまでお待ちください。</p>
-        <button onclick="readyPlayer()" class="w-full bg-red-900 border border-red-700 text-white py-6 rounded-lg font-bold text-2xl shadow-[0_0_15px_rgba(255,0,0,0.5)] animate-pulse tracking-widest">ゲームに接続して待機する</button>
-    </div>
+    <div class="max-w-2xl mx-auto p-6 relative z-20 mt-4 mb-12">
+        <header class="flex justify-between items-center border-b border-red-950 pb-3 mb-8 text-gray-300 relative z-30" style="text-shadow: 0 2px 4px #000;">
+            <span class="tracking-widest text-lg">弐ノ壱 教室発表</span>
+            <button id="menu-btn" onclick="toggleMenu()" class="text-4xl hover:text-red-500 drop-shadow-md transition-transform duration-300 w-10 h-10 flex items-center justify-center">☰</button>
+        </header>
 
-    <!-- プレイ中画面 -->
-    <div id="playing-screen" class="hidden w-full max-w-lg flex-col items-center justify-center h-full z-20">
-        
-        <!-- 【代表者の画面】タイマー・ヒント・サイレン -->
-        <div id="leader-view" class="hidden w-full text-center">
-            <div class="bg-black/80 border border-red-900 p-6 rounded-lg shadow-[0_0_30px_rgba(255,0,0,0.2)] mb-6">
-                <p class="text-sm text-gray-500 mb-2 tracking-widest">TEAM ESCAPE TIME</p>
-                <div id="team-timer" class="text-6xl sm:text-7xl font-mono text-red-500 font-bold drop-shadow-[0_0_8px_#ff0000]">00:00.00</div>
-            </div>
-            <div id="hints-container" class="space-y-4 mb-4 text-left"></div>
-            <button id="stop-alarm-btn" onclick="stopHorrorSiren()" class="hidden w-full bg-red-600 text-white py-6 rounded-lg font-bold text-3xl shadow-[0_0_25px_#ff0000] animate-pulse tracking-widest mt-8 border-4 border-red-400">🚨 サイレンを止める！</button>
+        <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-20 right-6 z-50 shadow-2xl">
+            <a href="index.html" class="text-gray-400 hover:text-white border-b border-red-900 pb-2">ホームへ戻る</a>
+            <a href="ranking.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">ランキングを見る</a>
         </div>
 
-        <!-- 【メンバーの画面】 -->
-        <div id="member-view" class="hidden w-full text-center">
-            <div class="bg-gray-900/50 border border-gray-700 p-8 rounded-lg shadow-lg mb-6">
-                <p class="text-xl text-gray-400 leading-loose tracking-widest">※残り時間および脱出のヒントやサイレンは、<br><span class="text-red-500 font-bold">代表者の端末</span>のみ連動して作動します。</p>
+        <div class="bg-gray-950/90 border border-red-950 p-8 rounded-lg shadow-2xl relative backdrop-blur-sm mt-6">
+            
+            <h1 id="ticket-page-title" class="text-3xl sm:text-4xl font-bold text-center mb-6 text-blood-dark tracking-widest">整理券発行</h1>
+            
+            <div id="ticket-section">
+                <div class="mb-4">
+                    <label class="block font-bold mb-1 text-gray-300">チーム名</label>
+                    <input type="text" id="team-name" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" placeholder="例: 桃山連合" required>
+                </div>
+                <div class="mb-8">
+                    <label class="block font-bold mb-1 text-gray-300">参加人数</label>
+                    <input type="number" id="member-count" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" value="1" min="1" required>
+                </div>
+
+                <h2 class="text-2xl font-bold mb-4 text-blood-dark border-b border-red-950 pb-2 tracking-widest">ご希望の時間を選択</h2>
+                <div id="slots-container" class="space-y-3 mb-8"><p class="text-gray-500">読込中...</p></div>
+
+                <div class="border-t border-red-950 pt-8 text-center mt-8">
+                    <p class="text-sm text-gray-400 mb-4">すでに整理券を確保、またはメンバー登録済みの方</p>
+                    <button onclick="openCheckReservation()" class="w-full py-4 bg-[#140000] border border-[#3d0000] text-gray-300 font-bold rounded hover:bg-black transition tracking-widest text-lg shadow-btn">
+                        予約確認はこちら (QR再表示)
+                    </button>
+                </div>
             </div>
-            <!-- 💡【救済ボタン】もし代表者なのにこの画面が出たらワンタップで切り替え -->
-            <button onclick="forceSwitchToLeader()" class="text-sm text-red-400 border border-red-900/80 bg-red-950/60 px-6 py-3 rounded-full hover:bg-red-900 transition tracking-wider shadow">
-                自分が代表者の場合はここをタップ
-            </button>
+
+            <div id="qr-section" class="hidden text-center">
+                <h2 class="text-2xl font-bold text-red-500 mb-4" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">整理券の枠を確保中</h2>
+                <p class="mb-4 text-white font-bold text-lg border-b border-red-900 pb-2 tracking-widest">※まだ予約は完了していません！</p>
+                <p class="mb-4 text-gray-300 text-sm leading-relaxed">このQRコードまたはURLを<span class="text-red-400 font-bold text-base">メンバー全員</span>に共有し、各自のスマホからアカウント登録を完了させてください。</p>
+                <a id="qr-url-link" href="#" target="_blank" class="block mb-6 text-xs text-blue-400 hover:text-blue-300 underline break-all font-sans"></a>
+                <div class="flex justify-center mb-6"><div id="qrcode" class="p-4 bg-white rounded-2xl inline-block shadow-[0_0_20px_rgba(255,255,255,0.2)]"></div></div>
+                <div class="mb-6 p-4 bg-red-950/40 border border-red-900 rounded-lg inline-block w-full">
+                    <p id="registered-count-display" class="text-2xl font-bold text-white tracking-widest mb-1 drop-shadow-md">現在の登録人数: 0 / 0 人</p>
+                    <p class="text-xs text-gray-400">全員が登録を完了すると、自動で受付QRに切り替わります。</p>
+                </div>
+            </div>
+
+            <div id="final-qr-section" class="hidden text-center">
+                <h2 class="text-3xl font-bold text-red-600 mb-4 tracking-widest" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">全員登録完了！</h2>
+                <p class="mb-6 text-gray-300 leading-relaxed text-sm">下のボタンを押して<span class="text-yellow-400 font-bold">「受付・ゲーム画面」</span>へ進み、<br>画面に表示されるQRコードを受付スタッフに見せてください。</p>
+                
+                <a id="go-to-play-leader" href="#" class="block w-full py-5 mb-4 bg-red-900 border border-red-700 text-white font-bold text-2xl rounded shadow-btn hover:bg-red-800 transition tracking-widest animate-pulse">
+                    受付・ゲーム画面を開く
+                </a>
+                <a href="index.html" class="inline-block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark font-bold text-xl rounded shadow-btn hover:bg-black transition tracking-widest">ホームに戻る</a>
+            </div>
+
+            <div id="member-register-section" class="hidden">
+                <h1 class="text-3xl font-bold text-center mb-6 text-blood-dark tracking-widest">チーム参加登録</h1>
+                <p id="team-display" class="hidden text-center font-bold text-xl mb-6 text-red-500 border border-red-950 py-3 rounded bg-black/50 tracking-widest">読込中...</p>
+                <div id="login-section" class="space-y-4">
+                    <p class="text-sm text-gray-400 text-center mb-4 leading-relaxed">本人確認と参加歴確認のため<br>アカウント連携（ログイン）をお願いします。</p>
+                    <button id="google-login-btn" onclick="loginWithGoogle()" class="w-full flex items-center justify-center bg-gray-200 text-gray-900 py-3 rounded font-bold hover:bg-white transition shadow text-lg font-sans mb-4">
+                        <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google で続ける
+                    </button>
+                    <div class="text-center text-gray-600 my-4 text-sm font-sans">または メールアドレスで設定</div>
+                    <div class="space-y-3">
+                        <input type="email" id="email-input" placeholder="メールアドレス" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded font-sans focus:outline-none focus:border-red-700">
+                        <input type="password" id="password-input" placeholder="パスワード (6文字以上)" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded font-sans focus:outline-none focus:border-red-700">
+                        <button onclick="loginWithEmail()" class="w-full bg-red-950 border border-red-800 text-red-200 py-3 rounded font-bold hover:bg-red-900 transition tracking-widest text-lg">ログイン / 新規登録</button>
+                    </div>
+                </div>
+                <form id="profile-form" onsubmit="submitMember(event)" class="hidden">
+                    <div class="mb-4 text-center"><span class="inline-block bg-red-950 text-red-400 text-sm px-4 py-1 rounded border border-red-800 font-bold tracking-widest">アカウント認証完了</span></div>
+                    <div class="mb-4"><label class="block font-bold mb-1 text-gray-300">お名前 (フルネーム)</label><input type="text" id="m-name" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" placeholder="例: 山田 太郎"></div>
+                    <div class="mb-8"><label class="block font-bold mb-1 text-gray-300">学年・区分 (例: 1年, 先生, 保護者)</label><input type="text" id="m-grade" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" placeholder="例: 2年, 保護者, 卒業生"></div>
+                    <button type="submit" class="w-full bg-[#260101] border border-[#520202] text-blood-dark py-4 rounded font-bold hover:bg-black transition shadow-btn text-xl tracking-widest">このチームに参加する</button>
+                </form>
+                <div id="success-msg" class="hidden text-center mt-6">
+                    <h2 class="text-3xl font-bold text-red-600 mb-4" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">登録完了！</h2>
+                    <p class="text-gray-300 mb-8 leading-relaxed text-sm sm:text-base">チームへの参加登録が完了しました。<br>時間になりましたら代表者と共に受付へお越しください。</p>
+                    <a href="index.html" class="block w-full bg-[#260101] border border-[#520202] text-blood-dark py-4 rounded font-bold hover:bg-black transition shadow-btn text-xl tracking-widest">ホーム画面へ戻る</a>
+                </div>
+            </div>
         </div>
     </div>
-
-    <div id="alarm-overlay" class="fixed inset-0 pointer-events-none z-10 hidden alarm-active"></div>
 
     <script>
+        function generateReadableId() {
+            const chars = '2345689ABCDEFGHJKLMNPQRSTUVWXYZ';
+            let res = ''; for (let i = 0; i < 6; i++) res += chars.charAt(Math.floor(Math.random() * chars.length)); return res;
+        }
+        function toggleMenu() { const menu = document.getElementById('nav-menu'); const btn = document.getElementById('menu-btn'); if(menu) { if(menu.classList.contains('hidden')) { menu.classList.remove('hidden'); menu.classList.add('flex'); btn.innerText = '✕'; btn.style.transform = 'rotate(90deg)'; } else { menu.classList.add('hidden'); menu.classList.remove('flex'); btn.innerText = '☰'; btn.style.transform = 'rotate(0deg)'; } } }
+
         const urlParams = new URLSearchParams(window.location.search);
-        const teamId = urlParams.get('teamId');
-        if(!teamId) alert("無効なアクセスです");
+        let currentMode = urlParams.get('action') || 'ticket'; 
+        let targetTeamId = urlParams.get('teamId') || null;
+        let currentTeamName = ""; let currentUserUid = "";
 
-        // 💡【強化】URLに「role=leader」がついているか、ローカルに記憶があれば代表者と判定！
-        let isLeader = urlParams.get('role') === 'leader' || 
-                       urlParams.get('leader') === 'true' || 
-                       localStorage.getItem('isLeader_' + teamId) === 'true';
-
-        // 救済ボタンを押したときの処理
-        function forceSwitchToLeader() {
-            isLeader = true;
-            localStorage.setItem('isLeader_' + teamId, 'true');
-            document.getElementById('member-view').style.display = 'none';
-            document.getElementById('leader-view').style.display = 'block';
-            if(!audioCtx) initAudio();
-        }
-
-        let audioCtx; let alarmInterval; let hasAlarmPlayed = false;
-        let puzzleHints = []; let shownHints = new Set(); let isHintsLoaded = false;
-
-        function initAudio() {
-            if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
+        if (currentMode === 'register') {
+            document.getElementById('ticket-page-title').innerText = "メンバー参加登録";
+            document.getElementById('ticket-section').style.display = 'none';
+            document.getElementById('member-register-section').style.display = 'block';
+            if(targetTeamId) {
+                db.collection('teams').doc(targetTeamId).get().then(doc => {
+                    if(doc.exists) { currentTeamName = doc.data().teamName; document.getElementById('team-display').innerText = `チーム: ${currentTeamName}`; document.getElementById('team-display').style.display = 'block'; } 
+                    else { alert("無効なURLです。"); }
+                });
             }
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+        } else {
+            db.collection('settings').doc('config').onSnapshot(doc => {
+                if(doc.exists && doc.data().ticketTitle) document.getElementById('ticket-page-title').innerText = doc.data().ticketTitle;
+            });
+            loadSlots();
         }
 
-        function readyPlayer() {
-            document.getElementById('waiting-screen').innerHTML = `<div class="animate-spin rounded-full h-16 w-16 border-t-4 border-red-600 mx-auto mb-6"></div><p class="text-xl text-red-500 tracking-widest">通信待機中...</p>`;
-            initAudio();
+        function openCheckReservation() {
+            currentMode = 'check';
+            document.getElementById('ticket-page-title').innerText = "予約・登録状況の確認";
+            document.getElementById('ticket-section').style.display = 'none';
+            document.getElementById('member-register-section').style.display = 'block';
+            document.getElementById('login-section').style.display = 'block';
         }
 
-        function playHorrorSiren() {
-            if (hasAlarmPlayed) return; hasAlarmPlayed = true; 
-            document.getElementById('alarm-overlay').style.display = 'block'; document.getElementById('stop-alarm-btn').style.display = 'block';
-            initAudio();
-
-            alarmInterval = setInterval(() => {
-                const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc1.type = 'sawtooth'; osc2.type = 'square';
-                osc1.frequency.setValueAtTime(800, audioCtx.currentTime); osc1.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.4);
-                osc2.frequency.setValueAtTime(850, audioCtx.currentTime); osc2.frequency.exponentialRampToValueAtTime(650, audioCtx.currentTime + 0.4);
-                gain.gain.setValueAtTime(0, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.1); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-                osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
-                osc1.start(); osc2.start(); osc1.stop(audioCtx.currentTime + 0.5); osc2.stop(audioCtx.currentTime + 0.5);
-            }, 600);
-        }
-
-        function stopHorrorSiren() {
-            if (alarmInterval) clearInterval(alarmInterval); hasAlarmPlayed = false; 
-            document.getElementById('alarm-overlay').style.display = 'none'; document.getElementById('stop-alarm-btn').style.display = 'none';
-        }
-
-        let timerInterval;
-
-        db.collection('teams').doc(teamId).onSnapshot(async doc => {
-            if(!doc.exists) return; const data = doc.data();
-            if (data.status === 'playing') {
-                if (!isHintsLoaded && data.puzzleId) {
-                    isHintsLoaded = true;
-                    const pDoc = await db.collection('puzzles').doc(data.puzzleId).get();
-                    if(pDoc.exists && pDoc.data().hints) puzzleHints = pDoc.data().hints;
+        function loginWithGoogle() {
+            const btn = document.getElementById('google-login-btn'); btn.style.opacity = '0.5'; btn.innerText = 'ログイン中...';
+            firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then((result) => {
+                btn.style.opacity = '1';
+                if (result && result.user) {
+                    currentUserUid = result.user.uid;
+                    if(result.user.displayName) document.getElementById('m-name').value = result.user.displayName;
+                    handleLoginSuccess();
                 }
+            }).catch((error) => {
+                btn.style.opacity = '1';
+                if (error.code !== 'auth/popup-closed-by-user') alert("Googleログインエラー: " + error.message);
+            });
+        }
 
-                document.getElementById('waiting-screen').style.display = 'none'; 
-                document.getElementById('playing-screen').style.display = 'flex';
-                
-                // 代表者とメンバーの出し分け
-                if (isLeader) {
-                    document.getElementById('leader-view').style.display = 'block';
-                    document.getElementById('member-view').style.display = 'none';
-                } else {
-                    document.getElementById('member-view').style.display = 'block';
-                    document.getElementById('leader-view').style.display = 'none';
-                }
-                
-                if(timerInterval) clearInterval(timerInterval);
-                
-                // タイマー計測ループ
-                timerInterval = setInterval(() => {
-                    let elapsed = data.accumulatedTime;
-                    if (data.timerState === 'running') elapsed += (Date.now() - data.startTime);
-                    
-                    document.getElementById('team-timer').innerText = formatTime(elapsed);
-                    
-                    // 代表者のみヒントとサイレンを作動
-                    if (isLeader) {
-                        puzzleHints.forEach((event, idx) => {
-                            if (elapsed >= event.timeMs && !shownHints.has(idx)) {
-                                shownHints.add(idx);
-                                if (event.type === 'alarm') playHorrorSiren();
-                                else {
-                                    const container = document.getElementById('hints-container'); const box = document.createElement('div');
-                                    box.className = "bg-yellow-950/50 border border-yellow-700 text-yellow-300 p-4 rounded-lg shadow-lg text-left whitespace-pre-wrap animate-pulse";
-                                    box.innerHTML = `<span class="font-bold text-white border-b border-yellow-600 block mb-2 pb-1">💡 ${event.timeMin}分経過 ヒント</span>${event.text}`;
-                                    container.appendChild(box);
-                                }
-                            }
-                        });
+        function loginWithEmail() {
+            const email = document.getElementById('email-input').value; const password = document.getElementById('password-input').value;
+            if(!email || !password) return alert("入力してください");
+            document.getElementById('login-section').style.opacity = '0.5';
+            firebase.auth().signInWithEmailAndPassword(email, password).then((u) => { currentUserUid = u.user.uid; document.getElementById('login-section').style.opacity = '1'; handleLoginSuccess(); })
+            .catch(() => {
+                firebase.auth().createUserWithEmailAndPassword(email, password).then((u) => { currentUserUid = u.user.uid; document.getElementById('login-section').style.opacity = '1'; handleLoginSuccess(); })
+                .catch((err) => { document.getElementById('login-section').style.opacity = '1'; alert("エラー: " + err.message); });
+            });
+        }
+
+        async function handleLoginSuccess() {
+            document.getElementById('ticket-page-title').style.display = 'none';
+            document.getElementById('ticket-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'none';
+            if (currentMode === 'register') {
+                try {
+                    const snap = await db.collection('members').where('teamId', '==', targetTeamId).where('uid', '==', currentUserUid).get();
+                    if (!snap.empty) { document.getElementById('member-register-section').style.display = 'none'; monitorTeamProgress(targetTeamId); } 
+                    else { document.getElementById('profile-form').style.display = 'block'; }
+                } catch (err) { document.getElementById('profile-form').style.display = 'block'; }
+            } else { checkMyReservation(); }
+        }
+
+        async function checkMyReservation() {
+            document.getElementById('member-register-section').style.display = 'none';
+            try {
+                const snap = await db.collection('members').where('uid', '==', currentUserUid).get();
+                if (snap.empty) {
+                    let found = null;
+                    for (let i = 0; i < localStorage.length; i++) {
+                        let k = localStorage.key(i); if (k.startsWith('isLeader_') && localStorage.getItem(k) === 'true') { found = k.replace('isLeader_', ''); break; }
                     }
-                }, 30);
+                    if (found) { targetTeamId = found; monitorTeamProgress(targetTeamId); } 
+                    else { alert("予約データが見つかりません。"); location.href = window.location.href.split('?')[0]; }
+                } else {
+                    let latest = null; snap.forEach(d => { if (!latest || d.data().registeredAt.toMillis() > latest.data().registeredAt.toMillis()) latest = d; });
+                    targetTeamId = latest.data().teamId; monitorTeamProgress(targetTeamId);
+                }
+            } catch (err) { alert("取得失敗: " + err.message); location.href = window.location.href.split('?')[0]; }
+        }
 
-            } else if (data.status === 'finished') {
-                if(timerInterval) clearInterval(timerInterval); stopHorrorSiren();
-                document.getElementById('playing-screen').innerHTML = `
-                    <div class="text-center w-full">
-                        <h1 class="text-4xl font-bold text-yellow-500 mb-6 drop-shadow-lg tracking-widest">記録完了</h1>
-                        <p class="text-xl mb-8 text-white">あなたのチームのタイムが記録されました。</p>
-                        <a href="ranking.html" class="inline-block bg-red-900 border border-red-700 text-white px-8 py-4 rounded font-bold text-xl shadow-btn tracking-widest">ランキングを見る</a>
-                    </div>
-                `;
-            }
-        });
+        function monitorTeamProgress(tId) {
+            db.collection('teams').doc(tId).get().then(teamDoc => {
+                if (!teamDoc.exists) { alert("チームデータが見つかりません。"); return; }
+                const expectedCount = teamDoc.data().expectedCount;
+                document.getElementById('ticket-section').style.display = 'none'; document.getElementById('member-register-section').style.display = 'none';
+                const baseUrl = window.location.href.split('?')[0]; const registerUrl = `${baseUrl}?action=register&teamId=${tId}`;
 
-        function formatTime(ms) {
-            const m = Math.floor(ms / 60000).toString().padStart(2, '0'); const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0'); const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0'); return `${m}:${s}.${c}`;
+                db.collection('members').where('teamId', '==', tId).onSnapshot(snap => {
+                    const registeredCount = snap.size;
+                    if (registeredCount >= expectedCount) {
+                        document.getElementById('qr-section').style.display = 'none'; document.getElementById('final-qr-section').style.display = 'block';
+                        // 💡【修正】チームIDを確実にセットしてplay.htmlへリンク
+                        document.getElementById('go-to-play-leader').href = `play.html?teamId=${tId}&role=leader`;
+                    } else {
+                        document.getElementById('qr-section').style.display = 'block';
+                        document.getElementById('qr-url-link').href = registerUrl; document.getElementById('qr-url-link').innerText = registerUrl;
+                        document.getElementById('registered-count-display').innerText = `現在の登録人数: ${registeredCount} / ${expectedCount} 人`;
+                        const qrBox = document.getElementById("qrcode");
+                        if(qrBox && !qrBox.hasChildNodes()) new QRCode(qrBox, { text: registerUrl, width: 200, height: 200, colorDark: "#000000", colorLight: "#ffffff" });
+                    }
+                });
+            });
+        }
+
+        async function loadSlots() {
+            const container = document.getElementById('slots-container'); container.innerHTML = '';
+            db.collection('slots').onSnapshot(snapshot => {
+                container.innerHTML = ''; let slots = []; snapshot.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
+                slots.sort((a, b) => { const dA = a.day || 1; const dB = b.day || 1; if (dA !== dB) return dA - dB; return (a.time || "").localeCompare(b.time || ""); });
+                slots.forEach(data => {
+                    const btn = document.createElement('button'); const isFull = Number(data.booked) >= Number(data.capacity); const available = Number(data.capacity) - Number(data.booked);
+                    btn.className = `w-full p-4 rounded text-left font-bold border transition tracking-widest ${isFull ? 'bg-gray-900 text-gray-600 border-gray-800 cursor-not-allowed' : 'bg-red-950/40 hover:bg-red-900/60 text-red-200 border-red-900/50 shadow-sm'}`;
+                    const dayLabel = data.day ? `<span class="bg-red-900 text-red-200 px-2 py-0.5 rounded text-xs mr-2 font-bold">${data.day}日目</span>` : "";
+                    btn.innerHTML = `${dayLabel}${data.time} (空き: ${available}人)`; btn.disabled = isFull; btn.onclick = () => issueTicket(data.id, `${data.day ? data.day+'日目 ' : ''}${data.time}`, available);
+                    container.appendChild(btn);
+                });
+            });
+        }
+
+        async function issueTicket(slotId, timeLabel, available = 99) {
+            const teamName = document.getElementById('team-name').value; const count = parseInt(document.getElementById('member-count').value);
+            if(!teamName) return alert("チーム名を入力してください"); if(count > available) return alert("この枠の空き人数が足りません");
+            const slotRef = db.collection('slots').doc(slotId);
+            try { await db.runTransaction(async (t) => { const doc = await t.get(slotRef); const newBooked = Number(doc.data().booked) + count; if (newBooked > Number(doc.data().capacity)) throw "他の人が先に枠を取り満員になりました"; t.update(slotRef, { booked: newBooked }); }); } catch (e) { alert(e); return; }
+            
+            const customTeamId = generateReadableId();
+
+            await db.collection('teams').doc(customTeamId).set({
+                teamName: teamName, timeLabel: timeLabel, expectedCount: count,
+                status: 'registered', timerState: 'ready', accumulatedTime: 0, createdAt: new Date(),
+                members: []
+            });
+
+            localStorage.setItem('isLeader_' + customTeamId, 'true');
+            monitorTeamProgress(customTeamId);
+        }
+
+        async function submitMember(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]'); submitBtn.disabled = true; submitBtn.innerText = "登録中...";
+            const pastSnapshot = await db.collection('members').where('uid', '==', currentUserUid).get();
+            let isExperienced = false; let pastTeams = [];
+            pastSnapshot.forEach(doc => { if(doc.data().teamId !== targetTeamId) { isExperienced = true; pastTeams.push(doc.data().teamName); } });
+            
+            const memberObj = { name: document.getElementById('m-name').value, grade: document.getElementById('m-grade').value };
+            await db.collection('members').add({ teamId: targetTeamId, teamName: currentTeamName, uid: currentUserUid, ...memberObj, isExperienced, pastTeams, registeredAt: new Date() });
+            try { await db.collection('teams').doc(targetTeamId).update({ members: firebase.firestore.FieldValue.arrayUnion(memberObj) }); } catch (err) {}
+
+            document.getElementById('profile-form').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'block';
         }
     </script>
 </body>
