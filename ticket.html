@@ -85,11 +85,12 @@
                     <div class="mb-4 text-center"><span class="inline-block bg-red-950 text-red-400 text-sm px-4 py-1 rounded border border-red-800 font-bold tracking-widest">アカウント認証完了</span></div>
                     <div class="mb-4">
                         <label class="block font-bold mb-1 text-gray-300">お名前 (フルネーム)</label>
-                        <input type="text" id="m-name" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans">
+                        <input type="text" id="m-name" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" placeholder="例: 山田 太郎">
                     </div>
+                    <!-- 【変更】学年の例に「保護者」を追加 -->
                     <div class="mb-8">
-                        <label class="block font-bold mb-1 text-gray-300">学年 (例: 1年, 先生)</label>
-                        <input type="text" id="m-grade" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans">
+                        <label class="block font-bold mb-1 text-gray-300">学年・区分 (例: 1年, 先生, 保護者)</label>
+                        <input type="text" id="m-grade" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" placeholder="例: 2年, 保護者, 卒業生">
                     </div>
                     <button type="submit" class="w-full bg-[#260101] border border-[#520202] text-blood-dark py-4 rounded font-bold hover:bg-black transition shadow-btn text-xl tracking-widest">このチームに参加する</button>
                 </form>
@@ -181,25 +182,23 @@
         let currentTeamName = "";
         let currentUserUid = "";
 
-        // 💡 認証状態の自動監視（すでにログインしていれば一瞬で突破する）
+        // 認証状態の自動監視
         firebase.auth().onAuthStateChanged(async (user) => {
             if (user) {
                 currentUserUid = user.uid;
                 if (user.displayName) document.getElementById('m-name').value = user.displayName;
                 
-                // 「メンバー登録」か「予約確認」のモードの場合、ログイン画面を飛ばして次へ進む
                 if (currentMode === 'register' || currentMode === 'check') {
                     await handleLoginSuccess();
                 }
             } else {
-                // ログインしていない場合、登録/確認モードならログインフォームを表示
                 if (currentMode === 'register' || currentMode === 'check') {
                     document.getElementById('login-section').style.display = 'block';
                 }
             }
         });
 
-        // Googleリダイレクト時のエラーをキャッチ
+        // Googleリダイレクトエラーキャッチ
         firebase.auth().getRedirectResult().catch((error) => {
             if(error.code !== 'auth/redirect-cancelled-by-user') {
                 alert("Googleログインエラー: アプリ内ブラウザではブロックされる場合があります。Safari等で開き直してください。\n" + error.message);
@@ -230,7 +229,6 @@
             loadSlots();
         }
 
-        // ================= 予約確認モードへの切り替え =================
         function openCheckReservation() {
             currentMode = 'check';
             sessionStorage.setItem('savedMode', 'check');
@@ -248,7 +246,6 @@
             }
         }
 
-        // ================= ログイン処理 =================
         function loginWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
             firebase.auth().signInWithRedirect(provider);
@@ -261,7 +258,6 @@
 
             document.getElementById('login-section').style.opacity = '0.5';
 
-            // ① まずログインを試す
             firebase.auth().signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
                 currentUserUid = userCredential.user.uid;
@@ -269,7 +265,6 @@
                 handleLoginSuccess();
             })
             .catch((error) => {
-                // ② 失敗したら強制的に新規登録を試す
                 firebase.auth().createUserWithEmailAndPassword(email, password)
                 .then((userCredential) => {
                     currentUserUid = userCredential.user.uid;
@@ -285,7 +280,6 @@
             });
         }
 
-        // 💡 ログイン完了時の自動判別＆スキップ処理
         async function handleLoginSuccess() {
             document.getElementById('ticket-page-title').style.display = 'none';
             document.getElementById('ticket-section').style.display = 'none';
@@ -293,18 +287,15 @@
 
             if (currentMode === 'register') {
                 try {
-                    // すでにこのチームに登録済みかデータベースを確認
                     const snap = await db.collection('members')
                         .where('teamId', '==', targetTeamId)
                         .where('uid', '==', currentUserUid)
                         .get();
 
                     if (!snap.empty) {
-                        // 既に登録済みならプロフィール入力はスキップして待機画面へ！
                         document.getElementById('profile-form').style.display = 'none';
                         monitorTeamProgress(targetTeamId);
                     } else {
-                        // 初めてならプロフィール入力画面を出す
                         document.getElementById('profile-form').style.display = 'block';
                     }
                 } catch (err) {
@@ -315,16 +306,13 @@
             }
         }
 
-        // ================= 予約の検索と再表示 =================
         async function checkMyReservation() {
             document.getElementById('member-register-section').style.display = 'none';
             
             try {
-                // 自分のアカウントが登録されたチームを探す
                 const snap = await db.collection('members').where('uid', '==', currentUserUid).get();
                 
                 if (snap.empty) {
-                    // メンバー未登録だが、代表者として枠だけ取った場合をチェック
                     let foundLeaderTeamId = null;
                     for (let i = 0; i < localStorage.length; i++) {
                         let key = localStorage.key(i);
@@ -360,13 +348,10 @@
             }
         }
 
-        // ================= チームの進捗監視・QR表示 =================
         function monitorTeamProgress(tId) {
             db.collection('teams').doc(tId).get().then(teamDoc => {
                 if (!teamDoc.exists) { alert("チームデータが見つかりません。"); return; }
                 const expectedCount = teamDoc.data().expectedCount;
-                
-                // 代表者かどうかの判別
                 const isLeader = localStorage.getItem('isLeader_' + tId) === 'true';
                 
                 document.getElementById('ticket-section').style.display = 'none';
@@ -375,12 +360,10 @@
                 const baseUrl = window.location.href.split('?')[0]; 
                 const registerUrl = `${baseUrl}?action=register&teamId=${tId}`;
 
-                // リアルタイム監視開始
                 db.collection('members').where('teamId', '==', tId).onSnapshot(snap => {
                     const registeredCount = snap.size;
 
                     if (registeredCount >= expectedCount) {
-                        // 全員揃った！→ 最終の受付QR画面へ
                         document.getElementById('qr-section').style.display = 'none';
                         document.getElementById('member-waiting-section').style.display = 'none';
                         document.getElementById('final-qr-section').style.display = 'block';
@@ -392,9 +375,7 @@
                             new QRCode(qrBox, { text: tId, width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000" });
                         }
                     } else {
-                        // まだ揃っていない
                         if (isLeader) {
-                            // 代表者には「メンバーへ送るQR」を表示
                             document.getElementById('qr-section').style.display = 'block';
                             document.getElementById('qr-url-link').href = registerUrl;
                             document.getElementById('qr-url-link').innerText = registerUrl;
@@ -405,7 +386,6 @@
                                 new QRCode(qrBox, { text: registerUrl, width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000" });
                             }
                         } else {
-                            // メンバーには「待機画面」を表示
                             document.getElementById('member-waiting-section').style.display = 'block';
                             document.getElementById('member-registered-count').innerText = `現在の登録人数: ${registeredCount} / ${expectedCount} 人`;
                         }
@@ -414,7 +394,6 @@
             });
         }
 
-        // ================= 代表者：整理券確保処理 =================
         async function loadSlots() {
             const container = document.getElementById('slots-container'); container.innerHTML = '';
             db.collection('slots').onSnapshot(snapshot => {
@@ -439,6 +418,7 @@
                     btn.onclick = () => issueTicket(data.id, `${data.day ? data.day+'日目 ' : ''}${data.time}`, available);
                     container.appendChild(btn);
                 });
+                if(slots.length === 0) container.innerHTML = '<p class="text-gray-500">現在公開されている時間枠はありません。</p>';
             });
         }
 
@@ -467,7 +447,6 @@
             monitorTeamProgress(teamDoc.id);
         }
 
-        // ================= メンバー：アカウント登録送信 =================
         async function submitMember(e) {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -488,7 +467,6 @@
                 isExperienced: isExperienced, pastTeams: pastTeams, registeredAt: new Date()
             });
 
-            // 登録完了後、自分の画面も「待機画面」に自動遷移する
             document.getElementById('profile-form').style.display = 'none';
             monitorTeamProgress(targetTeamId);
         }
