@@ -32,7 +32,7 @@
                 <div id="reader" class="w-full bg-black rounded overflow-hidden hidden mb-4"></div>
                 <button id="btn-start-camera" onclick="startCamera()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 rounded-lg text-xl shadow-lg">📸 カメラを起動する</button>
 
-                <!-- 手動入力フォールバック -->
+                <!-- 手動入力 -->
                 <div class="mt-8 border-t border-gray-700 pt-6 text-center">
                     <p class="text-xs text-gray-400 mb-2 font-sans">カメラで読めない場合は6桁IDを入力</p>
                     <div class="flex gap-2 justify-center max-w-sm mx-auto">
@@ -111,7 +111,6 @@
         function switchTab(t) { ['qr','timer','admin'].forEach(id => { document.getElementById(`tab-${id}`).style.display=(id===t)?'block':'none'; document.getElementById(`btn-${id}`).className=(id===t)?"flex-1 py-4 text-center tab-active transition":"flex-1 py-4 text-center tab-inactive hover:bg-gray-800 transition"; }); }
         let html5QrCode; let currentTeamId = null;
 
-        // 💡【安全関数】URLでも単体IDでも確実にIDだけを抜き出す
         function extractCleanId(rawText) {
             if (!rawText) return "";
             rawText = rawText.trim();
@@ -153,12 +152,14 @@
                     cancelScan(); return; 
                 }
                 
-                // 💡【完全修正】membersデータベースから正しくメンバーを取得
-                const membersSnap = await db.collection('members').where('teamId', '==', teamId).get();
+                // 🛡️【完全安全ガード】新旧どちらのデータ構造でも絶対にクラッシュしないメンバー取得
                 let membersList = [];
-                membersSnap.forEach(mDoc => {
-                    membersList.push(mDoc.data());
-                });
+                if (data.members && Array.isArray(data.members)) {
+                    membersList = data.members;
+                } else {
+                    const membersSnap = await db.collection('members').where('teamId', '==', teamId).get();
+                    membersSnap.forEach(mDoc => membersList.push(mDoc.data()));
+                }
 
                 currentTeamId = teamId;
                 document.getElementById('reader-container').style.display='none'; 
@@ -166,7 +167,7 @@
                 document.getElementById('scanned-team-name').innerText = data.teamName;
                 
                 if (membersList.length > 0) {
-                    document.getElementById('scanned-members').innerHTML = membersList.map(m => `<li>${m.grade} ${m.name}</li>`).join('');
+                    document.getElementById('scanned-members').innerHTML = membersList.map(m => `<li>${m.grade || ''} ${m.name || '名前なし'}</li>`).join('');
                 } else {
                     document.getElementById('scanned-members').innerHTML = `<li class="text-yellow-500">※メンバー登録がまだ行われていません</li>`;
                 }
