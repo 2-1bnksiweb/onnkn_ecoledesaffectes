@@ -56,7 +56,7 @@
                 <h2 class="text-2xl font-bold mb-4 text-blood-dark border-b border-red-950 pb-2 tracking-widest">ご希望の時間を選択</h2>
                 <div id="slots-container" class="space-y-3 mb-8"><p class="text-gray-500">読込中...</p></div>
 
-                <!-- 【追加】いつでもログインして確認できるボタン -->
+                <!-- いつでもログインして確認できるボタン -->
                 <div class="border-t border-red-950 pt-8 text-center mt-8">
                     <p class="text-sm text-gray-400 mb-4">すでに整理券を確保、またはメンバー登録済みの方</p>
                     <button onclick="openCheckReservation()" class="w-full py-4 bg-[#140000] border border-[#3d0000] text-gray-300 font-bold rounded hover:bg-black transition tracking-widest text-lg shadow-btn">
@@ -101,7 +101,7 @@
                 <button type="submit" class="w-full bg-[#260101] border border-[#520202] text-blood-dark py-4 rounded font-bold hover:bg-black transition shadow-btn text-xl tracking-widest">このチームに参加する</button>
             </form>
 
-            <!-- ④ 全員に登録を促す共有QR画面（進捗確認） -->
+            <!-- ④ メンバー登録の進捗と共有QR -->
             <div id="qr-section" class="hidden text-center">
                 <h2 class="text-2xl font-bold text-red-500 mb-4" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">整理券の枠を確保中</h2>
                 <p class="mb-4 text-white font-bold text-lg border-b border-red-900 pb-2 tracking-widest">※まだ予約は完了していません！</p>
@@ -117,7 +117,7 @@
                 <button onclick="location.reload()" class="text-sm text-gray-400 hover:text-white underline mt-4">ログアウトして戻る</button>
             </div>
 
-            <!-- ⑤ 全員完了後の「受付用QRコード」（いつでも再表示可能！） -->
+            <!-- ⑤ 全員完了後の「受付用QRコード」（いつでも再表示可能） -->
             <div id="final-qr-section" class="hidden text-center animate-pulse">
                 <h2 class="text-3xl font-bold text-red-600 mb-6 tracking-widest" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">予約完了・受付用QR</h2>
                 <p class="mb-6 text-gray-300 leading-relaxed text-sm">
@@ -167,13 +167,17 @@
         // モード管理 (ticket / register / check)
         // =========================================================
         const urlParams = new URLSearchParams(window.location.search);
-        let currentMode = urlParams.get('action') || 'ticket'; 
-        let targetTeamId = urlParams.get('teamId') || null;
+        // 【修正】リダイレクトで戻ってきた時のためにsessionStorageに状態を保存しておく
+        let currentMode = urlParams.get('action') || sessionStorage.getItem('savedMode') || 'ticket'; 
+        let targetTeamId = urlParams.get('teamId') || sessionStorage.getItem('savedTeamId') || null;
+
+        sessionStorage.setItem('savedMode', currentMode);
+        if(targetTeamId) sessionStorage.setItem('savedTeamId', targetTeamId);
 
         let currentTeamName = "";
         let currentUserUid = "";
 
-        // Googleリダイレクト戻り処理
+        // Googleリダイレクト戻り処理（成功時）
         firebase.auth().getRedirectResult().then((result) => {
             if (result && result.user) {
                 currentUserUid = result.user.uid;
@@ -181,10 +185,12 @@
                 handleLoginSuccess();
             }
         }).catch((error) => {
-            if(error.code !== 'auth/redirect-cancelled-by-user') alert("Googleログインエラー。Safariで開いてください。");
+            if(error.code !== 'auth/redirect-cancelled-by-user') {
+                alert("Googleログインエラー: アプリ内ブラウザではブロックされます。Safariで開いてください。");
+            }
         });
 
-        // 画面初期化
+        // 画面の初期表示
         if (currentMode === 'register') {
             document.getElementById('ticket-page-title').innerText = "メンバー参加登録";
             document.getElementById('ticket-section').style.display = 'none';
@@ -199,6 +205,9 @@
                     } else { alert("無効なURLです。"); }
                 });
             }
+        } else if (currentMode === 'check') {
+            // 確認モードの場合はログイン画面を出す
+            openCheckReservation();
         } else {
             // 通常の予約画面
             db.collection('settings').doc('config').onSnapshot(doc => {
@@ -207,9 +216,10 @@
             loadSlots();
         }
 
-        // ================= 【新規】予約確認モードへの切り替え =================
+        // ================= 予約確認モードへの切り替え =================
         function openCheckReservation() {
             currentMode = 'check';
+            sessionStorage.setItem('savedMode', 'check');
             document.getElementById('ticket-page-title').innerText = "予約・登録状況の確認";
             document.getElementById('ticket-section').style.display = 'none';
             document.getElementById('login-section').style.display = 'block';
@@ -251,58 +261,72 @@
             });
         }
 
-        // ログイン成功時の分岐（メンバー登録 or 予約確認）
+        // ログイン成功時の分岐
         function handleLoginSuccess() {
+            document.getElementById('ticket-page-title').style.display = 'none';
+            document.getElementById('ticket-section').style.display = 'none';
+
             if (currentMode === 'register') {
-                // メンバー登録へ進む
                 document.getElementById('login-section').style.display = 'none';
                 document.getElementById('profile-form').style.display = 'block';
-            } else if (currentMode === 'check') {
-                // 過去の自分の予約情報を探して表示する
+            } else {
+                // ticket, check の場合はすべて予約確認へ進める
                 checkMyReservation();
             }
         }
 
-        // ================= 【新規】予約の検索と再表示 =================
+        // ================= 【修正】予約の検索と再表示 =================
         async function checkMyReservation() {
             document.getElementById('login-section').style.display = 'none';
+            document.getElementById('ticket-section').style.display = 'none';
+            document.getElementById('ticket-page-title').style.display = 'none';
             
-            // 自分のUIDが登録されているメンバー情報を検索（最新のもの1件）
-            const snap = await db.collection('members').where('uid', '==', currentUserUid).orderBy('registeredAt', 'desc').limit(1).get();
-            
-            if (snap.empty) {
-                // まだメンバー登録していない（代表者として枠だけ取った直後、または新規ユーザー）
-                let foundLeaderTeamId = null;
-                for (let i = 0; i < localStorage.length; i++) {
-                    let key = localStorage.key(i);
-                    if (key.startsWith('isLeader_') && localStorage.getItem(key) === 'true') {
-                        foundLeaderTeamId = key.replace('isLeader_', '');
-                        break;
+            try {
+                // インデックスエラーを回避するため、JS側で最新の登録データを取得
+                const snap = await db.collection('members').where('uid', '==', currentUserUid).get();
+                
+                if (snap.empty) {
+                    let foundLeaderTeamId = null;
+                    for (let i = 0; i < localStorage.length; i++) {
+                        let key = localStorage.key(i);
+                        if (key.startsWith('isLeader_') && localStorage.getItem(key) === 'true') {
+                            foundLeaderTeamId = key.replace('isLeader_', '');
+                            break;
+                        }
                     }
+                    
+                    if (foundLeaderTeamId) {
+                        targetTeamId = foundLeaderTeamId;
+                    } else {
+                        alert("予約・登録データが見つかりません。");
+                        sessionStorage.removeItem('savedMode');
+                        location.href = window.location.href.split('?')[0]; // パラメータを消してリロード
+                        return;
+                    }
+                } else {
+                    let latestDoc = null;
+                    snap.forEach(doc => {
+                        if (!latestDoc || doc.data().registeredAt.toMillis() > latestDoc.data().registeredAt.toMillis()) {
+                            latestDoc = doc;
+                        }
+                    });
+                    targetTeamId = latestDoc.data().teamId;
                 }
                 
-                if (foundLeaderTeamId) {
-                    targetTeamId = foundLeaderTeamId; // ローカルストレージの記憶を頼りに復元
-                } else {
-                    alert("予約・登録データが見つかりません。");
-                    location.reload();
-                    return;
-                }
-            } else {
-                targetTeamId = snap.docs[0].data().teamId;
+                monitorTeamProgress(targetTeamId);
+            } catch (err) {
+                alert("データの取得に失敗しました。\n" + err.message);
+                sessionStorage.removeItem('savedMode');
+                location.href = window.location.href.split('?')[0];
             }
-            
-            // 対象チームの状況を画面に復元して監視
-            monitorTeamProgress(targetTeamId);
         }
 
         // ================= チームの進捗監視・QR表示 =================
         function monitorTeamProgress(tId) {
             db.collection('teams').doc(tId).get().then(teamDoc => {
-                if (!teamDoc.exists) { alert("チームデータが見つかりません。"); location.reload(); return; }
+                if (!teamDoc.exists) { alert("チームデータが見つかりません。"); return; }
                 const expectedCount = teamDoc.data().expectedCount;
                 
-                // メンバー共有用のQRと画面を用意
                 document.getElementById('ticket-section').style.display = 'none';
                 document.getElementById('profile-form').style.display = 'none';
                 document.getElementById('qr-section').style.display = 'block';
@@ -316,14 +340,12 @@
                 document.getElementById("qrcode").innerHTML = '';
                 new QRCode(document.getElementById("qrcode"), { text: registerUrl, width: 200, height: 200, colorDark: "#ffffff", colorLight: "#000000" });
 
-                // 人数とステータスをリアルタイム監視
                 db.collection('members').where('teamId', '==', tId).onSnapshot(snap => {
                     const registeredCount = snap.size;
                     const disp = document.getElementById('registered-count-display');
                     if(disp) disp.innerText = `現在の登録人数: ${registeredCount} / ${expectedCount} 人`;
 
                     if (registeredCount >= expectedCount) {
-                        // 全員揃ったら受付QR画面へ切り替え
                         document.getElementById('qr-section').style.display = 'none';
                         document.getElementById('final-qr-section').style.display = 'block';
                         
@@ -387,10 +409,7 @@
                 status: 'registered', timerState: 'ready', accumulatedTime: 0, createdAt: new Date()
             });
 
-            // 代表者であることをローカルに記憶
             localStorage.setItem('isLeader_' + teamDoc.id, 'true');
-            
-            // そのまま即座に監視画面へ投げる
             monitorTeamProgress(teamDoc.id);
         }
 
@@ -416,7 +435,6 @@
             });
 
             document.getElementById('profile-form').style.display = 'none';
-            // 登録が終わったら、自分のチームの進捗監視（待機画面）へ遷移
             monitorTeamProgress(targetTeamId);
         }
     </script>
