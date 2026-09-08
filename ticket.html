@@ -58,12 +58,10 @@
                 整理券発行
             </h1>
             
-            <!-- ==============================================
-                 ① 予約入力エリア（代表者）
-                 ============================================== -->
+            <!-- ① 予約入力エリア -->
             <div id="ticket-section">
                 <div class="mb-4">
-                    <label class="block font-bold mb-1 text-gray-300">チーム名</label>
+                    <label class="block font-bold mb-1 text-gray-300">チーム名 <span class="text-xs text-red-500 font-normal">※他チームと同じ名前は使えません</span></label>
                     <input type="text" id="team-name" class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" placeholder="例: 桃山連合" required>
                 </div>
                 <div class="mb-8">
@@ -82,14 +80,12 @@
                 </div>
             </div>
 
-            <!-- ==============================================
-                 ② 【新設】代表者用ダッシュボード（予約完了時に即座に出現！）
-                 ============================================== -->
+            <!-- ② 代表者用ダッシュボード（予約完了時に即出現） -->
             <div id="leader-dashboard-section" class="hidden text-center">
                 <h2 class="text-3xl font-bold text-red-600 mb-2 tracking-widest" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">予約完了</h2>
                 <p class="text-gray-300 text-sm mb-6">あなたがこのチームの<span class="text-yellow-400 font-bold text-base">【代表者】</span>です。</p>
 
-                <!-- 受付用QRコード（最優先表示） -->
+                <!-- 受付用QRコード -->
                 <div class="bg-gray-900 border border-red-900/60 p-6 rounded-xl mb-6 shadow-xl">
                     <p class="text-white font-bold text-lg mb-1 tracking-wider">【受付用QRコード】</p>
                     <p class="text-gray-400 text-xs mb-4">時間になりましたら、このQRコードを受付スタッフに提示してください。</p>
@@ -104,16 +100,15 @@
                     </div>
                 </div>
 
-                <!-- ゲーム待機画面へのリンク -->
                 <a id="go-to-play-leader" href="#" class="block w-full py-4 mb-8 bg-red-900 border border-red-700 text-white font-bold text-xl rounded shadow-btn hover:bg-red-800 transition tracking-widest">
                     ゲーム待機画面へ進む
                 </a>
 
-                <!-- メンバー招待用エリア -->
+                <!-- メンバー招待エリア -->
                 <div class="bg-gray-900/60 border border-gray-800 p-6 rounded-xl mb-6 text-left">
                     <div class="text-center mb-4">
                         <p class="text-yellow-400 font-bold text-base mb-1">👥 メンバーの招待・登録</p>
-                        <p class="text-gray-400 text-xs leading-relaxed">メンバーに以下のQRコードを読み取ってもらうか、URLを共有して個人情報を登録させてください。</p>
+                        <p class="text-gray-400 text-xs leading-relaxed">メンバーに以下のQRコードを読み取ってもらうか、URLを共有して登録させてください。</p>
                     </div>
 
                     <a id="invite-url-link" href="#" target="_blank" class="block mb-4 text-xs text-blue-400 hover:text-blue-300 underline break-all font-sans text-center"></a>
@@ -131,9 +126,7 @@
                 <a href="index.html" class="inline-block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark font-bold text-lg rounded shadow-btn hover:bg-black transition tracking-widest">ホームに戻る</a>
             </div>
 
-            <!-- ==============================================
-                 ③ メンバー参加登録エリア（招待QRから開いた時）
-                 ============================================== -->
+            <!-- ③ メンバー参加登録エリア -->
             <div id="member-register-section" class="hidden">
                 <h1 class="text-3xl font-bold text-center mb-6 text-blood-dark tracking-widest">チーム参加登録</h1>
                 <p id="team-display" class="hidden text-center font-bold text-xl mb-6 text-red-500 border border-red-950 py-3 rounded bg-black/50 tracking-widest">読込中...</p>
@@ -179,13 +172,10 @@
     </div>
 
     <script>
-        // 💡 紛らわしい文字（0,O,o, 1,I,l,7）を徹底除外した6桁ID生成関数
         function generateReadableId() {
             const chars = '2345689ABCDEFGHJKLMNPQRSTUVWXYZ';
             let res = '';
-            for (let i = 0; i < 6; i++) {
-                res += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
+            for (let i = 0; i < 6; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
             return res;
         }
 
@@ -251,7 +241,8 @@
                     svg.appendChild(path);
                     if (Math.random() < 0.1) {
                         const bPath = document.createElementNS(svgNs, "path");
-                        bPath.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`); bPath.setAttribute("fill", "none");
+                        bPath.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`);
+                        bPath.setAttribute("fill", "none");
                         bPath.setAttribute("stroke", "#8a0303"); bPath.setAttribute("stroke-width", "1.3");
                         bPath.setAttribute("stroke-dasharray", `${Math.random()*8+4} ${Math.random()*30+15}`);
                         bPath.setAttribute("opacity", "0.75");
@@ -272,9 +263,6 @@
         const ticketSectionEl = document.getElementById('ticket-section');
         const memberSectionEl = document.getElementById('member-register-section');
 
-        // =========================================================
-        // 画面初期化（通常モード / メンバー登録モード）
-        // =========================================================
         if (action === 'register') {
             if (pageTitleEl) pageTitleEl.innerText = "メンバー参加登録";
             if (ticketSectionEl) ticketSectionEl.style.display = 'none';
@@ -303,7 +291,6 @@
             loadSlots();
         }
 
-        // ================= 予約確認モード =================
         function openCheckReservation() {
             if (pageTitleEl) pageTitleEl.innerText = "予約・登録状況の確認";
             if (ticketSectionEl) ticketSectionEl.style.display = 'none';
@@ -319,7 +306,6 @@
             }
         }
 
-        // ================= 枠一覧の読み込み =================
         async function loadSlots() {
             const container = document.getElementById('slots-container'); 
             if (!container) return;
@@ -349,7 +335,7 @@
             });
         }
 
-        // ================= 💡【新方式】代表者の予約枠確保＆即座に受付QR生成 =================
+        // ================= 💡【改良】代表者の枠確保 ＆ チーム名重複チェック =================
         async function issueTicket(slotId, timeLabel, available = 99) {
             const teamNameInput = document.getElementById('team-name');
             const memberCountInput = document.getElementById('member-count');
@@ -358,18 +344,27 @@
             
             if (!teamName) return alert("チーム名を入力してください"); 
             if (count > available) return alert("この枠の空き人数が足りません");
+
+            // 🛡️【重複チェック】すでに同じ名前のチームが存在しないか完全検査
+            try {
+                const dupCheck = await db.collection('teams').where('teamName', '==', teamName).get();
+                if (!dupCheck.empty) {
+                    return alert("そのチーム名は既に使用されています！\nランキングの重複バグを防ぐため、別のチーム名を入力してください。");
+                }
+            } catch (err) {
+                console.warn("重複確認スキップ:", err);
+            }
             
             const slotRef = db.collection('slots').doc(slotId);
             try { 
                 await db.runTransaction(async (t) => { 
                     const doc = await t.get(slotRef); 
-                    const newBooked = Number(doc.data().booked) + count; 
-                    if (newBooked > Number(doc.data().capacity)) throw "他の人が先に枠を取り満員になりました"; 
+                    const newBooked = Number(doc.data().booked || 0) + count; 
+                    if (newBooked > Number(doc.data().capacity || 0)) throw "他の人が先に枠を取り満員になりました"; 
                     t.update(slotRef, { booked: newBooked }); 
                 }); 
-            } catch (e) { alert(e); return; }
+            } catch (e) { return alert(e); }
             
-            // 💡 厳選6桁IDを発行してチームドキュメントを作成
             const customTeamId = generateReadableId();
 
             await db.collection('teams').doc(customTeamId).set({ 
@@ -385,11 +380,11 @@
 
             localStorage.setItem('isLeader_' + customTeamId, 'true');
 
-            // 💡【神改善】予約ボタンを押した瞬間に、代表者ダッシュボード（受付QR）を即時表示！
+            // 代表者ダッシュボード（受付用QR）を即時表示
             renderLeaderDashboard(customTeamId, teamName, count);
         }
 
-        // ================= 💡【代表者ダッシュボード描画処理】 =================
+        // ================= 代表者ダッシュボード描画 =================
         function renderLeaderDashboard(teamId, teamName, expectedCount) {
             if (ticketSectionEl) ticketSectionEl.style.display = 'none';
             if (memberSectionEl) memberSectionEl.style.display = 'none';
@@ -397,28 +392,20 @@
             const dashSec = document.getElementById('leader-dashboard-section');
             if (dashSec) dashSec.style.display = 'block';
 
-            // 1. 受付番号（6桁ID）の文字表示
             const idDisp = document.getElementById('team-id-display');
             if (idDisp) idDisp.innerText = teamId;
 
-            // 2. 受付用QRコードの生成（白背景・黒QR、純粋な6桁ID）
             const finalQrBox = document.getElementById("final-qrcode");
             if (finalQrBox) {
                 finalQrBox.innerHTML = '';
                 new QRCode(finalQrBox, { 
-                    text: teamId, 
-                    width: 200, 
-                    height: 200, 
-                    colorDark: "#000000", 
-                    colorLight: "#ffffff" 
+                    text: teamId, width: 200, height: 200, colorDark: "#000000", colorLight: "#ffffff" 
                 });
             }
 
-            // 3. ゲーム待機画面へのリンク（role=leaderを確実に付与）
             const leaderLink = document.getElementById('go-to-play-leader');
             if (leaderLink) leaderLink.href = `play.html?teamId=${teamId}&role=leader`;
 
-            // 4. メンバー招待用URL & QRコードの生成
             const baseUrl = window.location.href.split('?')[0]; 
             const inviteUrl = `${baseUrl}?action=register&teamId=${teamId}`;
             
@@ -429,15 +416,10 @@
             if (shareQrBox) {
                 shareQrBox.innerHTML = '';
                 new QRCode(shareQrBox, { 
-                    text: inviteUrl, 
-                    width: 180, 
-                    height: 180, 
-                    colorDark: "#000000", 
-                    colorLight: "#ffffff" 
+                    text: inviteUrl, width: 180, height: 180, colorDark: "#000000", colorLight: "#ffffff" 
                 });
             }
 
-            // 5. メンバー登録人数のリアルタイム監視
             db.collection('members').where('teamId', '==', teamId).onSnapshot(snap => {
                 const registeredCount = snap.size; 
                 const countDisp = document.getElementById('registered-count-display');
@@ -450,7 +432,6 @@
             });
         }
 
-        // ================= 予約確認（過去の自分の予約を探して表示） =================
         async function checkMyReservation() {
             if (memberSectionEl) memberSectionEl.style.display = 'none';
             if (ticketSectionEl) ticketSectionEl.style.display = 'none';
@@ -458,18 +439,18 @@
             try {
                 const snap = await db.collection('members').where('uid', '==', currentUserUid).get();
                 if (snap.empty) {
-                    let foundLeaderTeamId = null;
+                    let found = null;
                     for (let i = 0; i < localStorage.length; i++) {
                         let k = localStorage.key(i); 
                         if (k.startsWith('isLeader_') && localStorage.getItem(k) === 'true') { 
-                            foundLeaderTeamId = k.replace('isLeader_', ''); 
+                            found = k.replace('isLeader_', ''); 
                             break; 
                         }
                     }
-                    if (foundLeaderTeamId) {
-                        fetchAndShowStatus(foundLeaderTeamId);
+                    if (found) {
+                        fetchAndShowStatus(found);
                     } else {
-                        alert("予約・登録データが見つかりません。"); 
+                        alert("予約データが見つかりません。"); 
                         location.href = window.location.href.split('?')[0]; 
                     }
                 } else {
@@ -495,7 +476,6 @@
             });
         }
 
-        // ================= メンバー登録ログイン＆送信 =================
         function loginWithGoogle() {
             const btn = document.getElementById('google-login-btn');
             if (btn) { btn.style.opacity = '0.5'; btn.innerText = 'ログイン中...'; }
