@@ -32,11 +32,11 @@
                 <div id="reader" class="w-full bg-black rounded overflow-hidden hidden mb-4"></div>
                 <button id="btn-start-camera" onclick="startCamera()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 rounded-lg text-xl shadow-lg">📸 カメラを起動する</button>
 
-                <!-- 【追加】手動入力フォールバック -->
+                <!-- 手動入力フォールバック（6桁ID対応） -->
                 <div class="mt-8 border-t border-gray-700 pt-6 text-center">
-                    <p class="text-xs text-gray-400 mb-2">カメラで読めない場合はIDを直接入力</p>
-                    <div class="flex gap-2">
-                        <input type="text" id="manual-team-id" placeholder="受付IDを入力" class="flex-1 bg-gray-900 border border-gray-600 p-3 rounded text-white font-mono uppercase focus:outline-none focus:border-red-500">
+                    <p class="text-xs text-gray-400 mb-2 font-sans">カメラで読めない場合は6桁IDを入力</p>
+                    <div class="flex gap-2 justify-center max-w-sm mx-auto">
+                        <input type="text" id="manual-team-id" placeholder="例: 3K8X9P" maxlength="6" class="flex-1 bg-gray-900 border border-gray-600 p-3 rounded text-white font-mono uppercase focus:outline-none focus:border-red-500 text-center tracking-[0.2em] text-lg">
                         <button onclick="handleManualInput()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-3 rounded">受付</button>
                     </div>
                 </div>
@@ -109,20 +109,47 @@
     <script>
         function switchTab(t) { ['qr','timer','admin'].forEach(id => { document.getElementById(`tab-${id}`).style.display=(id===t)?'block':'none'; document.getElementById(`btn-${id}`).className=(id===t)?"flex-1 py-4 text-center tab-active transition":"flex-1 py-4 text-center tab-inactive hover:bg-gray-800 transition"; }); }
         let html5QrCode; let currentTeamId = null;
+
+        // 💡【超重要】URLでも単体IDでも確実に6桁IDだけを抜き出す安全関数
+        function extractCleanId(rawText) {
+            if (!rawText) return "";
+            rawText = rawText.trim();
+            // URLからteamIdパラメータを探す
+            if (rawText.includes('teamId=')) {
+                const match = rawText.match(/teamId=([2345689A-Z]{6})/i);
+                if (match) return match[1].toUpperCase();
+            }
+            // そのままの場合は大文字の6桁IDとして取得
+            return rawText.toUpperCase();
+        }
+
         function startCamera() {
             document.getElementById('btn-start-camera').style.display='none'; document.getElementById('reader').style.display='block';
             html5QrCode = new Html5Qrcode("reader");
             html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, onScanSuccess, (err) => {}).catch(e => { alert("カメラ起動失敗。"); document.getElementById('btn-start-camera').style.display='block'; document.getElementById('reader').style.display='none'; });
         }
-        async function onScanSuccess(t) {
-            if (window.isScanning) return; window.isScanning = true;
+
+        async function onScanSuccess(rawText) {
+            if (window.isScanning) return; 
+            window.isScanning = true;
             if(html5QrCode) { try { await html5QrCode.stop(); html5QrCode.clear(); } catch(e){} }
+            
+            // 安全にIDを抽出
+            const teamId = extractCleanId(rawText);
+
             try {
-                const doc = await db.collection('teams').doc(t).get();
-                if(!doc.exists) { alert("無効なQRです。"); cancelScan(); return; }
+                const doc = await db.collection('teams').doc(teamId).get();
+                if(!doc.exists) { 
+                    alert("無効なQRコード・受付IDです。\n入力されたID: " + teamId); 
+                    cancelScan(); return; 
+                }
                 const data = doc.data();
-                if(data.status !== 'registered') { alert("追加済み、または終了したチームです。"); cancelScan(); return; }
-                currentTeamId = t;
+                if(data.status !== 'registered') { 
+                    alert("このチームは既に追加済み、または終了しています。"); 
+                    cancelScan(); return; 
+                }
+                
+                currentTeamId = teamId;
                 document.getElementById('reader-container').style.display='none'; document.getElementById('team-confirm-section').style.display='block';
                 document.getElementById('scanned-team-name').innerText = data.teamName;
                 document.getElementById('scanned-members').innerHTML = data.members.map(m => `<li>${m.grade} ${m.name}</li>`).join('');
@@ -132,13 +159,17 @@
                     await db.collection('teams').doc(currentTeamId).update({ status: 'playing', playCount: pc, puzzleId: pId });
                     alert("タイマーリストに追加しました！"); cancelScan(); switchTab('timer');
                 };
-            } catch (e) { alert("通信エラー\n" + e.message); cancelScan(); }
+            } catch (e) { 
+                alert("通信エラーが発生しました。\n" + e.message); 
+                cancelScan(); 
+            }
         }
+
         function cancelScan() { currentTeamId = null; window.isScanning = false; document.getElementById('team-confirm-section').style.display='none'; document.getElementById('reader-container').style.display='block'; document.getElementById('btn-start-camera').style.display='block'; document.getElementById('reader').style.display='none'; }
         
         async function handleManualInput() {
-            const input = document.getElementById('manual-team-id').value.trim();
-            if(!input) return alert("受付IDを入力してください");
+            const input = document.getElementById('manual-team-id').value;
+            if(!input) return alert("6桁の受付IDを入力してください");
             await onScanSuccess(input);
         }
 
@@ -150,7 +181,7 @@
                 let btn = "▶ 再生"; let col = "bg-green-600"; let p = "";
                 if(d.timerState === 'running') { btn = "⏸ 一時停止"; col = "bg-yellow-600"; p = "text-red-400"; }
                 const c = document.createElement('div'); c.className = "bg-gray-800 border border-gray-700 p-5 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center gap-4";
-                c.innerHTML = `<div class="flex-1 w-full text-center md:text-left"><h3 class="text-2xl font-bold text-white mb-1">${d.teamName}</h3><p class="text-sm text-gray-400">参加: ${d.playCount}回目</p></div><div class="text-5xl font-mono ${p} tracking-widest timer-display font-bold" data-id="${id}" data-state="${d.timerState}" data-start="${d.startTime || 0}" data-acc="${d.accumulatedTime || 0}">00:00.00</div><div class="flex gap-2 w-full md:w-auto"><button onclick="toggleTimer('${id}')" class="flex-1 md:w-32 ${col} text-white font-bold py-4 px-4 rounded shadow">${btn}</button><button onclick="finishTimer('${id}')" class="flex-1 md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded shadow">決定</button></div>`;
+                c.innerHTML = `<div class="flex-1 w-full text-center md:text-left"><h3 class="text-2xl font-bold text-white mb-1">${d.teamName}</h3><p class="text-sm text-gray-400 font-mono">ID: ${id} / 参加: ${d.playCount}回目</p></div><div class="text-5xl font-mono ${p} tracking-widest timer-display font-bold" data-id="${id}" data-state="${d.timerState}" data-start="${d.startTime || 0}" data-acc="${d.accumulatedTime || 0}">00:00.00</div><div class="flex gap-2 w-full md:w-auto"><button onclick="toggleTimer('${id}')" class="flex-1 md:w-32 ${col} text-white font-bold py-4 px-4 rounded shadow">${btn}</button><button onclick="finishTimer('${id}')" class="flex-1 md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded shadow">決定</button></div>`;
                 list.appendChild(c);
             });
         });
@@ -180,13 +211,11 @@
             else { bg.classList.add('bg-gray-600'); bg.classList.remove('bg-green-500'); dot.classList.remove('translate-x-6'); }
         }
         db.collection('settings').doc('config').onSnapshot(doc => {
-            let data = { showRepeaters: false, storyText: "", ticketTitle: "整理券発行" };
+            let data = { showRepeaters: false, storyText: "" };
             if(doc.exists) data = Object.assign(data, doc.data()); else db.collection('settings').doc('config').set(data);
-            document.getElementById('story-text-input').value = data.storyText || ""; 
-            document.getElementById('ticket-title-input').value = data.ticketTitle || "整理券発行"; 
-            updateToggleUI(data.showRepeaters);
+            document.getElementById('story-text-input').value = data.storyText || ""; updateToggleUI(data.showRepeaters);
         });
-        async function saveTexts() { try { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value, ticketTitle: document.getElementById('ticket-title-input').value }, {merge: true}); alert("保存しました！"); } catch (e) { alert("エラー: " + e.message); } }
+        async function saveTexts() { try { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true}); alert("保存しました！"); } catch (e) { alert("エラー: " + e.message); } }
         async function toggleRepeater() { try { await db.collection('settings').doc('config').set({ showRepeaters: document.getElementById('toggle-repeater').checked }, {merge: true}); } catch (e) { alert("エラー: " + e.message); } }
         
         function addHintField() {
