@@ -39,7 +39,6 @@
     </style>
 </head>
 <body class="relative">
-    <!-- 蜘蛛の巣背景 -->
     <div id="spider-web-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden opacity-80"></div>
 
     <div class="max-w-2xl mx-auto p-6 relative z-20 mt-4 mb-12">
@@ -60,7 +59,7 @@
             </h1>
             
             <!-- ==============================================
-                 ① 整理券確保エリア（代表者入力）
+                 ① 予約入力エリア（代表者）
                  ============================================== -->
             <div id="ticket-section">
                 <div class="mb-4">
@@ -75,7 +74,6 @@
                 <h2 class="text-2xl font-bold mb-4 text-blood-dark border-b border-red-950 pb-2 tracking-widest">ご希望の時間を選択</h2>
                 <div id="slots-container" class="space-y-3 mb-8"><p class="text-gray-500">読込中...</p></div>
 
-                <!-- 予約確認（いつでも再表示できるボタン） -->
                 <div class="border-t border-red-950 pt-8 text-center mt-8">
                     <p class="text-sm text-gray-400 mb-4">すでに整理券を確保、またはメンバー登録済みの方</p>
                     <button onclick="openCheckReservation()" class="w-full py-4 bg-[#140000] border border-[#3d0000] text-gray-300 font-bold rounded hover:bg-black transition tracking-widest text-lg shadow-btn">
@@ -85,62 +83,63 @@
             </div>
 
             <!-- ==============================================
-                 ② メンバー共有用QR画面（登録待ち）
+                 ② 【新設】代表者用ダッシュボード（予約完了時に即座に出現！）
                  ============================================== -->
-            <div id="qr-section" class="hidden text-center">
-                <h2 class="text-2xl font-bold text-red-500 mb-4" style="text-shadow: 0 0 10px rgba(255,0,0,0.5);">整理券の枠を確保中</h2>
-                <p class="mb-4 text-white font-bold text-lg border-b border-red-900 pb-2 tracking-widest">※まだ予約は完了していません！</p>
-                <p class="mb-4 text-gray-300 text-sm leading-relaxed">
-                    このQRコードまたはURLを<span class="text-red-400 font-bold text-base">メンバー全員</span>に共有し、各自のスマホからアカウント登録を完了させてください。
-                </p>
-                <a id="qr-url-link" href="#" target="_blank" class="block mb-6 text-xs text-blue-400 hover:text-blue-300 underline break-all font-sans"></a>
-                <div class="flex justify-center mb-6">
-                    <div id="qrcode" class="p-4 bg-white rounded-2xl inline-block shadow-[0_0_20px_rgba(255,255,255,0.2)]"></div>
-                </div>
-                <div class="mb-6 p-4 bg-red-950/40 border border-red-900 rounded-lg inline-block w-full">
-                    <p id="registered-count-display" class="text-2xl font-bold text-white tracking-widest mb-1 drop-shadow-md">現在の登録人数: 0 / 0 人</p>
-                    <p class="text-xs text-gray-400">全員が登録を完了すると、自動で受付QRに切り替わります。</p>
-                </div>
-            </div>
+            <div id="leader-dashboard-section" class="hidden text-center">
+                <h2 class="text-3xl font-bold text-red-600 mb-2 tracking-widest" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">予約完了</h2>
+                <p class="text-gray-300 text-sm mb-6">あなたがこのチームの<span class="text-yellow-400 font-bold text-base">【代表者】</span>です。</p>
 
-            <!-- ==============================================
-                 ③ 【完全復元】最終受付用QRコード画面（点滅なし）
-                 ============================================== -->
-            <div id="final-qr-section" class="hidden text-center">
-                <h2 class="text-3xl font-bold text-red-600 mb-4 tracking-widest" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">予約完了・受付用QR</h2>
-                <p class="mb-4 text-gray-300 leading-relaxed text-sm">
-                    時間になりましたら受付へお越しいただき、スタッフに以下の<br>
-                    <span class="text-red-500 font-bold text-xl block mt-1 tracking-widest">「受付用QRコード」</span>を提示してください。
-                </p>
-                
-                <!-- 💡 白背景・黒QR表示エリア -->
-                <div class="flex justify-center mb-3">
-                    <div id="final-qrcode" class="p-4 bg-white rounded-2xl inline-block shadow-[0_0_25px_rgba(255,0,0,0.5)]"></div>
-                </div>
-                
-                <!-- 💡 厳選6桁ID表示エリア -->
-                <div class="p-3 bg-gray-900 border border-red-900/60 rounded-lg inline-block mb-6">
-                    <p class="text-xs text-gray-400 mb-1 font-sans">受付番号 (6桁ID)</p>
-                    <p id="team-id-display" class="text-3xl font-mono text-red-400 font-bold tracking-[0.25em] pl-1"></p>
+                <!-- 受付用QRコード（最優先表示） -->
+                <div class="bg-gray-900 border border-red-900/60 p-6 rounded-xl mb-6 shadow-xl">
+                    <p class="text-white font-bold text-lg mb-1 tracking-wider">【受付用QRコード】</p>
+                    <p class="text-gray-400 text-xs mb-4">時間になりましたら、このQRコードを受付スタッフに提示してください。</p>
+                    
+                    <div class="flex justify-center mb-3">
+                        <div id="final-qrcode" class="p-4 bg-white rounded-2xl inline-block shadow-[0_0_25px_rgba(255,0,0,0.5)]"></div>
+                    </div>
+                    
+                    <div class="p-2 bg-black border border-red-900/40 rounded-lg inline-block">
+                        <p class="text-[11px] text-gray-400 font-sans">受付番号 (6桁ID)</p>
+                        <p id="team-id-display" class="text-3xl font-mono text-red-400 font-bold tracking-[0.25em] pl-1"></p>
+                    </div>
                 </div>
 
-                <p class="text-xs text-gray-400 mb-6 border-t border-gray-800 pt-4">※画面を閉じる前にスクリーンショットを撮って保存してください。</p>
-                
-                <a id="go-to-play-leader" href="#" class="block w-full py-4 mb-4 bg-red-900 border border-red-700 text-white font-bold text-xl rounded shadow-btn hover:bg-red-800 transition tracking-widest">
+                <!-- ゲーム待機画面へのリンク -->
+                <a id="go-to-play-leader" href="#" class="block w-full py-4 mb-8 bg-red-900 border border-red-700 text-white font-bold text-xl rounded shadow-btn hover:bg-red-800 transition tracking-widest">
                     ゲーム待機画面へ進む
                 </a>
-                <a href="index.html" class="inline-block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark font-bold text-xl rounded shadow-btn hover:bg-black transition tracking-widest">ホームに戻る</a>
+
+                <!-- メンバー招待用エリア -->
+                <div class="bg-gray-900/60 border border-gray-800 p-6 rounded-xl mb-6 text-left">
+                    <div class="text-center mb-4">
+                        <p class="text-yellow-400 font-bold text-base mb-1">👥 メンバーの招待・登録</p>
+                        <p class="text-gray-400 text-xs leading-relaxed">メンバーに以下のQRコードを読み取ってもらうか、URLを共有して個人情報を登録させてください。</p>
+                    </div>
+
+                    <a id="invite-url-link" href="#" target="_blank" class="block mb-4 text-xs text-blue-400 hover:text-blue-300 underline break-all font-sans text-center"></a>
+                    
+                    <div class="flex justify-center mb-4">
+                        <div id="share-qrcode" class="p-3 bg-white rounded-xl inline-block shadow"></div>
+                    </div>
+
+                    <div class="p-3 bg-red-950/40 border border-red-900 rounded-lg text-center">
+                        <p id="registered-count-display" class="text-lg font-bold text-white tracking-widest mb-1">現在の登録人数: 0 / 0 人</p>
+                        <p class="text-[11px] text-gray-400">※全員の登録が完了していなくても、上の受付用QRで受付可能です。</p>
+                    </div>
+                </div>
+
+                <a href="index.html" class="inline-block w-full py-4 bg-[#260101] border border-[#520202] text-blood-dark font-bold text-lg rounded shadow-btn hover:bg-black transition tracking-widest">ホームに戻る</a>
             </div>
 
             <!-- ==============================================
-                 ④ メンバー参加登録エリア（QRからアクセス時）
+                 ③ メンバー参加登録エリア（招待QRから開いた時）
                  ============================================== -->
             <div id="member-register-section" class="hidden">
                 <h1 class="text-3xl font-bold text-center mb-6 text-blood-dark tracking-widest">チーム参加登録</h1>
                 <p id="team-display" class="hidden text-center font-bold text-xl mb-6 text-red-500 border border-red-950 py-3 rounded bg-black/50 tracking-widest">読込中...</p>
                 
                 <div id="login-section" class="space-y-4">
-                    <p id="login-desc" class="text-sm text-gray-400 text-center mb-4 leading-relaxed">本人確認と参加歴確認のため<br>アカウント連携（ログイン）をお願いします。</p>
+                    <p class="text-sm text-gray-400 text-center mb-4 leading-relaxed">本人確認と参加歴確認のため<br>アカウント連携（ログイン）をお願いします。</p>
                     
                     <button id="google-login-btn" onclick="loginWithGoogle()" class="w-full flex items-center justify-center bg-gray-200 text-gray-900 py-3 rounded font-bold hover:bg-white transition shadow text-lg font-sans mb-4">
                         <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -162,7 +161,6 @@
                         <label class="block font-bold mb-1 text-gray-300">お名前 (フルネーム)</label>
                         <input type="text" id="m-name" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" placeholder="例: 山田 太郎">
                     </div>
-                    <!-- 💡 保護者の例を確実に維持 -->
                     <div class="mb-8">
                         <label class="block font-bold mb-1 text-gray-300">学年・区分 (例: 1年, 先生, 保護者)</label>
                         <input type="text" id="m-grade" required class="w-full border border-red-950 bg-gray-900 text-gray-200 p-3 rounded focus:outline-none focus:border-red-700 font-sans" placeholder="例: 2年, 保護者, 卒業生">
@@ -170,7 +168,6 @@
                     <button type="submit" class="w-full bg-[#260101] border border-[#520202] text-blood-dark py-4 rounded font-bold hover:bg-black transition shadow-btn text-xl tracking-widest">このチームに参加する</button>
                 </form>
 
-                <!-- メンバー用完了画面 -->
                 <div id="success-msg" class="hidden text-center mt-6">
                     <h2 class="text-3xl font-bold text-red-600 mb-4" style="text-shadow: 0 0 15px rgba(255,0,0,0.7);">登録完了！</h2>
                     <p class="text-gray-300 mb-8 leading-relaxed text-sm sm:text-base">チームへの参加登録が完了しました。<br>時間になりましたら代表者と共に受付へお越しください。</p>
@@ -182,7 +179,7 @@
     </div>
 
     <script>
-        // 💡 0,O,1,I,l,7を除外した厳選6桁ID生成関数
+        // 💡 紛らわしい文字（0,O,o, 1,I,l,7）を徹底除外した6桁ID生成関数
         function generateReadableId() {
             const chars = '2345689ABCDEFGHJKLMNPQRSTUVWXYZ';
             let res = '';
@@ -208,6 +205,7 @@
 
         function buildSpiderWebs() {
             const container = document.getElementById("spider-web-container");
+            if(!container) return;
             const svgNs = "http://www.w3.org/2000/svg";
             const svg = document.createElementNS(svgNs, "svg");
             svg.setAttribute("width", "100%"); svg.setAttribute("height", "100%");
@@ -253,8 +251,7 @@
                     svg.appendChild(path);
                     if (Math.random() < 0.1) {
                         const bPath = document.createElementNS(svgNs, "path");
-                        bPath.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`);
-                        bPath.setAttribute("fill", "none");
+                        bPath.setAttribute("d", `M ${x1} ${y1} Q ${mx} ${my} ${x2} ${y2}`); bPath.setAttribute("fill", "none");
                         bPath.setAttribute("stroke", "#8a0303"); bPath.setAttribute("stroke-width", "1.3");
                         bPath.setAttribute("stroke-dasharray", `${Math.random()*8+4} ${Math.random()*30+15}`);
                         bPath.setAttribute("opacity", "0.75");
@@ -267,7 +264,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const action = urlParams.get('action'); 
-        const teamId = urlParams.get('teamId');
+        const teamIdParam = urlParams.get('teamId');
         let currentTeamName = ""; 
         let currentUserUid = "";
 
@@ -276,15 +273,15 @@
         const memberSectionEl = document.getElementById('member-register-section');
 
         // =========================================================
-        // 画面の初期振り分け
+        // 画面初期化（通常モード / メンバー登録モード）
         // =========================================================
         if (action === 'register') {
             if (pageTitleEl) pageTitleEl.innerText = "メンバー参加登録";
             if (ticketSectionEl) ticketSectionEl.style.display = 'none';
             if (memberSectionEl) memberSectionEl.style.display = 'block';
 
-            if (teamId) {
-                db.collection('teams').doc(teamId).get().then(doc => {
+            if (teamIdParam) {
+                db.collection('teams').doc(teamIdParam).get().then(doc => {
                     if (doc.exists) { 
                         currentTeamName = doc.data().teamName; 
                         const td = document.getElementById('team-display');
@@ -295,8 +292,6 @@
                     } else { 
                         alert("無効なQRコード・URLです。"); 
                     }
-                }).catch(e => {
-                    alert("データ取得エラー: " + e.message);
                 });
             }
         } else {
@@ -308,14 +303,11 @@
             loadSlots();
         }
 
-        // ================= 予約確認モード切り替え =================
+        // ================= 予約確認モード =================
         function openCheckReservation() {
             if (pageTitleEl) pageTitleEl.innerText = "予約・登録状況の確認";
             if (ticketSectionEl) ticketSectionEl.style.display = 'none';
             if (memberSectionEl) memberSectionEl.style.display = 'block';
-            
-            const loginDesc = document.getElementById('login-desc');
-            if (loginDesc) loginDesc.innerText = "確認のため、ご自身のアカウントにログインしてください。";
 
             const user = firebase.auth().currentUser;
             if (user) {
@@ -327,7 +319,7 @@
             }
         }
 
-        // ================= 予約枠読み込み =================
+        // ================= 枠一覧の読み込み =================
         async function loadSlots() {
             const container = document.getElementById('slots-container'); 
             if (!container) return;
@@ -357,10 +349,13 @@
             });
         }
 
-        // ================= 枠確保処理 =================
+        // ================= 💡【新方式】代表者の予約枠確保＆即座に受付QR生成 =================
         async function issueTicket(slotId, timeLabel, available = 99) {
-            const teamName = document.getElementById('team-name').value; 
-            const count = parseInt(document.getElementById('member-count').value);
+            const teamNameInput = document.getElementById('team-name');
+            const memberCountInput = document.getElementById('member-count');
+            const teamName = teamNameInput ? teamNameInput.value.trim() : "";
+            const count = memberCountInput ? parseInt(memberCountInput.value) : 1;
+            
             if (!teamName) return alert("チーム名を入力してください"); 
             if (count > available) return alert("この枠の空き人数が足りません");
             
@@ -374,7 +369,7 @@
                 }); 
             } catch (e) { alert(e); return; }
             
-            // 💡 厳選6桁IDを生成してドキュメントIDに指定
+            // 💡 厳選6桁IDを発行してチームドキュメントを作成
             const customTeamId = generateReadableId();
 
             await db.collection('teams').doc(customTeamId).set({ 
@@ -385,77 +380,77 @@
                 timerState: 'ready', 
                 accumulatedTime: 0, 
                 createdAt: new Date(),
-                members: [] // 二重防御
+                members: []
             });
 
             localStorage.setItem('isLeader_' + customTeamId, 'true');
-            if (ticketSectionEl) ticketSectionEl.style.display = 'none'; 
-            
-            // チームの登録状況監視＆QR表示を開始
-            monitorTeamProgress(customTeamId, count);
+
+            // 💡【神改善】予約ボタンを押した瞬間に、代表者ダッシュボード（受付QR）を即時表示！
+            renderLeaderDashboard(customTeamId, teamName, count);
         }
 
-        // ================= チームの進行監視＆受付QRの確実な描画 =================
-        function monitorTeamProgress(tId, expectedCount) {
-            const qrSec = document.getElementById('qr-section');
-            if (qrSec) qrSec.style.display = 'block';
+        // ================= 💡【代表者ダッシュボード描画処理】 =================
+        function renderLeaderDashboard(teamId, teamName, expectedCount) {
+            if (ticketSectionEl) ticketSectionEl.style.display = 'none';
+            if (memberSectionEl) memberSectionEl.style.display = 'none';
 
-            const baseUrl = window.location.href.split('?')[0]; 
-            const registerUrl = `${baseUrl}?action=register&teamId=${tId}`;
-            
-            const urlLink = document.getElementById('qr-url-link');
-            if (urlLink) { urlLink.href = registerUrl; urlLink.innerText = registerUrl; }
+            const dashSec = document.getElementById('leader-dashboard-section');
+            if (dashSec) dashSec.style.display = 'block';
 
-            const qrBox = document.getElementById("qrcode");
-            if (qrBox) {
-                qrBox.innerHTML = '';
-                new QRCode(qrBox, { text: registerUrl, width: 200, height: 200, colorDark: "#000000", colorLight: "#ffffff" });
-            }
-
-            // 人数のリアルタイム監視
-            db.collection('members').where('teamId', '==', tId).onSnapshot(snap => {
-                const registeredCount = snap.size; 
-                const countDisp = document.getElementById('registered-count-display');
-                if (countDisp) countDisp.innerText = `現在の登録人数: ${registeredCount} / ${expectedCount} 人`;
-                
-                // 💡 全員登録完了したら、受付用QRコード画面を100%確実に生成！
-                if (registeredCount >= expectedCount) {
-                    showFinalQrScreen(tId);
-                }
-            });
-        }
-
-        // ================= 💡【完全復元】受付用QRコード画面の確実な描画処理 =================
-        function showFinalQrScreen(tId) {
-            const qrSec = document.getElementById('qr-section');
-            if (qrSec) qrSec.style.display = 'none'; 
-            
-            const finalSec = document.getElementById('final-qr-section');
-            if (finalSec) finalSec.style.display = 'block';
-            
-            // 6桁IDの文字表示
+            // 1. 受付番号（6桁ID）の文字表示
             const idDisp = document.getElementById('team-id-display');
-            if (idDisp) idDisp.innerText = tId;
+            if (idDisp) idDisp.innerText = teamId;
 
-            // ゲーム画面への直結リンク（role=leaderを確実に付与）
-            const leaderLink = document.getElementById('go-to-play-leader');
-            if (leaderLink) leaderLink.href = `play.html?teamId=${tId}&role=leader`;
-
-            // 💡 白背景・黒QRコードの確実な生成
+            // 2. 受付用QRコードの生成（白背景・黒QR、純粋な6桁ID）
             const finalQrBox = document.getElementById("final-qrcode");
             if (finalQrBox) {
-                finalQrBox.innerHTML = ''; // クリアしてから生成
+                finalQrBox.innerHTML = '';
                 new QRCode(finalQrBox, { 
-                    text: tId, 
+                    text: teamId, 
                     width: 200, 
                     height: 200, 
                     colorDark: "#000000", 
                     colorLight: "#ffffff" 
                 });
             }
+
+            // 3. ゲーム待機画面へのリンク（role=leaderを確実に付与）
+            const leaderLink = document.getElementById('go-to-play-leader');
+            if (leaderLink) leaderLink.href = `play.html?teamId=${teamId}&role=leader`;
+
+            // 4. メンバー招待用URL & QRコードの生成
+            const baseUrl = window.location.href.split('?')[0]; 
+            const inviteUrl = `${baseUrl}?action=register&teamId=${teamId}`;
+            
+            const urlLink = document.getElementById('invite-url-link');
+            if (urlLink) { urlLink.href = inviteUrl; urlLink.innerText = inviteUrl; }
+
+            const shareQrBox = document.getElementById("share-qrcode");
+            if (shareQrBox) {
+                shareQrBox.innerHTML = '';
+                new QRCode(shareQrBox, { 
+                    text: inviteUrl, 
+                    width: 180, 
+                    height: 180, 
+                    colorDark: "#000000", 
+                    colorLight: "#ffffff" 
+                });
+            }
+
+            // 5. メンバー登録人数のリアルタイム監視
+            db.collection('members').where('teamId', '==', teamId).onSnapshot(snap => {
+                const registeredCount = snap.size; 
+                const countDisp = document.getElementById('registered-count-display');
+                if (countDisp) {
+                    countDisp.innerText = `現在の登録人数: ${registeredCount} / ${expectedCount} 人`;
+                    if (registeredCount >= expectedCount) {
+                        countDisp.className = "text-lg font-bold text-green-400 tracking-widest mb-1";
+                    }
+                }
+            });
         }
 
-        // ================= 予約確認（過去データの検索・再表示） =================
+        // ================= 予約確認（過去の自分の予約を探して表示） =================
         async function checkMyReservation() {
             if (memberSectionEl) memberSectionEl.style.display = 'none';
             if (ticketSectionEl) ticketSectionEl.style.display = 'none';
@@ -463,18 +458,18 @@
             try {
                 const snap = await db.collection('members').where('uid', '==', currentUserUid).get();
                 if (snap.empty) {
-                    let found = null;
+                    let foundLeaderTeamId = null;
                     for (let i = 0; i < localStorage.length; i++) {
                         let k = localStorage.key(i); 
                         if (k.startsWith('isLeader_') && localStorage.getItem(k) === 'true') { 
-                            found = k.replace('isLeader_', ''); 
+                            foundLeaderTeamId = k.replace('isLeader_', ''); 
                             break; 
                         }
                     }
-                    if (found) {
-                        fetchAndShowStatus(found);
+                    if (foundLeaderTeamId) {
+                        fetchAndShowStatus(foundLeaderTeamId);
                     } else {
-                        alert("予約データが見つかりません。"); 
+                        alert("予約・登録データが見つかりません。"); 
                         location.href = window.location.href.split('?')[0]; 
                     }
                 } else {
@@ -493,7 +488,7 @@
         function fetchAndShowStatus(tId) {
             db.collection('teams').doc(tId).get().then(doc => {
                 if (doc.exists) {
-                    monitorTeamProgress(tId, doc.data().expectedCount);
+                    renderLeaderDashboard(tId, doc.data().teamName, doc.data().expectedCount);
                 } else {
                     alert("チーム情報が見つかりません。");
                 }
@@ -555,13 +550,6 @@
             }
         }
 
-        function showProfileForm() { 
-            const ls = document.getElementById('login-section');
-            if (ls) ls.style.display = 'none'; 
-            const pf = document.getElementById('profile-form');
-            if (pf) pf.style.display = 'block'; 
-        }
-
         async function submitMember(e) {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type="submit"]'); 
@@ -573,7 +561,7 @@
             };
 
             await db.collection('members').add({ 
-                teamId: teamId, 
+                teamId: teamIdParam, 
                 teamName: currentTeamName, 
                 uid: currentUserUid, 
                 ...memberObj, 
@@ -581,7 +569,7 @@
             });
 
             try { 
-                await db.collection('teams').doc(teamId).update({ 
+                await db.collection('teams').doc(teamIdParam).update({ 
                     members: firebase.firestore.FieldValue.arrayUnion(memberObj) 
                 }); 
             } catch (err) {}
