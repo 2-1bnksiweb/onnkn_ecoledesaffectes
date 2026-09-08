@@ -25,6 +25,7 @@
             <button id="btn-admin" onclick="switchTab('admin')" class="flex-1 py-4 text-center tab-inactive transition">⚙️ 設定</button>
         </nav>
 
+        <!-- 📷 タブ1：QR受付 -->
         <div id="tab-qr">
             <div id="reader-container" class="bg-gray-800 p-6 rounded-lg shadow text-center">
                 <h2 class="text-xl font-bold mb-6 text-white">お客様の受付QRをスキャン</h2>
@@ -54,11 +55,13 @@
             </div>
         </div>
 
+        <!-- ⏱ タブ2：タイマーリスト -->
         <div id="tab-timer" class="hidden">
             <h2 class="text-xl font-bold mb-4 text-red-400 border-b border-red-900 pb-2">現在プレイ中のチーム</h2>
             <div id="timer-list" class="space-y-4"><p class="text-gray-500">プレイ中のチームはありません。</p></div>
         </div>
 
+        <!-- ⚙️ タブ3：設定 -->
         <div id="tab-admin" class="hidden space-y-8">
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">テキスト設定</h2>
@@ -148,7 +151,6 @@
                     cancelScan(); return; 
                 }
                 
-                // 🛡️ members が配列でも未定義でも絶対にクラッシュしない防御
                 let membersList = [];
                 if (data.members && Array.isArray(data.members) && data.members.length > 0) {
                     membersList = data.members;
@@ -199,7 +201,7 @@
                 let btn = "▶ 再生"; let col = "bg-green-600"; let p = "";
                 if(d.timerState === 'running') { btn = "⏸ 一時停止"; col = "bg-yellow-600"; p = "text-red-400"; }
                 const c = document.createElement('div'); c.className = "bg-gray-800 border border-gray-700 p-5 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center gap-4";
-                c.innerHTML = `<div class="flex-1 w-full text-center md:text-left"><h3 class="text-2xl font-bold text-white mb-1">${d.teamName}</h3><p class="text-sm text-gray-400 font-mono">ID: ${id} / 参加: ${d.playCount}回目</p></div><div class="text-5xl font-mono ${p} tracking-widest timer-display font-bold" data-id="${id}" data-state="${d.timerState}" data-start="${d.startTime || 0}" data-acc="${d.accumulatedTime || 0}">00:00.00</div><div class="flex gap-2 w-full md:w-auto"><button onclick="toggleTimer('${id}')" class="flex-1 md:w-32 ${col} text-white font-bold py-4 px-4 rounded shadow">${btn}</button><button onclick="finishTimer('${id}')" class="flex-1 md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded shadow">決定</button></div>`;
+                c.innerHTML = `<div class="flex-1 w-full text-center md:text-left"><h3 class="text-2xl font-bold text-white mb-1">${d.teamName}</h3><p class="text-sm text-gray-400 font-mono">ID: ${id} / 参加: ${d.playCount}回目 (${d.expectedCount || 1}人)</p></div><div class="text-5xl font-mono ${p} tracking-widest timer-display font-bold" data-id="${id}" data-state="${d.timerState}" data-start="${d.startTime || 0}" data-acc="${d.accumulatedTime || 0}">00:00.00</div><div class="flex gap-2 w-full md:w-auto"><button onclick="toggleTimer('${id}')" class="flex-1 md:w-32 ${col} text-white font-bold py-4 px-4 rounded shadow">${btn}</button><button onclick="finishTimer('${id}')" class="flex-1 md:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded shadow">決定</button></div>`;
                 list.appendChild(c);
             });
         });
@@ -215,11 +217,25 @@
             if (dt.timerState === 'ready' || dt.timerState === 'paused') await r.update({ timerState: 'running', startTime: Date.now() });
             else if (dt.timerState === 'running') await r.update({ timerState: 'paused', accumulatedTime: dt.accumulatedTime + (Date.now() - dt.startTime) });
         }
+
+        // 💡【改良】決定時に人数（memberCount）もランキングに保存
         async function finishTimer(id) {
             if(!confirm("タイムを決定してランキングに追加しますか？")) return;
             const r = db.collection('teams').doc(id); const d = await r.get(); const dt = d.data();
             let ft = dt.accumulatedTime; if (dt.timerState === 'running') ft += (Date.now() - dt.startTime);
-            try { await db.collection('times').add({ teamName: dt.teamName, time: ft, count: dt.playCount || 1, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); await r.update({ status: 'finished' }); alert("送信完了！"); } catch (e) { alert("エラー: " + e.message); }
+            
+            const teamMemberCount = dt.expectedCount || (dt.members ? dt.members.length : 1);
+
+            try { 
+                await db.collection('times').add({ 
+                    teamName: dt.teamName, 
+                    time: ft, 
+                    count: dt.playCount || 1, 
+                    memberCount: teamMemberCount, // ★人数を追加記録
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                }); 
+                await r.update({ status: 'finished' }); alert("ランキングに送信完了しました！"); 
+            } catch (e) { alert("エラー: " + e.message); }
         }
         function formatTime(ms) { const m = Math.floor(ms / 60000).toString().padStart(2, '0'); const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0'); const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0'); return `${m}:${s}.${c}`; }
 
@@ -233,7 +249,7 @@
             if(doc.exists) data = Object.assign(data, doc.data()); else db.collection('settings').doc('config').set(data);
             document.getElementById('story-text-input').value = data.storyText || ""; updateToggleUI(data.showRepeaters);
         });
-        async function saveTexts() { try { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value, ticketTitle: document.getElementById('ticket-title-input').value }, {merge: true}); alert("保存しました！"); } catch (e) { alert("エラー: " + e.message); } }
+        async function saveTexts() { try { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true}); alert("保存しました！"); } catch (e) { alert("エラー: " + e.message); } }
         async function toggleRepeater() { try { await db.collection('settings').doc('config').set({ showRepeaters: document.getElementById('toggle-repeater').checked }, {merge: true}); } catch (e) { alert("エラー: " + e.message); } }
         
         function addHintField() {
