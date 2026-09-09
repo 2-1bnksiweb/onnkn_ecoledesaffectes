@@ -13,7 +13,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700;900&family=Yuji+Boku&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
     <style>
         @font-face {
@@ -26,6 +26,10 @@
 
         *, *::before, *::after, body, h1, h2, h3, p, span, a, button, input, div, header, rt, ruby { 
             font-family: 'OnryouFont', 'Yuji Boku', 'Shippori Mincho', serif !important; 
+        }
+
+        .font-mono-num {
+            font-family: 'Share Tech Mono', monospace !important;
         }
 
         body { 
@@ -99,6 +103,9 @@
         </div>
     </div>
 
+    <!-- ========================================================
+         🏚️ メインコンテンツ（図の通りのシンプル＆洗練構成）
+         ======================================================== -->
     <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center z-20">
         
         <header class="flex justify-between items-center border-b border-red-950 pb-3 mb-8 text-gray-300 absolute top-8 left-6 right-6 z-30" style="text-shadow: 0 2px 4px #000;">
@@ -107,42 +114,49 @@
         </header>
 
         <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-24 right-6 z-50 shadow-2xl">
-            <a href="ticket.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">整理券の予約</a>
-            <a href="ranking.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">ランキングを見る</a>
+            <a href="index.html" class="text-gray-400 hover:text-white border-b border-red-900 pb-2">🏚️ ホーム</a>
+            <a href="ranking.html" class="text-red-500 hover:text-red-300">🏆 ランキングを見る</a>
         </div>
 
-        <div class="text-center mb-10 mt-20 relative flex flex-col items-center">
+        <!-- ① タイトルエリア -->
+        <div class="text-center mb-8 mt-20 relative flex flex-col items-center">
             <span class="text-[10px] sm:text-xs sub-blood-dark tracking-[0.4em] mb-1 pl-2">おののきのエコールデザフェクテ</span>
             <h1 class="text-5xl sm:text-6xl font-black tracking-widest text-blood-dark leading-none" id="story-title">恐怖の廃校</h1>
         </div>
 
-        <div class="mb-10 text-center flex-1 relative">
-            <p class="text-blood-dark mb-4 text-2xl tracking-widest">〜 あらすじ 〜</p>
-            <svg class="w-full h-5 text-red-950 mb-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none"><path d="M0,7 Q25,0 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path><circle cx="75" cy="11" r="1.2" fill="currentColor" stroke="none" /><circle cx="140" cy="12" r="1.5" fill="currentColor" stroke="none" /></svg>
+        <!-- ② あらすじエリア -->
+        <div class="mb-8 text-center flex-1 relative">
+            <p class="text-blood-dark mb-3 text-2xl tracking-widest">〜 あらすじ 〜</p>
+            <svg class="w-full h-5 text-red-950 mb-3 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none"><path d="M0,7 Q25,0 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path><circle cx="75" cy="11" r="1.2" fill="currentColor" stroke="none" /><circle cx="140" cy="12" r="1.5" fill="currentColor" stroke="none" /></svg>
             <p id="story-text" class="text-sm sm:text-base text-gray-300 leading-relaxed px-4 font-bold relative z-10" style="text-shadow: 0 2px 4px #000, 0 0 10px #000; min-height: 2rem;">
                 XXXX年 とあるいわく付きの学校が廃校になった。ある時から、その廃校の｢噂｣を聞いた人が肝試しに行くようになり、親友も行ったらしい。だがその親友は数日経っても帰ってこなかった…
             </p>
-            <svg class="w-full h-5 text-red-950 mt-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none"><path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path><circle cx="45" cy="12" r="1.5" fill="currentColor" stroke="none" /><circle cx="165" cy="11" r="1.2" fill="currentColor" stroke="none" /></svg>
+            <svg class="w-full h-5 text-red-950 mt-3 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none"><path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path><circle cx="45" cy="12" r="1.5" fill="currentColor" stroke="none" /><circle cx="165" cy="11" r="1.2" fill="currentColor" stroke="none" /></svg>
         </div>
 
-        <!-- 予約ボタン -->
-        <div class="mb-4 text-center px-2 relative">
-            <a href="ticket.html" class="block w-full py-5 bg-[#260101] border border-[#520202] text-blood-dark text-2xl hover:bg-black transition tracking-widest shadow-btn relative z-10 font-bold">
-                予約 はこちらから
-            </a>
+        <!-- ③ 💡【新設】現在の整理番号（呼出番号）エリア -->
+        <div class="mb-8 p-6 bg-gradient-to-b from-gray-950/90 to-black/95 border-2 border-red-900 rounded-2xl text-center shadow-[0_0_30px_rgba(255,0,0,0.2)] relative">
+            <p class="text-xs sm:text-sm text-yellow-400 tracking-widest font-bold mb-1">【 現在のお呼び出し番号 】</p>
+            
+            <div class="flex items-baseline justify-center gap-2 my-2">
+                <span class="text-xs text-gray-400 font-bold">No.</span>
+                <!-- 運営がボタンを押すとここがリアルタイムで更新！ -->
+                <span id="current-number-display" class="text-6xl sm:text-7xl font-mono-num font-black text-white drop-shadow-[0_0_12px_#ff0000] tracking-wider">
+                    1
+                </span>
+                <span class="text-sm text-gray-300 font-bold">番 まで</span>
+            </div>
+            
+            <p class="text-[11px] sm:text-xs text-gray-400 mt-2 leading-relaxed">
+                紙の整理券をお持ちの方はお手元の番号をご確認ください。<br>
+                番号が近くなりましたら「弐ノ壱 教室前」へお越しください。
+            </p>
         </div>
 
-        <!-- 💡【新設】予約確認はこちらボタン（ホームから直接飛べる！） -->
-        <div class="mb-4 text-center px-2 relative">
-            <a href="ticket.html?action=check" class="block w-full py-4 bg-[#140000] border border-[#3d0000] text-gray-300 text-lg hover:bg-black hover:text-white transition tracking-widest shadow-btn relative z-10 font-bold">
-                予約確認・QR再表示はこちら
-            </a>
-        </div>
-
-        <!-- ランキングボタン -->
+        <!-- ④ ランキングボタン -->
         <div class="mb-4 text-center px-2">
-            <a href="ranking.html" class="block w-full py-4 bg-gray-950 border border-gray-800 text-gray-400 text-lg hover:bg-gray-900 transition tracking-widest shadow-lg font-bold">
-                ランキングを見る
+            <a href="ranking.html" class="block w-full py-5 bg-[#260101] border border-[#520202] text-blood-dark text-2xl hover:bg-black transition tracking-widest shadow-btn font-bold">
+                ランキング はこちらから
             </a>
         </div>
     </div>
@@ -179,10 +193,18 @@
             }
         }
 
+        // 💡 Firestoreからあらすじ ＆ 現在の整理番号をリアルタイム監視！
         try {
             if (typeof db !== 'undefined') {
                 db.collection('settings').doc('config').onSnapshot(doc => {
-                    if(doc && doc.exists && doc.data().storyText) document.getElementById('story-text').innerHTML = doc.data().storyText.replace(/\n/g, '<br>');
+                    if(doc && doc.exists) {
+                        const data = doc.data();
+                        if(data.storyText) document.getElementById('story-text').innerHTML = data.storyText.replace(/\n/g, '<br>');
+                        
+                        // 整理番号の更新
+                        const numEl = document.getElementById('current-number-display');
+                        if (numEl) numEl.innerText = data.currentNumber || 1;
+                    }
                 });
             }
         } catch (e) {}
