@@ -7,68 +7,64 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="firebase-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         body { background-color: #111; color: #eee; font-family: sans-serif; }
+        .font-mono { font-family: 'Share Tech Mono', monospace !important; }
         .tab-active { border-bottom: 4px solid #ef4444; color: #ef4444; font-weight: bold; }
         .tab-inactive { border-bottom: 1px solid #333; color: #888; }
-        input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        @keyframes alarmFlash { 0%, 100% { background-color: rgba(255, 0, 0, 0.4); } 50% { background-color: rgba(255, 0, 0, 0.8); } }
+        .modal-alarm-active { animation: alarmFlash 0.5s infinite; }
     </style>
 </head>
 <body>
     <div class="max-w-4xl mx-auto p-4">
         <h1 class="text-2xl font-bold text-center text-red-500 mb-6">【運営】管理システム</h1>
+        
         <nav class="flex mb-6 bg-gray-900 rounded-t-lg overflow-hidden">
-            <button id="btn-qr" onclick="switchTab('qr')" class="flex-1 py-4 text-center tab-active transition">📷 QR受付</button>
-            <button id="btn-timer" onclick="switchTab('timer')" class="flex-1 py-4 text-center tab-inactive transition">⏱ タイマー</button>
-            <button id="btn-admin" onclick="switchTab('admin')" class="flex-1 py-4 text-center tab-inactive transition">⚙️ 設定</button>
+            <button id="btn-timer" onclick="switchTab('timer')" class="flex-1 py-4 text-center tab-active transition">⏱ 整理券受付＆タイマー</button>
+            <button id="btn-admin" onclick="switchTab('admin')" class="flex-1 py-4 text-center tab-inactive transition">⚙️ 設定・データ管理</button>
         </nav>
 
-        <!-- 📷 タブ1：QR受付 -->
-        <div id="tab-qr">
-            <div id="reader-container" class="bg-gray-800 p-6 rounded-lg shadow text-center">
-                <h2 class="text-xl font-bold mb-6 text-white">お客様の受付QRをスキャン</h2>
-                <div id="reader" class="w-full bg-black rounded overflow-hidden hidden mb-4"></div>
-                <button id="btn-start-camera" onclick="startCamera()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-5 rounded-lg text-xl shadow-lg">📸 カメラを起動する</button>
-
-                <div class="mt-8 border-t border-gray-700 pt-6 text-center">
-                    <p class="text-xs text-gray-400 mb-2 font-sans">カメラで読めない場合は6桁IDを入力</p>
-                    <div class="flex gap-2 justify-center max-w-sm mx-auto">
-                        <input type="text" id="manual-team-id" placeholder="例: 3K8X9P" maxlength="6" class="flex-1 bg-gray-900 border border-gray-600 p-3 rounded text-white font-mono uppercase focus:outline-none focus:border-red-500 text-center tracking-[0.2em] text-lg">
-                        <button onclick="handleManualInput()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-3 rounded">受付</button>
-                    </div>
+        <!-- =======================================================
+             ⏱ タブ1：メイン画面（呼出番号操作 ＆ チーム作成 ＆ タイマー管理）
+             ======================================================= -->
+        <div id="tab-timer">
+            
+            <!-- 💡【新機能】現在の整理番号（呼出番号）を進めるコントロール -->
+            <div class="bg-gray-800 border-2 border-red-700/80 p-5 rounded-xl mb-6 shadow-xl text-center">
+                <p class="text-xs text-yellow-400 font-bold tracking-widest mb-1">【 ホーム画面の現在お呼出番号 】</p>
+                <div class="flex items-center justify-center gap-4 my-2">
+                    <button onclick="changeCurrentNumber(-1)" class="w-12 h-12 bg-gray-700 hover:bg-gray-600 text-white font-bold rounded-xl text-2xl shadow">-1</button>
+                    <span id="admin-current-number" class="text-6xl font-mono font-black text-red-400 drop-shadow-md w-28 text-center">1</span>
+                    <button onclick="changeCurrentNumber(1)" class="w-12 h-12 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-2xl shadow">+1</button>
+                </div>
+                <div class="flex gap-2 justify-center max-w-xs mx-auto mt-3">
+                    <input type="number" id="direct-num-input" placeholder="直接指定" class="bg-gray-900 border border-gray-600 p-2 rounded text-white text-center w-28 font-mono">
+                    <button onclick="setDirectNumber()" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded font-bold text-sm text-white">番号変更</button>
                 </div>
             </div>
 
-            <div id="team-confirm-section" class="hidden bg-gray-800 p-6 rounded-lg shadow border border-red-500 mt-4">
-                <h2 class="text-2xl font-bold text-green-400 mb-4">チーム情報を確認しました</h2>
-                <h3 id="scanned-team-name" class="text-3xl font-bold text-white mb-2"></h3>
-                <ul id="scanned-members" class="mb-6 text-gray-300 list-disc list-inside pl-4"></ul>
-                <label class="block font-bold mb-2 text-yellow-400">挑戦する謎（問題）</label>
-                <select id="puzzle-select" class="w-full p-3 rounded bg-gray-700 text-white mb-4 border border-gray-600 focus:outline-none"><option value="">(読込中...)</option></select>
-                <label class="block font-bold mb-2 text-yellow-400">参加は何回目ですか？</label>
-                <select id="play-count-select" class="w-full p-3 rounded bg-gray-700 text-white mb-6 border border-gray-600 focus:outline-none"><option value="1">1回目（初回ランキング）</option><option value="2">2回目以上（猛者ランキング）</option></select>
-                <div class="flex gap-4">
-                    <button onclick="cancelScan()" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-4 rounded">キャンセル</button>
-                    <button id="btn-start-team" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded">タイマーへ送る</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ⏱ タブ2：タイマーリスト -->
-        <div id="tab-timer" class="hidden">
-            <div class="bg-gray-800 border-2 border-yellow-600/70 p-5 rounded-xl mb-6 shadow-xl">
-                <h3 class="font-bold text-yellow-400 mb-3 flex items-center gap-2 text-lg">
-                    📄 紙の整理券・当日チームのタイマー手動作成
+            <!-- 📄 紙整理券チームの受付＆タイマー作成 -->
+            <div class="bg-gray-800 border border-gray-700 p-5 rounded-xl mb-6 shadow-xl">
+                <h3 class="font-bold text-white mb-3 text-lg flex items-center gap-2">
+                    📝 チーム受付・タイマー作成
                 </h3>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-                    <input type="text" id="manual-team-name" placeholder="チーム名 (例: 紙1組 桃山)" class="bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-yellow-500">
-                    <select id="manual-puzzle-select" class="bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-yellow-500"><option value="">(問題を選択)</option></select>
-                    <select id="manual-play-count" class="bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-yellow-500"><option value="1">1回目 (初回)</option><option value="2">2回目以上 (猛者)</option></select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                    <input type="number" id="ticket-number" placeholder="整理番号 (例: 12)" class="bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-red-500 font-mono">
+                    <input type="text" id="team-name" placeholder="チーム名 (例: 桃山連合)" class="bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-red-500">
+                    <input type="number" id="member-count" placeholder="人数 (1〜4名)" min="1" max="4" value="4" class="bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-red-500">
+                    <select id="puzzle-select" class="bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-red-500">
+                        <option value="">(問題なし・共通)</option>
+                    </select>
+                    <select id="play-count" class="bg-gray-900 border border-gray-600 text-white p-3 rounded focus:outline-none focus:border-red-500">
+                        <option value="1">1回目 (初回)</option>
+                        <option value="2">2回目以上 (猛者)</option>
+                    </select>
                 </div>
-                <button onclick="addManualTeamTimer()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-3 rounded-lg shadow transition text-base tracking-wider">
-                    ＋ 紙整理券チームのタイマーを追加
+                <button onclick="createTeamTimer()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded-xl shadow-lg transition text-lg tracking-wider">
+                    ＋ タイマーを作成してリストに追加
                 </button>
             </div>
 
@@ -76,17 +72,17 @@
             <div id="timer-list" class="space-y-4"><p class="text-gray-500">プレイ中のチームはありません。</p></div>
         </div>
 
-        <!-- ⚙️ タブ3：設定 -->
+        <!-- =======================================================
+             ⚙️ タブ2：設定・データ管理
+             ======================================================= -->
         <div id="tab-admin" class="hidden space-y-8">
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
-                <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">テキスト設定</h2>
-                <label class="block text-gray-300 font-bold mb-2">ホーム画面 あらすじ</label>
+                <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">ホーム画面 あらすじ設定</h2>
                 <textarea id="story-text-input" rows="4" class="w-full bg-gray-900 text-white border border-gray-600 p-3 mb-4 rounded focus:outline-none focus:border-red-500"></textarea>
-                <label class="block text-gray-300 font-bold mb-2">予約画面のタイトル</label>
-                <input type="text" id="ticket-title-input" class="w-full bg-gray-900 text-white border border-gray-600 p-3 mb-6 rounded focus:outline-none focus:border-red-500">
-                <button onclick="saveTexts()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded font-bold shadow">テキストを保存する</button>
+                <button onclick="saveStory()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded font-bold shadow">あらすじを保存する</button>
             </div>
             
+            <!-- 謎・ヒント設定（編集可能） -->
             <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
                 <h2 class="text-xl font-bold mb-4 text-yellow-500 border-b border-gray-700 pb-2">謎（問題）とイベントの設定</h2>
                 <div class="mb-6 bg-gray-900 p-4 rounded border border-gray-600">
@@ -101,7 +97,7 @@
                         <button id="btn-cancel-edit" onclick="cancelEditPuzzle()" class="hidden bg-gray-600 hover:bg-gray-500 text-white px-6 py-4 rounded font-bold text-lg shadow transition">編集を破棄</button>
                     </div>
                 </div>
-                <h3 class="font-bold text-gray-400 mb-2 border-b border-gray-700 pb-2">登録済みの問題一覧</h3>
+                <h3 class="font-bold text-gray-400 mb-2 border-b border-gray-700 pb-2">登録済みの問題一覧（編集・削除可能）</h3>
                 <ul id="puzzles-admin-list" class="space-y-3 mt-4"></ul>
             </div>
 
@@ -115,35 +111,12 @@
                 </div>
             </div>
 
-            <!-- 💡【編集機能追加】整理券枠の追加・編集 -->
-            <div class="bg-gray-800 p-6 rounded shadow border border-gray-700">
-                <h2 class="text-xl font-bold mb-4 text-red-500 border-b border-gray-700 pb-2">整理券 枠の追加・編集</h2>
-                <div class="flex flex-col md:flex-row gap-3 mb-6 bg-gray-900 p-4 rounded border border-gray-600">
-                    <select id="slot-day" class="border border-gray-600 bg-gray-800 text-white p-3 rounded font-bold"><option value="1">1日目</option><option value="2">2日目</option></select>
-                    
-                    <div class="flex items-center gap-2 flex-1">
-                        <input type="time" id="slot-time-start" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold" style="color-scheme: light;">
-                        <span class="text-gray-400 font-bold">〜</span>
-                        <input type="time" id="slot-time-end" class="border border-gray-400 bg-white text-black p-3 flex-1 rounded font-bold" style="color-scheme: light;">
-                    </div>
-                    
-                    <div class="flex gap-2 mt-2 md:mt-0">
-                        <input type="number" id="slot-cap" placeholder="定員" class="border border-gray-400 bg-white text-black p-3 w-24 rounded font-bold" style="color-scheme: light;">
-                        <button id="btn-save-slot" onclick="saveSlot()" class="bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded font-bold shadow flex-1 md:flex-none">追加</button>
-                        <button id="btn-cancel-slot" onclick="cancelEditSlot()" class="hidden bg-gray-600 hover:bg-gray-500 text-white px-4 py-3 rounded font-bold shadow">取消</button>
-                    </div>
-                </div>
-                <h3 class="font-bold text-gray-400 mb-2 border-b border-gray-700 pb-2">現在の枠一覧（編集・定員変更可能）</h3>
-                <ul id="slots-admin-list" class="space-y-2 mt-4"></ul>
-            </div>
-
             <!-- テストデータ管理 -->
             <div class="bg-gray-800 p-6 rounded shadow border border-red-900/80">
                 <h2 class="text-xl font-bold mb-2 text-red-500 border-b border-gray-700 pb-2">テストデータ管理（消去・リセット）</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <button onclick="clearRankings()" class="p-4 bg-gray-900 hover:bg-red-950 border border-red-900 text-red-300 font-bold rounded shadow transition text-sm">🏆 ランキング記録全消去</button>
-                    <button onclick="clearTeams()" class="p-4 bg-gray-900 hover:bg-red-950 border border-red-900 text-red-300 font-bold rounded shadow transition text-sm">👥 登録チーム全消去</button>
-                    <button onclick="resetSlotCounts()" class="p-4 bg-gray-900 hover:bg-yellow-950 border border-yellow-900 text-yellow-300 font-bold rounded shadow transition text-sm">🔄 枠の予約人数を0人に戻す</button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <button onclick="clearRankings()" class="p-4 bg-gray-900 hover:bg-red-950 border border-red-900 text-red-300 font-bold rounded shadow transition text-sm">🏆 ランキング記録を全消去</button>
+                    <button onclick="clearTeams()" class="p-4 bg-gray-900 hover:bg-red-950 border border-red-900 text-red-300 font-bold rounded shadow transition text-sm">👥 登録チーム情報を全消去</button>
                 </div>
                 <div class="border-t border-gray-700 pt-4 mt-6">
                     <button onclick="clearAllTestData()" class="w-full py-4 bg-red-900 hover:bg-red-800 border-2 border-red-600 text-white font-bold rounded-lg shadow-lg transition text-base tracking-wider">⚠️【本番前用】すべてのテストデータを一括全消去</button>
@@ -152,16 +125,14 @@
         </div>
     </div>
 
-    <!-- 🖥️ 拡大タイマー・モーダル -->
+    <!-- 🖥️ 拡大タイマー・モーダル（iPadを机に置いてプレイヤーターミナルにする） -->
     <div id="enlarged-timer-modal" class="fixed inset-0 bg-[#030303] text-[#d1d1d1] z-50 hidden flex flex-col justify-between p-6 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-red-950 pb-4 max-w-2xl mx-auto w-full">
             <div>
-                <span class="text-xs text-yellow-400 font-bold tracking-wider" id="modal-puzzle-name">問題読み込み中...</span>
+                <span class="text-xs text-yellow-400 font-bold tracking-wider" id="modal-puzzle-name">問題: 共通</span>
                 <h2 id="modal-team-name" class="text-2xl sm:text-3xl font-bold text-white tracking-widest"></h2>
             </div>
-            <button onclick="closeEnlargedTimer()" class="text-2xl text-gray-400 hover:text-white px-4 py-2 bg-gray-900 border border-gray-700 rounded-xl font-bold transition">
-                ✕ 閉じる
-            </button>
+            <button onclick="closeEnlargedTimer()" class="text-2xl text-gray-400 hover:text-white px-4 py-2 bg-gray-900 border border-gray-700 rounded-xl font-bold transition">✕ 閉じる</button>
         </div>
 
         <div class="my-auto text-center py-6 w-full max-w-xl mx-auto">
@@ -169,12 +140,8 @@
                 <p class="text-xs text-gray-500 mb-2 tracking-widest font-mono">ESCAPE TIME</p>
                 <div id="modal-timer-display" class="text-6xl sm:text-7xl font-mono text-red-500 font-bold drop-shadow-[0_0_10px_#ff0000]">00:00.00</div>
             </div>
-
             <div id="modal-hints-container" class="space-y-4 mb-6 text-left"></div>
-
-            <button id="modal-stop-alarm-btn" onclick="stopModalSiren()" class="hidden w-full bg-red-600 text-white py-6 rounded-2xl font-bold text-3xl shadow-[0_0_25px_#ff0000] animate-pulse tracking-widest border-4 border-red-400">
-                🚨 サイレンを止める！
-            </button>
+            <button id="modal-stop-alarm-btn" onclick="stopModalSiren()" class="hidden w-full bg-red-600 text-white py-6 rounded-2xl font-bold text-3xl shadow-[0_0_25px_#ff0000] animate-pulse tracking-widest border-4 border-red-400">🚨 サイレンを止める！</button>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto w-full border-t border-red-950 pt-4">
@@ -182,94 +149,112 @@
             <button onclick="finishCurrentModalTimer()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow text-lg transition">決定 (ランキング登録)</button>
             <button onclick="finishCurrentModalNoRecordTimer()" class="bg-gray-800 hover:bg-red-950 text-red-300 border border-red-900/60 font-bold py-4 px-4 rounded-xl shadow text-sm transition">記録なし終了</button>
         </div>
-
         <div id="modal-alarm-overlay" class="fixed inset-0 pointer-events-none z-10 hidden modal-alarm-active"></div>
     </div>
 
     <script>
-        function switchTab(t) { ['qr','timer','admin'].forEach(id => { document.getElementById(`tab-${id}`).style.display=(id===t)?'block':'none'; document.getElementById(`btn-${id}`).className=(id===t)?"flex-1 py-4 text-center tab-active transition":"flex-1 py-4 text-center tab-inactive hover:bg-gray-800 transition"; }); }
-        let html5QrCode; let currentTeamId = null;
+        function generateReadableId() {
+            const chars = '2345689ABCDEFGHJKLMNPQRSTUVWXYZ';
+            let res = ''; for (let i = 0; i < 4; i++) res += chars.charAt(Math.floor(Math.random() * chars.length)); return res;
+        }
 
-        function extractCleanId(rawText) {
-            if (!rawText) return ""; rawText = rawText.trim();
-            if (rawText.includes('teamId=')) {
-                try {
-                    const url = new URL(rawText); const tId = url.searchParams.get('teamId');
-                    if (tId) return tId.trim().toUpperCase();
-                } catch(e) {
-                    const match = rawText.match(/teamId=([a-zA-Z0-9_-]+)/i); if (match) return match[1].trim().toUpperCase();
-                }
+        function switchTab(t) {
+            ['timer','admin'].forEach(id => {
+                document.getElementById(`tab-${id}`).style.display = (id === t) ? 'block' : 'none';
+                document.getElementById(`btn-${id}`).className = (id === t) ? "flex-1 py-4 text-center tab-active transition" : "flex-1 py-4 text-center tab-inactive hover:bg-gray-800 transition";
+            });
+        }
+
+        // ================= 💡 整理番号（呼出番号）コントロール =================
+        let currentCallingNumber = 1;
+
+        db.collection('settings').doc('config').onSnapshot(doc => {
+            if (doc.exists) {
+                const d = doc.data();
+                currentCallingNumber = d.currentNumber || 1;
+                document.getElementById('admin-current-number').innerText = currentCallingNumber;
+                document.getElementById('story-text-input').value = d.storyText || "";
+                updateToggleUI(d.showRepeaters || false);
+            } else {
+                db.collection('settings').doc('config').set({ currentNumber: 1, showRepeaters: false });
             }
-            return rawText.toUpperCase();
-        }
+        });
 
-        function startCamera() {
-            document.getElementById('btn-start-camera').style.display='none'; document.getElementById('reader').style.display='block';
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, onScanSuccess, (err) => {}).catch(e => { alert("カメラ起動失敗。"); document.getElementById('btn-start-camera').style.display='block'; document.getElementById('reader').style.display='none'; });
-        }
-
-        async function onScanSuccess(rawText) {
-            if (window.isScanning) return; window.isScanning = true;
-            if(html5QrCode) { try { await html5QrCode.stop(); html5QrCode.clear(); } catch(e){} }
-            const teamId = extractCleanId(rawText);
+        async function changeCurrentNumber(diff) {
+            const newNum = Math.max(1, currentCallingNumber + diff);
             try {
-                const doc = await db.collection('teams').doc(teamId).get();
-                if(!doc.exists) { alert("無効なQRコード・受付IDです。\nID: " + teamId); cancelScan(); return; }
-                const data = doc.data();
-                if(data.status !== 'registered') { alert("このチームは既に追加済み、または終了しています。"); cancelScan(); return; }
-                
-                const membersSnap = await db.collection('members').where('teamId', '==', teamId).get();
-                let membersList = []; membersSnap.forEach(mDoc => membersList.push(mDoc.data()));
-                currentTeamId = teamId;
-                document.getElementById('reader-container').style.display='none'; document.getElementById('team-confirm-section').style.display='block';
-                document.getElementById('scanned-team-name').innerText = data.teamName;
-                document.getElementById('scanned-members').innerHTML = membersList.length > 0 ? membersList.map(m => `<li>${m.grade} ${m.name}</li>`).join('') : `<li class="text-yellow-500">※メンバー登録がまだ行われていません</li>`;
-
-                document.getElementById('btn-start-team').onclick = async () => {
-                    const pc = parseInt(document.getElementById('play-count-select').value); const pId = document.getElementById('puzzle-select').value;
-                    if (!pId) return alert("挑戦する問題を選択してください！");
-                    await db.collection('teams').doc(currentTeamId).update({ status: 'playing', playCount: pc, puzzleId: pId });
-                    alert("タイマーリストに追加しました！"); cancelScan(); switchTab('timer');
-                };
-            } catch (e) { alert("データ取得エラー: " + e.message); cancelScan(); }
-        }
-        function cancelScan() { currentTeamId = null; window.isScanning = false; document.getElementById('team-confirm-section').style.display='none'; document.getElementById('reader-container').style.display='block'; document.getElementById('btn-start-camera').style.display='block'; document.getElementById('reader').style.display='none'; }
-        
-        async function handleManualInput() {
-            const input = document.getElementById('manual-team-id').value; if(!input) return alert("受付IDを入力してください");
-            await onScanSuccess(input);
+                await db.collection('settings').doc('config').set({ currentNumber: newNum }, { merge: true });
+            } catch(e) { alert("更新エラー: " + e.message); }
         }
 
-        async function addManualTeamTimer() {
-            const name = document.getElementById('manual-team-name').value.trim();
-            const puzzleId = document.getElementById('manual-puzzle-select').value;
-            const playCount = parseInt(document.getElementById('manual-play-count').value);
-            if(!name) return alert("チーム名を入力してください");
-            if(!puzzleId) return alert("問題を選択してください");
-            
-            const customId = "P-" + generateReadableId();
+        async function setDirectNumber() {
+            const val = parseInt(document.getElementById('direct-num-input').value);
+            if (!val || val < 1) return alert("1以上の番号を入力してください");
+            try {
+                await db.collection('settings').doc('config').set({ currentNumber: val }, { merge: true });
+                document.getElementById('direct-num-input').value = '';
+            } catch(e) { alert("更新エラー: " + e.message); }
+        }
+
+        // ================= 📝 チーム受付＆タイマー作成 =================
+        async function createTeamTimer() {
+            const num = document.getElementById('ticket-number').value.trim();
+            const name = document.getElementById('team-name').value.trim();
+            const count = parseInt(document.getElementById('member-count').value) || 4;
+            const pId = document.getElementById('puzzle-select').value;
+            const playCount = parseInt(document.getElementById('play-count').value);
+
+            if (!num) return alert("整理番号を入力してください");
+            if (!name) return alert("チーム名を入力してください");
+
+            const customId = "T-" + num + "-" + generateReadableId();
             try {
                 await db.collection('teams').doc(customId).set({
-                    teamName: name, puzzleId: puzzleId, playCount: playCount, status: 'playing',
-                    timerState: 'ready', accumulatedTime: 0, createdAt: new Date(),
-                    members: [{ name: "紙整理券受付", grade: "-" }]
+                    ticketNumber: num,
+                    teamName: `${name} (${num}番)`,
+                    rawTeamName: name,
+                    memberCount: count,
+                    puzzleId: pId,
+                    playCount: playCount,
+                    status: 'playing', // 即座にタイマーリストに追加
+                    timerState: 'ready',
+                    accumulatedTime: 0,
+                    createdAt: new Date()
                 });
-                document.getElementById('manual-team-name').value = '';
-                alert(`チーム「${name}」をタイマーリストに追加しました！`);
-            } catch(e) { alert("追加失敗: " + e.message); }
+
+                document.getElementById('ticket-number').value = '';
+                document.getElementById('team-name').value = '';
+                alert(`整理番号${num}番「${name}」のタイマーを作成しました！`);
+            } catch(e) {
+                alert("作成エラー: " + e.message);
+            }
         }
 
+        // ================= ⏱ タイマー管理リスト =================
         db.collection('teams').where('status', '==', 'playing').onSnapshot(snap => {
             const list = document.getElementById('timer-list'); list.innerHTML = '';
             if(snap.empty) { list.innerHTML = '<p class="text-gray-500">プレイ中のチームはありません。</p>'; return; }
-            snap.forEach(doc => {
-                const d = doc.data(); const id = doc.id;
+            
+            let teams = [];
+            snap.forEach(doc => teams.push({ id: doc.id, ...doc.data() }));
+            // 作成順にソート
+            teams.sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+
+            teams.forEach(d => {
+                const id = d.id;
                 let btn = "▶ 再生"; let col = "bg-green-600"; let p = "";
                 if(d.timerState === 'running') { btn = "⏸ 一時停止"; col = "bg-yellow-600"; p = "text-red-400"; }
-                const c = document.createElement('div'); c.className = "bg-gray-800 border border-gray-700 p-5 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center gap-4";
+                
+                const c = document.createElement('div');
+                c.className = "bg-gray-800 border border-gray-700 p-5 rounded-lg shadow-lg flex flex-col md:flex-row justify-between items-center gap-4";
                 c.innerHTML = `
-                    <div class="flex-1 w-full text-center md:text-left"><h3 class="text-2xl font-bold text-white mb-1">${d.teamName}</h3><p class="text-sm text-gray-400 font-mono">ID: ${id} / 参加: ${d.playCount}回目</p></div>
+                    <div class="flex-1 w-full text-center md:text-left">
+                        <div class="flex items-center gap-2 justify-center md:justify-start mb-1">
+                            <span class="bg-red-900 text-red-200 px-2 py-0.5 rounded text-xs font-bold font-mono">No.${d.ticketNumber || '-'}</span>
+                            <h3 class="text-2xl font-bold text-white">${d.rawTeamName || d.teamName}</h3>
+                        </div>
+                        <p class="text-xs text-gray-400">人数: ${d.memberCount || 4}名 / 参加: ${d.playCount}回目</p>
+                    </div>
                     <div class="text-5xl font-mono ${p} tracking-widest timer-display font-bold" data-id="${id}" data-state="${d.timerState}" data-start="${d.startTime || 0}" data-acc="${d.accumulatedTime || 0}">00:00.00</div>
                     <div class="flex flex-wrap gap-2 w-full md:w-auto">
                         <button onclick="openEnlargedTimer('${id}')" class="bg-purple-900 hover:bg-purple-800 text-purple-200 border border-purple-600 font-bold py-3 px-3 rounded shadow text-sm">🖥 拡大表示</button>
@@ -326,7 +311,12 @@
             const r = db.collection('teams').doc(id); const d = await r.get(); const dt = d.data();
             let ft = dt.accumulatedTime; if (dt.timerState === 'running') ft += (Date.now() - dt.startTime);
             try { 
-                await db.collection('times').add({ teamName: dt.teamName, time: ft, count: dt.playCount || 1, timestamp: firebase.firestore.FieldValue.serverTimestamp() }); 
+                await db.collection('times').add({ 
+                    teamName: dt.rawTeamName || dt.teamName, 
+                    time: ft, 
+                    count: dt.playCount || 1, 
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                }); 
                 await r.update({ status: 'finished', isNoRecord: false }); 
                 if (activeModalTeamId === id) closeEnlargedTimer();
                 alert("ランキングに送信完了しました！"); 
@@ -334,7 +324,7 @@
         }
 
         async function finishNoRecordTimer(id) {
-            if(!confirm("【記録なし】としてこのチームを終了しますか？\n※ランキングには追加されません。")) return;
+            if(!confirm("【記録なし】として終了しますか？\n※ランキングには追加されません。")) return;
             try {
                 await db.collection('teams').doc(id).update({ status: 'finished', isNoRecord: true });
                 if (activeModalTeamId === id) closeEnlargedTimer();
@@ -344,6 +334,7 @@
 
         function formatTime(ms) { const m = Math.floor(ms / 60000).toString().padStart(2, '0'); const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0'); const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0'); return `${m}:${s}.${c}`; }
 
+        // ================= 🖥️ 拡大タイマー機能 =================
         let activeModalTeamId = null; let activeModalTeamData = null; let modalPuzzleHints = []; let modalShownEvents = new Set();
         let modalAudioCtx = null; let modalAlarmInterval = null; let modalAlarmPlayed = false; let modalTeamUnsubscribe = null;
 
@@ -359,7 +350,7 @@
 
             modalTeamUnsubscribe = db.collection('teams').doc(teamId).onSnapshot(async doc => {
                 if(!doc.exists) return; activeModalTeamData = doc.data();
-                document.getElementById('modal-team-name').innerText = activeModalTeamData.teamName;
+                document.getElementById('modal-team-name').innerText = activeModalTeamData.rawTeamName || activeModalTeamData.teamName;
                 const toggleBtn = document.getElementById('modal-toggle-btn');
                 if (activeModalTeamData.timerState === 'running') {
                     toggleBtn.innerText = "⏸ 一時停止"; toggleBtn.className = "flex-1 bg-yellow-600 hover:bg-yellow-500 text-white font-bold py-4 rounded-xl shadow text-xl transition";
@@ -372,6 +363,9 @@
                         document.getElementById('modal-puzzle-name').innerText = `挑戦中の謎: ${pDoc.data().name}`;
                         modalPuzzleHints = pDoc.data().hints || [];
                     }
+                } else {
+                    document.getElementById('modal-puzzle-name').innerText = `問題: 共通`;
+                    modalPuzzleHints = [];
                 }
             });
         }
@@ -405,22 +399,15 @@
             document.getElementById('modal-alarm-overlay').style.display = 'none'; document.getElementById('modal-stop-alarm-btn').style.display = 'none';
         }
 
+        // ================= 設定・謎・ヒント管理 =================
         function updateToggleUI(act) {
             const bg = document.getElementById('toggle-bg'); const dot = document.getElementById('toggle-dot'); document.getElementById('toggle-repeater').checked = act;
             if (act) { bg.classList.remove('bg-gray-600'); bg.classList.add('bg-green-500'); dot.classList.add('translate-x-6'); } 
             else { bg.classList.add('bg-gray-600'); bg.classList.remove('bg-green-500'); dot.classList.remove('translate-x-6'); }
         }
-        db.collection('settings').doc('config').onSnapshot(doc => {
-            let data = { showRepeaters: false, storyText: "" };
-            if(doc.exists) data = Object.assign(data, doc.data()); else db.collection('settings').doc('config').set(data);
-            document.getElementById('story-text-input').value = data.storyText || ""; 
-            document.getElementById('ticket-title-input').value = data.ticketTitle || "整理券発行"; 
-            updateToggleUI(data.showRepeaters);
-        });
-        async function saveTexts() { try { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value, ticketTitle: document.getElementById('ticket-title-input').value }, {merge: true}); alert("保存しました！"); } catch (e) { alert("エラー: " + e.message); } }
+        async function saveStory() { try { await db.collection('settings').doc('config').set({ storyText: document.getElementById('story-text-input').value }, {merge: true}); alert("保存しました！"); } catch (e) { alert("エラー: " + e.message); } }
         async function toggleRepeater() { try { await db.collection('settings').doc('config').set({ showRepeaters: document.getElementById('toggle-repeater').checked }, {merge: true}); } catch (e) { alert("エラー: " + e.message); } }
         
-        // ================= 謎・ヒント管理 =================
         let editingPuzzleId = null;
         function addHintField(timeVal = "", typeVal = "hint", textVal = "") {
             const c = document.getElementById('hint-fields-container'); const div = document.createElement('div');
@@ -440,8 +427,8 @@
 
         function editPuzzle(id) {
             db.collection('puzzles').doc(id).get().then(doc => {
-                if(!doc.exists) return; const d = doc.data();
-                editingPuzzleId = id; document.getElementById('puzzle-name').value = d.name;
+                if(!doc.exists) return; const d = doc.data(); editingPuzzleId = id;
+                document.getElementById('puzzle-name').value = d.name;
                 const c = document.getElementById('hint-fields-container'); c.innerHTML = '';
                 if(d.hints && d.hints.length > 0) d.hints.forEach(h => addHintField(h.timeMin, h.type || 'hint', h.text || ''));
                 else addHintField();
@@ -471,11 +458,18 @@
                 else { await db.collection('puzzles').add({ name, hints: events, createdAt: new Date() }); alert("登録しました！"); cancelEditPuzzle(); }
             } catch(e) { alert("エラー: " + e.message); }
         }
-        db.collection('puzzles').orderBy('createdAt').onSnapshot(snap => {
-            const list = document.getElementById('puzzles-admin-list'); const select = document.getElementById('puzzle-select'); const manualSelect = document.getElementById('manual-puzzle-select');
-            list.innerHTML = ''; if(select) select.innerHTML = '<option value="">(問題を選択)</option>'; if(manualSelect) manualSelect.innerHTML = '<option value="">(問題を選択)</option>';
+
+        db.collection('puzzles').onSnapshot(snap => {
+            const list = document.getElementById('puzzles-admin-list'); 
+            const select = document.getElementById('puzzle-select'); 
+            list.innerHTML = ''; 
+            if(select) select.innerHTML = '<option value="">(問題なし・共通)</option>'; 
+
             snap.forEach(doc => {
-                const d = doc.data(); let hText = d.hints.map(h => h.type === 'alarm' ? `${h.timeMin}分:🚨` : `${h.timeMin}分:💡`).join(' / '); if(!hText) hText = "設定なし";
+                const d = doc.data(); 
+                let hText = (d.hints || []).map(h => h.type === 'alarm' ? `${h.timeMin}分:🚨` : `${h.timeMin}分:💡`).join(' / '); 
+                if(!hText) hText = "設定なし";
+                
                 list.innerHTML += `
                     <li class="flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-800 border border-gray-700 p-4 rounded gap-3">
                         <div><span class="text-yellow-400 font-bold block mb-1 text-lg">${d.name}</span><span class="text-gray-400 text-sm">${hText}</span></div>
@@ -485,113 +479,13 @@
                         </div>
                     </li>`;
                 if(select) select.innerHTML += `<option value="${doc.id}">${d.name}</option>`;
-                if(manualSelect) manualSelect.innerHTML += `<option value="${doc.id}">${d.name}</option>`;
             });
         });
 
-        // ================= 💡【新機能】整理券枠の追加 ＆ 編集（定員・時間変更） =================
-        let editingSlotId = null;
-
-        document.getElementById('slot-time-start').addEventListener('change', function() {
-            const val = this.value;
-            if (!val) return;
-            const [hours, minutes] = val.split(':').map(Number);
-            let totalMinutes = hours * 60 + minutes + 30;
-            let newHours = Math.floor(totalMinutes / 60) % 24;
-            let newMinutes = totalMinutes % 60;
-            const formatted = `${String(newHours).padStart(2, '0')}:${String(newMinutes).padStart(2, '0')}`;
-            document.getElementById('slot-time-end').value = formatted;
-        });
-
-        // 枠の編集モードに入る
-        function editSlot(id) {
-            db.collection('slots').doc(id).get().then(doc => {
-                if (!doc.exists) return;
-                const d = doc.data();
-                editingSlotId = id;
-
-                // フォームに値をセット
-                document.getElementById('slot-day').value = d.day || 1;
-                if (d.time && d.time.includes('〜')) {
-                    const [s, e] = d.time.split('〜');
-                    document.getElementById('slot-time-start').value = s;
-                    document.getElementById('slot-time-end').value = e;
-                }
-                document.getElementById('slot-cap').value = d.capacity || 10;
-
-                // ボタン切り替え
-                const btn = document.getElementById('btn-save-slot');
-                btn.innerText = "✏️ 変更保存";
-                btn.className = "bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded font-bold shadow flex-1 md:flex-none";
-                document.getElementById('btn-cancel-slot').classList.remove('hidden');
-
-                document.getElementById('slot-day').scrollIntoView({ behavior: 'smooth' });
-            });
-        }
-
-        function cancelEditSlot() {
-            editingSlotId = null;
-            document.getElementById('slot-time-start').value = '';
-            document.getElementById('slot-time-end').value = '';
-            document.getElementById('slot-cap').value = '';
-            const btn = document.getElementById('btn-save-slot');
-            btn.innerText = "追加";
-            btn.className = "bg-green-600 hover:bg-green-500 text-white px-6 py-3 rounded font-bold shadow flex-1 md:flex-none";
-            document.getElementById('btn-cancel-slot').classList.add('hidden');
-        }
-
-        async function saveSlot() {
-            const d = document.getElementById('slot-day').value;
-            const s = document.getElementById('slot-time-start').value;
-            const e = document.getElementById('slot-time-end').value;
-            const c = parseInt(document.getElementById('slot-cap').value);
-            if (!s || !e || !c) return alert("時間と定員をすべて入力してください");
-
-            try {
-                if (editingSlotId) {
-                    // 💡 上書き更新（定員や時間の変更）
-                    await db.collection('slots').doc(editingSlotId).update({
-                        day: parseInt(d),
-                        time: `${s}〜${e}`,
-                        capacity: c
-                    });
-                    alert("予約枠を変更しました！");
-                    cancelEditSlot();
-                } else {
-                    // 新規追加
-                    await db.collection('slots').add({
-                        day: parseInt(d),
-                        time: `${s}〜${e}`,
-                        capacity: c,
-                        booked: 0
-                    });
-                    document.getElementById('slot-time-start').value = '';
-                    document.getElementById('slot-time-end').value = '';
-                    document.getElementById('slot-cap').value = '';
-                }
-            } catch (err) { alert("エラー: " + err.message); }
-        }
-
-        db.collection('slots').onSnapshot(snap => {
-            const list = document.getElementById('slots-admin-list'); list.innerHTML = ''; let slots = []; snap.forEach(doc => slots.push({ id: doc.id, ...doc.data() }));
-            slots.sort((a, b) => { const dA = a.day || 1; const dB = b.day || 1; if (dA !== dB) return dA - dB; return (a.time || "").localeCompare(b.time || ""); });
-            slots.forEach(d => {
-                const l = d.day ? `<span class="bg-blue-900 text-blue-200 px-2 py-1 rounded text-xs mr-2 font-bold">${d.day}日目</span>` : "";
-                list.innerHTML += `
-                    <li class="flex justify-between items-center bg-gray-800 border border-gray-700 p-3 rounded">
-                        <span class="text-white font-bold">${l}${d.time} <span class="text-gray-400 text-sm ml-2">(定員: ${d.capacity} / 予約: ${d.booked})</span></span>
-                        <div class="flex gap-2">
-                            <button onclick="editSlot('${d.id}')" class="bg-orange-600 hover:bg-orange-500 px-3 py-1 rounded font-bold text-white text-xs shadow">✏️ 編集</button>
-                            <button onclick="if(confirm('削除しますか？')) db.collection('slots').doc('${d.id}').delete()" class="bg-red-600 hover:bg-red-500 px-3 py-1 rounded font-bold text-white text-xs shadow">削除</button>
-                        </div>
-                    </li>`;
-            });
-        });
-
+        // ================= テストデータ削除 =================
         async function clearRankings() { if (!confirm("【ランキング記録】を全消去しますか？")) return; const snap = await db.collection('times').get(); const b = db.batch(); snap.forEach(doc => b.delete(doc.ref)); await b.commit(); alert("全消去完了！"); }
-        async function clearTeams() { if (!confirm("【登録チーム情報】を全消去しますか？")) return; const s1 = await db.collection('teams').get(); const b1 = db.batch(); s1.forEach(doc => b1.delete(doc.ref)); await b1.commit(); const s2 = await db.collection('members').get(); const b2 = db.batch(); s2.forEach(doc => b2.delete(doc.ref)); await b2.commit(); alert("全消去完了！"); }
-        async function resetSlotCounts() { if (!confirm("枠の予約人数を 0 人に戻しますか？")) return; const s = await db.collection('slots').get(); const b = db.batch(); s.forEach(doc => b.update(doc.ref, { booked: 0 })); await b.commit(); alert("リセット完了！"); }
-        async function clearAllTestData() { if (!confirm("すべてのテストデータを一括全消去しますか？")) return; if (!confirm("本当によろしいですか？")) return; const s1 = await db.collection('times').get(); const b1 = db.batch(); s1.forEach(doc => b1.delete(doc.ref)); await b1.commit(); const s2 = await db.collection('teams').get(); const b2 = db.batch(); s2.forEach(doc => b2.delete(doc.ref)); await b2.commit(); const s3 = await db.collection('members').get(); const b3 = db.batch(); s3.forEach(doc => b3.delete(doc.ref)); await b3.commit(); const s4 = await db.collection('slots').get(); const b4 = db.batch(); s4.forEach(doc => b4.update(doc.ref, { booked: 0 })); await b4.commit(); alert("初期化が完了しました！"); }
+        async function clearTeams() { if (!confirm("【登録チーム情報】を全消去しますか？")) return; const s1 = await db.collection('teams').get(); const b1 = db.batch(); s1.forEach(doc => b1.delete(doc.ref)); await b1.commit(); alert("全消去完了！"); }
+        async function clearAllTestData() { if (!confirm("すべてのテストデータを一括全消去しますか？")) return; if (!confirm("本当によろしいですか？")) return; const s1 = await db.collection('times').get(); const b1 = db.batch(); s1.forEach(doc => b1.delete(doc.ref)); await b1.commit(); const s2 = await db.collection('teams').get(); const b2 = db.batch(); s2.forEach(doc => b2.delete(doc.ref)); await b2.commit(); alert("初期化が完了しました！"); }
     </script>
 </body>
 </html>
