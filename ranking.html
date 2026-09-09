@@ -75,7 +75,6 @@
 
         <div id="nav-menu" class="hidden flex-col bg-gray-950/95 backdrop-blur p-4 rounded border border-red-950 mb-6 space-y-4 text-xl absolute top-16 right-6 z-50 shadow-2xl">
             <a href="index.html" class="text-gray-400 hover:text-white border-b border-red-900 pb-2">ホームへ戻る</a>
-            <a href="ticket.html" class="text-red-500 hover:text-red-300 border-b border-red-900 pb-2">整理券の予約</a>
         </div>
 
         <div class="text-center mb-10">
@@ -83,6 +82,7 @@
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+            <!-- ① 初回ランキング -->
             <div class="bg-black/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(0,0,0,0.9)] border-t-4 border-red-800 border-x border-b border-red-950/80">
                 <div class="flex justify-between items-center border-b border-red-950 pb-2 mb-4">
                     <h2 class="text-xl sm:text-2xl font-bold text-red-500 tracking-wider">【初回】救出記録</h2>
@@ -90,6 +90,8 @@
                 </div>
                 <ul id="first-timer-list" class="space-y-3"><p class="text-gray-600 text-sm font-mono-tech">SEARCHING RECORDS...</p></ul>
             </div>
+
+            <!-- ② リピーターランキング -->
             <div id="repeater-section" class="bg-black/85 backdrop-blur-md p-6 rounded-lg shadow-[0_0_30px_rgba(255,0,0,0.15)] border-t-4 border-amber-600 border-x border-b border-red-950/80 hidden">
                 <div class="flex justify-between items-center border-b border-red-950 pb-2 mb-4">
                     <h2 class="text-xl sm:text-2xl font-bold text-amber-500 tracking-wider">【2回目以降】救出記録</h2>
@@ -105,16 +107,10 @@
 
     <script>
         function toggleMenu() {
-            const menu = document.getElementById('nav-menu');
-            const btn = document.getElementById('menu-btn');
+            const menu = document.getElementById('nav-menu'); const btn = document.getElementById('menu-btn');
             if(menu) { 
-                if(menu.classList.contains('hidden')) {
-                    menu.classList.remove('hidden'); menu.classList.add('flex');
-                    btn.innerText = '✕'; btn.style.transform = 'rotate(90deg)';
-                } else {
-                    menu.classList.add('hidden'); menu.classList.remove('flex');
-                    btn.innerText = '☰'; btn.style.transform = 'rotate(0deg)';
-                }
+                if(menu.classList.contains('hidden')) { menu.classList.remove('hidden'); menu.classList.add('flex'); btn.innerText = '✕'; btn.style.transform = 'rotate(90deg)'; } 
+                else { menu.classList.add('hidden'); menu.classList.remove('flex'); btn.innerText = '☰'; btn.style.transform = 'rotate(0deg)'; }
             }
         }
 
@@ -134,50 +130,56 @@
             else document.getElementById('repeater-section').style.display = 'none';
         });
 
+        // 💡 ランキング集計（成功チームはタイム順、不正解チームは「記録なし」として処理）
         db.collection('times').onSnapshot(snapshot => {
             const firstTimers = {}; const repeaters = {};
+
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if(data.count === 1) { 
-                    if(!firstTimers[data.teamName] || firstTimers[data.teamName].time > data.time) firstTimers[data.teamName] = data; 
+                    if(!firstTimers[data.teamName] || (!data.isFailed && firstTimers[data.teamName].time > data.time)) {
+                        firstTimers[data.teamName] = data;
+                    }
                 } else { 
-                    if(!repeaters[data.teamName] || repeaters[data.teamName].time > data.time) repeaters[data.teamName] = data; 
+                    if(!repeaters[data.teamName] || (!data.isFailed && repeaters[data.teamName].time > data.time)) {
+                        repeaters[data.teamName] = data;
+                    }
                 }
             });
             renderList('first-timer-list', Object.values(firstTimers), false);
             renderList('repeater-list', Object.values(repeaters), true);
         });
 
-        // 💡【改良】チーム名と一緒に (〇人) を表示！
         function renderList(elementId, dataArray, isRepeater) {
             const list = document.getElementById(elementId); list.innerHTML = '';
-            dataArray.sort((a, b) => a.time - b.time).slice(0, 10).forEach((data, index) => {
+            
+            // タイムが早い順（不正解チームは下部へ）ソート
+            dataArray.sort((a, b) => a.time - b.time).slice(0, 15).forEach((data, index) => {
                 const li = document.createElement('li');
-                li.className = isRepeater ? "flex justify-between items-center bg-zinc-950/90 border border-amber-900/40 p-3 rounded text-gray-200 shadow-sm hover:border-amber-600 transition" : "flex justify-between items-center bg-zinc-950/90 border border-red-950/60 p-3 rounded text-gray-200 shadow-sm hover:border-red-600 transition";
+                li.className = isRepeater ? "flex justify-between items-center bg-zinc-950/90 border border-amber-900/40 p-3 rounded text-gray-200 shadow-sm" : "flex justify-between items-center bg-zinc-950/90 border border-red-950/60 p-3 rounded text-gray-200 shadow-sm";
                 
                 let rankStyle = "text-xl font-bold font-mono-tech ";
-                if(index === 0) rankStyle += "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]";
-                else if(index === 1) rankStyle += "text-gray-300";
-                else if(index === 2) rankStyle += "text-amber-600";
+                if(index === 0 && !data.isFailed) rankStyle += "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.7)]";
+                else if(index === 1 && !data.isFailed) rankStyle += "text-gray-300";
+                else if(index === 2 && !data.isFailed) rankStyle += "text-amber-600";
                 else rankStyle += "text-gray-600";
-                
+
                 const countBadge = data.count > 1 ? `<span class="text-xs bg-amber-950/80 border border-amber-600 text-amber-200 px-2 py-0.5 rounded ml-2 font-mono-tech font-bold">${data.count}回目</span>` : '';
-                const timeColor = isRepeater ? "text-amber-400" : "text-red-400";
                 
-                // 人数表示
-                const memberCountText = data.memberCount ? `<span class="text-xs text-gray-400 font-normal ml-1 font-sans">(${data.memberCount}人)</span>` : '';
+                // 💡 不正解時の「記録なし」表記
+                const timeDisplay = data.isFailed 
+                    ? `<span class="text-xs sm:text-sm font-bold text-red-600 border border-red-950 bg-red-950/30 px-2 py-1 rounded">記録なし (不正解)</span>`
+                    : `<span class="font-mono-tech text-lg sm:text-xl ${isRepeater ? 'text-amber-400' : 'text-red-400'} font-bold tracking-wider drop-shadow-[0_0_6px_currentColor]">${formatTime(data.time)}</span>`;
+
+                const rankNumber = data.isFailed ? "#--" : `#${(index + 1).toString().padStart(2, '0')}`;
 
                 li.innerHTML = `
                     <div class="flex items-center">
-                        <span class="w-8 ${rankStyle}">#${(index + 1).toString().padStart(2, '0')}</span>
-                        <span class="font-bold text-base sm:text-lg text-white ml-1">
-                            ${data.teamName} ${memberCountText}
-                        </span>
+                        <span class="w-8 ${rankStyle}">${rankNumber}</span>
+                        <span class="font-bold text-base sm:text-lg text-white ml-1">${data.teamName}</span>
                         ${countBadge}
                     </div>
-                    <span class="font-mono-tech text-lg sm:text-xl ${timeColor} font-bold tracking-wider drop-shadow-[0_0_6px_currentColor]">
-                        ${formatTime(data.time)}
-                    </span>
+                    <div>${timeDisplay}</div>
                 `;
                 list.appendChild(li);
             });
@@ -185,10 +187,7 @@
         }
 
         function formatTime(ms) {
-            const m = Math.floor(ms / 60000).toString().padStart(2, '0');
-            const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0');
-            const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0');
-            return `${m}:${s}.${c}`;
+            const m = Math.floor(ms / 60000).toString().padStart(2, '0'); const s = Math.floor((ms % 60000) / 1000).toString().padStart(2, '0'); const c = Math.floor((ms % 1000) / 10).toString().padStart(2, '0'); return `${m}:${s}.${c}`;
         }
     </script>
 </body>
