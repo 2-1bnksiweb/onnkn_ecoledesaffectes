@@ -35,7 +35,6 @@
             min-height: 100dvh; 
         }
 
-        /* 🩸 ドス黒い血の文字 */
         .text-blood-dark {
             background: linear-gradient(180deg, #ff1a1a 0%, #b30000 40%, #4d0000 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
@@ -51,12 +50,16 @@
         }
         @keyframes stampIn { to { opacity: 0.95; transform: scale(1); } }
         
-        #blood-screen { position: absolute; inset: 0; background: #500000; opacity: 0; transition: opacity 0.2s; z-index: 10000; pointer-events: none; }
+        #blood-screen { 
+            position: absolute; inset: 0; 
+            opacity: 0; transition: opacity 0.2s; z-index: 10000; 
+            pointer-events: none;
+            background: linear-gradient(to bottom, #3d0000 0%, #660000 30%, #4a0000 100%);
+        }
         .shadow-btn { box-shadow: 0 4px 15px rgba(80, 0, 0, 0.7); }
     </style>
 </head>
 <body class="relative">
-    <!-- 光沢フィルター -->
     <svg style="position:absolute; width:0; height:0; pointer-events:none;">
         <defs>
             <filter id="blood-shine">
@@ -70,7 +73,6 @@
         </defs>
     </svg>
 
-    <!-- 🩸 血の装飾群（背景レイヤー） -->
     <svg class="fixed top-0 left-0 w-full pointer-events-none z-0 h-56 sm:h-72 opacity-85" viewBox="0 0 1000 300" preserveAspectRatio="none"><g id="curtain-layers"></g></svg>
     <svg class="fixed top-0 left-0 w-64 h-64 pointer-events-none z-0 opacity-60" viewBox="0 0 250 250" filter="url(#blood-shine)">
         <path d="M0,0 L110,0 C90,25 120,50 95,70 C70,85 60,115 30,95 C10,90 0,110 0,110 Z" fill="#4a0000" />
@@ -89,7 +91,6 @@
         <g fill="#7a0202"><circle cx="120" cy="30" r="5" /><circle cx="140" cy="45" r="2.5" /><circle cx="105" cy="95" r="5.5" /><circle cx="125" cy="115" r="3" /><circle cx="50" cy="135" r="5" /><circle cx="70" cy="160" r="2.5" /></g>
     </svg>
 
-    <!-- オープニングレイヤー -->
     <div id="opening">
         <div id="blood-screen">
             <svg class="w-full h-16 sm:h-24 absolute left-0" style="top: 0; transform: translateY(-98%); fill: #3d0000;" viewBox="0 0 1000 150" preserveAspectRatio="none">
@@ -98,8 +99,8 @@
         </div>
     </div>
 
-    <!-- メインコンテンツ -->
     <div id="main-content" class="max-w-md mx-auto p-6 min-h-[100dvh] relative opacity-0 transition-opacity duration-700 flex flex-col justify-center z-20">
+        
         <header class="flex justify-between items-center border-b border-red-950 pb-3 mb-8 text-gray-300 absolute top-8 left-6 right-6 z-30" style="text-shadow: 0 2px 4px #000;">
             <span class="tracking-widest text-lg">弐ノ壱 教室発表</span>
             <button id="menu-btn" onclick="toggleMenu()" class="text-4xl hover:text-red-500 drop-shadow-md transition-transform duration-300 w-10 h-10 flex items-center justify-center">☰</button>
@@ -124,13 +125,23 @@
             <svg class="w-full h-5 text-red-950 mt-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 200 15" preserveAspectRatio="none"><path d="M0,7 Q25,14 50,7 T100,7 T150,7 T200,7" stroke-width="1.2"></path><circle cx="45" cy="12" r="1.5" fill="currentColor" stroke="none" /><circle cx="165" cy="11" r="1.2" fill="currentColor" stroke="none" /></svg>
         </div>
 
-        <div class="mb-8 text-center px-2 relative">
+        <!-- 予約ボタン -->
+        <div class="mb-4 text-center px-2 relative">
             <a href="ticket.html" class="block w-full py-5 bg-[#260101] border border-[#520202] text-blood-dark text-2xl hover:bg-black transition tracking-widest shadow-btn relative z-10 font-bold">
                 予約 はこちらから
             </a>
         </div>
+
+        <!-- 💡【新設】予約確認はこちらボタン（ホームから直接飛べる！） -->
+        <div class="mb-4 text-center px-2 relative">
+            <a href="ticket.html?action=check" class="block w-full py-4 bg-[#140000] border border-[#3d0000] text-gray-300 text-lg hover:bg-black hover:text-white transition tracking-widest shadow-btn relative z-10 font-bold">
+                予約確認・QR再表示はこちら
+            </a>
+        </div>
+
+        <!-- ランキングボタン -->
         <div class="mb-4 text-center px-2">
-            <a href="ranking.html" class="block w-full py-5 bg-gray-950 border border-gray-800 text-gray-400 text-xl hover:bg-gray-900 transition tracking-widest shadow-lg font-bold">
+            <a href="ranking.html" class="block w-full py-4 bg-gray-950 border border-gray-800 text-gray-400 text-lg hover:bg-gray-900 transition tracking-widest shadow-lg font-bold">
                 ランキングを見る
             </a>
         </div>
@@ -201,20 +212,15 @@
             const mainContent = document.getElementById('main-content');
             if(!opening || !bloodScreen || !mainContent) return;
 
-            // ========================================================
-            // 🩸 【変更】10分間（600,000ms）はスキップされる時間管理タイマー
-            // ========================================================
             const now = Date.now();
             const lastPlayed = localStorage.getItem('openingLastPlayed');
             const tenMinutes = 10 * 60 * 1000;
 
-            // 前回再生から10分経っていなければ一瞬で画面を表示して終了
             if (lastPlayed && (now - parseInt(lastPlayed)) < tenMinutes) {
                 opening.style.display = 'none';
                 mainContent.style.opacity = '1';
                 return;
             }
-            // 再生される場合は、今の時間を「最後に再生した時間」として保存
             localStorage.setItem('openingLastPlayed', now.toString());
 
             let count = 0; const maxCount = 220; 
